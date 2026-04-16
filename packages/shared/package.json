@@ -9,6 +9,7 @@
     "./api/client": "./src/api/client.js",
     "./contracts/abilities": "./src/contracts/abilities.js",
     "./contracts/enums": "./src/contracts/enums.js",
+    "./i18n": "./src/i18n/index.js",
     "./maps/provider": "./src/maps/provider.js",
     "./realtime/channels": "./src/realtime/channels.js",
     "./validation/schemas": "./src/validation/schemas.js"

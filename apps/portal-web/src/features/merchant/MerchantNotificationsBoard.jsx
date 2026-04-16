@@ -58,7 +58,11 @@ export function MerchantNotificationsBoard() {
         </div>
       </div>
 
-      {feedback ? <div className="inline-feedback">{feedback}</div> : null}
+      {feedback ? (
+        <div aria-live="polite" className="inline-feedback" role="status">
+          {feedback}
+        </div>
+      ) : null}
 
       {data?.data.length ? (
         <div className="board-grid">

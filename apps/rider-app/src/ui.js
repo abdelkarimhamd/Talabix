@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useI18n } from './i18n';
 
 export function ScreenFrame({
   eyebrow,
@@ -7,13 +8,15 @@ export function ScreenFrame({
   description,
   children,
 }) {
+  const { textAlign, writingDirection } = useI18n();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>{eyebrow}</Text>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description}>{description}</Text>
+          <Text style={[styles.eyebrow, { textAlign, writingDirection }]}>{eyebrow}</Text>
+          <Text style={[styles.title, { textAlign, writingDirection }]}>{title}</Text>
+          <Text style={[styles.description, { textAlign, writingDirection }]}>{description}</Text>
         </View>
         {children}
       </ScrollView>
@@ -28,36 +31,46 @@ export function InfoCard({
   description,
   children,
 }) {
+  const { textAlign, writingDirection } = useI18n();
+
   return (
     <View style={[styles.card, { borderColor: accent }]}>
-      <Text style={styles.cardEyebrow}>{eyebrow}</Text>
-      <Text style={styles.cardTitle}>{title}</Text>
-      {description ? <Text style={styles.cardDescription}>{description}</Text> : null}
+      <Text style={[styles.cardEyebrow, { textAlign, writingDirection }]}>{eyebrow}</Text>
+      <Text style={[styles.cardTitle, { textAlign, writingDirection }]}>{title}</Text>
+      {description ? (
+        <Text style={[styles.cardDescription, { textAlign, writingDirection }]}>{description}</Text>
+      ) : null}
       {children}
     </View>
   );
 }
 
 export function ActionPill({ label }) {
+  const { textAlign, writingDirection } = useI18n();
+
   return (
     <View style={styles.pill}>
-      <Text style={styles.pillText}>{label}</Text>
+      <Text style={[styles.pillText, { textAlign, writingDirection }]}>{label}</Text>
     </View>
   );
 }
 
 export function AccentButton({ label, onPress, testID }) {
+  const { textAlign, writingDirection } = useI18n();
+
   return (
     <Pressable onPress={onPress} style={styles.button} testID={testID}>
-      <Text style={styles.buttonText}>{label}</Text>
+      <Text style={[styles.buttonText, { textAlign, writingDirection }]}>{label}</Text>
     </Pressable>
   );
 }
 
 export function SecondaryButton({ label, onPress, testID }) {
+  const { textAlign, writingDirection } = useI18n();
+
   return (
     <Pressable onPress={onPress} style={styles.secondaryButton} testID={testID}>
-      <Text style={styles.secondaryButtonText}>{label}</Text>
+      <Text style={[styles.secondaryButtonText, { textAlign, writingDirection }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -71,16 +84,22 @@ export function TextField({
   keyboardType = 'default',
   testID,
 }) {
+  const { textAlign, writingDirection } = useI18n();
+
   return (
     <View style={styles.fieldGroup}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <Text style={[styles.fieldLabel, { textAlign, writingDirection }]}>{label}</Text>
       <TextInput
         keyboardType={keyboardType}
         multiline={multiline}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor="#8aa2aa"
-        style={[styles.input, multiline ? styles.multilineInput : null]}
+        style={[
+          styles.input,
+          { textAlign, writingDirection },
+          multiline ? styles.multilineInput : null,
+        ]}
         testID={testID}
         value={value}
       />

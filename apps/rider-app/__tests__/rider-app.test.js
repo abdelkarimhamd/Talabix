@@ -7,9 +7,10 @@ import { RiderEarningsScreen } from '../src/screens/RiderEarningsScreen';
 import { RiderNotificationsScreen } from '../src/screens/RiderNotificationsScreen';
 import { AppProviders } from '../src/providers/AppProviders';
 import { resetRiderApiState } from '../src/rider-api';
+import { labelForEnum } from '@talabix/shared/i18n';
 
-function renderWithProviders(ui) {
-  return render(<AppProviders>{ui}</AppProviders>);
+function renderWithProviders(ui, options = {}) {
+  return render(<AppProviders initialLocale={options.locale}>{ui}</AppProviders>);
 }
 
 afterEach(() => {
@@ -18,6 +19,16 @@ afterEach(() => {
 });
 
 describe('rider app shell', () => {
+  it('renders the rider home screen in Arabic with RTL layout metadata', async () => {
+    renderWithProviders(<RiderHomeScreen />, { locale: 'ar' });
+
+    expect(await screen.findByText(/تطبيق المندوب/i)).toBeTruthy();
+    expect(await screen.findByText(/مسار تسليم مبسط/i)).toBeTruthy();
+    expect(await screen.findByText('متاح')).toBeTruthy();
+    expect(screen.queryByText(/^available$/i)).toBeNull();
+    expect(await screen.findByTestId('rider-locale-direction')).toHaveTextContent('rtl');
+  });
+
   it('renders the rider delivery overview', async () => {
     renderWithProviders(<RiderHomeScreen />);
 
@@ -40,9 +51,17 @@ describe('rider app shell', () => {
   });
 
   it('renders rider notifications and marks unread items as read', async () => {
-    renderWithProviders(<RiderNotificationsScreen />);
+    renderWithProviders(<RiderNotificationsScreen />, { locale: 'ar' });
 
     expect(await screen.findByText(/new assignment ready/i)).toBeTruthy();
+    expect(
+      (await screen.findAllByText(labelForEnum('notificationType', 'order_status_updated', 'ar'))).length
+    ).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByText(labelForEnum('notificationType', 'support_note_added', 'ar'))).length
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText(/^order status updated$/i)).toBeNull();
+    expect(screen.queryByText(/^support note added$/i)).toBeNull();
     // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(async () => {
       fireEvent.press(screen.getByTestId('mark-rider-notification-802'));
@@ -69,6 +88,17 @@ describe('rider app shell', () => {
     expect(await screen.findByText(/SAR 47.00/i)).toBeTruthy();
     expect(await screen.findByText(/3 delivered orders/i)).toBeTruthy();
     expect(await screen.findByText(/mama noura/i)).toBeTruthy();
+  });
+
+  it('renders rider delivery enum labels in Arabic without raw wire keys', async () => {
+    renderWithProviders(<DeliveryScreen />, { locale: 'ar' });
+
+    expect(
+      await screen.findByText(labelForEnum('orderTimelineEventType', 'order_placed', 'ar'))
+    ).toBeTruthy();
+    expect(await screen.findByText(labelForEnum('proofType', 'recipient_confirmation', 'ar'))).toBeTruthy();
+    expect(screen.queryByText(/^order placed$/i)).toBeNull();
+    expect(screen.queryByText(/recipient_confirmation/i)).toBeNull();
   });
 
   it('completes the rider proof capture flow', async () => {

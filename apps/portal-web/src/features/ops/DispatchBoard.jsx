@@ -243,7 +243,11 @@ export function DispatchBoard() {
         </span>
       </div>
 
-      {feedback ? <p className="inline-feedback">{feedback}</p> : null}
+      {feedback ? (
+        <p aria-live="polite" className="inline-feedback" role="status">
+          {feedback}
+        </p>
+      ) : null}
 
       <div className="toolbar">
         <select

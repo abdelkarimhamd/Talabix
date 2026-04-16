@@ -8,6 +8,7 @@ import {
   getCurrentRiderOrder,
   getRiderNavigationPlan,
 } from '../rider-api';
+import { useI18n } from '../i18n';
 import {
   AccentButton,
   ActionPill,
@@ -21,6 +22,7 @@ import {
 export function DeliveryScreen({
   openExternalUrl = (url) => Linking.openURL(url),
 }) {
+  const { labelForEnum } = useI18n();
   const queryClient = useQueryClient();
   const [feedback, setFeedback] = useState();
   const [proofType, setProofType] = useState('recipient_confirmation');
@@ -94,6 +96,7 @@ export function DeliveryScreen({
   });
 
   const proofMetadata = order?.delivery_assignment?.proof_metadata;
+  const selectedProofTypeLabel = labelForEnum('proofType', proofType);
 
   return (
     <ScreenFrame
@@ -153,22 +156,22 @@ export function DeliveryScreen({
           <View style={screenStyles.form}>
             <View style={screenStyles.buttonRow}>
               <SecondaryButton
-                label="Recipient confirmation"
+                label={labelForEnum('proofType', 'recipient_confirmation')}
                 onPress={() => setProofType('recipient_confirmation')}
                 testID="proof-type-recipient"
               />
               <SecondaryButton
-                label="Photo"
+                label={labelForEnum('proofType', 'photo')}
                 onPress={() => setProofType('photo')}
                 testID="proof-type-photo"
               />
               <SecondaryButton
-                label="Handoff code"
+                label={labelForEnum('proofType', 'handoff_code')}
                 onPress={() => setProofType('handoff_code')}
                 testID="proof-type-handoff"
               />
             </View>
-            <Text style={screenStyles.muted}>Selected proof mode: {proofType}</Text>
+            <Text style={screenStyles.muted}>Selected proof mode: {selectedProofTypeLabel}</Text>
             <TextField
               label="Recipient name"
               onChangeText={setRecipientName}
@@ -203,7 +206,7 @@ export function DeliveryScreen({
           {proofMetadata ? (
             <Text style={screenStyles.muted}>
               Delivered to {proofMetadata.recipient_name || 'recipient not specified'} using{' '}
-              {proofMetadata.proof_type}.
+              {labelForEnum('proofType', proofMetadata.proof_type)}.
             </Text>
           ) : null}
         </InfoCard>
@@ -266,15 +269,20 @@ export function DeliveryScreen({
               step.metadata?.recipient_name
                 ? `Recipient: ${step.metadata.recipient_name}`
                 : step.metadata?.proof_type
-                  ? `Proof type: ${step.metadata.proof_type}`
+                  ? `Proof type: ${labelForEnum('proofType', step.metadata.proof_type)}`
                   : step.actor_role ?? 'System event'
             }
             eyebrow="Timeline event"
             key={`${step.event_type}-${step.created_at}`}
-            title={step.event_type.replaceAll('_', ' ')}
+            title={labelForEnum('orderTimelineEventType', step.event_type)}
           >
             <Text style={screenStyles.muted}>
-              {step.from_status ? `${step.from_status} -> ${step.to_status}` : 'Order event recorded'}
+              {step.from_status
+                ? `${labelForEnum('orderStatus', step.from_status)} -> ${labelForEnum(
+                    'orderStatus',
+                    step.to_status
+                  )}`
+                : 'Order event recorded'}
             </Text>
           </InfoCard>
         ))}

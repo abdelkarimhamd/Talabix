@@ -90,4 +90,5 @@ jobs:
 
       - run: npm install
       - run: npm run lint
+      - run: npm run i18n:audit
       - run: npm run test

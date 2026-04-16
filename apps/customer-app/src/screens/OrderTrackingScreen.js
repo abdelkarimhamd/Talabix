@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { Text, View } from 'react-native';
 import { getActiveOrder, getCustomerOrder } from '../customer-api';
+import { useI18n } from '../i18n';
 import { InfoCard, ScreenFrame, screenStyles } from '../ui';
 
 export function OrderTrackingScreen({ orderId }) {
+  const { labelForEnum } = useI18n();
   const { data: order } = useQuery({
     queryKey: ['customer-order', orderId],
     queryFn: () => (orderId ? getCustomerOrder(orderId) : getActiveOrder()),
@@ -19,7 +21,7 @@ export function OrderTrackingScreen({ orderId }) {
         accent="#26a69a"
         description={`Order ${orderId ?? order?.uuid ?? 'loading'}`}
         eyebrow="Current status"
-        title={order ? order.status.replaceAll('_', ' ') : 'Loading status'}
+        title={order ? labelForEnum('orderStatus', order.status) : 'Loading status'}
       >
         <Text style={screenStyles.statValue}>
           {order ? `${(order.total_minor / 100).toFixed(2)} ${order.currency}` : '--'}
@@ -36,7 +38,7 @@ export function OrderTrackingScreen({ orderId }) {
             description={event.created_at ?? 'timestamp pending'}
             eyebrow="Timeline event"
             key={`${event.event_type}-${event.created_at}`}
-            title={event.event_type.replaceAll('_', ' ')}
+            title={labelForEnum('orderTimelineEventType', event.event_type)}
           />
         ))}
       </View>

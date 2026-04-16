@@ -1,4 +1,5 @@
 import React from 'react';
+// i18n-audit: strict
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
@@ -21,70 +22,73 @@ import { OpsConfigurationBoard } from './features/ops/OpsConfigurationBoard.jsx'
 import { SettlementBoard } from './features/ops/SettlementBoard.jsx';
 import { SupportConsole } from './features/ops/SupportConsole.jsx';
 import { createPortalApi } from './portal-api.js';
+import { I18nProvider } from './i18n-provider.jsx';
+import { useI18n } from './use-i18n.js';
 import { defaultOpsSession } from './session-defaults.js';
 import { SessionProvider } from './session-context.jsx';
 import { useSession } from './use-session.js';
 
 const navItems = [
   {
-    label: 'Merchant Orders',
+    labelKey: 'navigation.merchantOrders',
     path: '/merchant/orders',
     actors: ['merchant'],
-    badge: 'Live',
+    badgeKey: 'navigation.badges.live',
   },
   {
-    label: 'Merchant Catalog',
+    labelKey: 'navigation.merchantCatalog',
     path: '/merchant/catalog',
     actors: ['merchant'],
-    badge: 'Scoped',
+    badgeKey: 'navigation.badges.scoped',
   },
   {
-    label: 'Merchant Reports',
+    labelKey: 'navigation.merchantReports',
     path: '/merchant/reports',
     actors: ['merchant'],
-    badge: 'Sales',
+    badgeKey: 'navigation.badges.sales',
   },
   {
-    label: 'Merchant Inbox',
+    labelKey: 'navigation.merchantInbox',
     path: '/merchant/notifications',
     actors: ['merchant'],
-    badge: 'Inbox',
+    badgeKey: 'navigation.badges.inbox',
   },
   {
-    label: 'Ops Dashboard',
+    labelKey: 'navigation.opsDashboard',
     path: '/ops/dashboard',
     actors: ['ops'],
-    badge: 'KPI',
+    badgeKey: 'navigation.badges.kpi',
   },
   {
-    label: 'Ops Configuration',
+    labelKey: 'navigation.opsConfiguration',
     path: '/ops/configuration',
     actors: ['ops'],
-    badge: 'Config',
+    badgeKey: 'navigation.badges.config',
   },
   {
-    label: 'Dispatch Board',
+    labelKey: 'navigation.dispatchBoard',
     path: '/ops/dispatch',
     actors: ['ops'],
-    badge: 'Ops',
+    badgeKey: 'navigation.badges.ops',
   },
   {
-    label: 'Support Console',
+    labelKey: 'navigation.supportConsole',
     path: '/ops/support',
     actors: ['ops'],
-    badge: 'Audit',
+    badgeKey: 'navigation.badges.audit',
   },
   {
-    label: 'Settlement Ledger',
+    labelKey: 'navigation.settlementLedger',
     path: '/ops/settlements',
     actors: ['ops'],
-    badge: 'Finance',
+    badgeKey: 'navigation.badges.finance',
   },
 ];
 
 export function App({
   initialSession = defaultOpsSession,
   initialEntries,
+  initialLocale,
 }) {
   const [queryClient] = useState(
     () =>
@@ -102,183 +106,213 @@ export function App({
   const routerProps = initialEntries ? { initialEntries } : {};
 
   return (
-    <SessionProvider session={initialSession} api={createPortalApi(initialSession)}>
-      <QueryClientProvider client={queryClient}>
-        <RouterComponent {...routerProps}>
-          <Routes>
-            <Route element={<PortalLayout />}>
-              <Route index element={<HomeRedirect />} />
-              <Route
-                path="/merchant/orders"
-                element={
-                  <RequireAccess allowedActors={['merchant']}>
-                    <MerchantOrderBoard />
-                  </RequireAccess>
-                }
-              />
-              <Route
-                path="/merchant/catalog"
-                element={
-                  <RequireAccess
-                    allowedActors={['merchant']}
-                    requiredPermissions={['merchant:catalog.read']}
-                  >
-                    <MerchantCatalogManager />
-                  </RequireAccess>
-                }
-              />
-              <Route
-                path="/merchant/notifications"
-                element={
-                  <RequireAccess
-                    allowedActors={['merchant']}
-                    requiredPermissions={['merchant:notifications.read']}
-                  >
-                    <MerchantNotificationsBoard />
-                  </RequireAccess>
-                }
-              />
-              <Route
-                path="/merchant/reports"
-                element={
-                  <RequireAccess
-                    allowedActors={['merchant']}
-                    requiredPermissions={['merchant:dashboard.read']}
-                  >
-                    <MerchantSalesReportBoard />
-                  </RequireAccess>
-                }
-              />
-              <Route
-                path="/ops/dashboard"
-                element={
-                  <RequireAccess
-                    allowedActors={['ops']}
-                    requiredPermissions={['ops:dashboard.read']}
-                  >
-                    <OpsDashboardBoard />
-                  </RequireAccess>
-                }
-              />
-              <Route
-                path="/ops/configuration"
-                element={
-                  <RequireAccess
-                    allowedActors={['ops']}
-                    requiredPermissions={['ops:merchants.manage']}
-                  >
-                    <OpsConfigurationBoard />
-                  </RequireAccess>
-                }
-              />
-              <Route
-                path="/ops/dispatch"
-                element={
-                  <RequireAccess
-                    allowedActors={['ops']}
-                    requiredPermissions={['ops:dispatch.manage']}
-                  >
-                    <DispatchBoard />
-                  </RequireAccess>
-                }
-              />
-              <Route
-                path="/ops/settlements"
-                element={
-                  <RequireAccess
-                    allowedActors={['ops']}
-                    requiredPermissions={['ops:settlements.read']}
-                  >
-                    <SettlementBoard />
-                  </RequireAccess>
-                }
-              />
-              <Route
-                path="/ops/support"
-                element={
-                  <RequireAccess
-                    allowedActors={['ops']}
-                    requiredPermissions={['ops:support.manage']}
-                  >
-                    <SupportConsole />
-                  </RequireAccess>
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
-          </Routes>
-        </RouterComponent>
-      </QueryClientProvider>
-    </SessionProvider>
+    <I18nProvider initialLocale={initialLocale}>
+      <SessionProvider session={initialSession} api={createPortalApi(initialSession)}>
+        <QueryClientProvider client={queryClient}>
+          <RouterComponent {...routerProps}>
+            <Routes>
+              <Route element={<PortalLayout />}>
+                <Route index element={<HomeRedirect />} />
+                <Route
+                  path="/merchant/orders"
+                  element={
+                    <RequireAccess allowedActors={['merchant']}>
+                      <MerchantOrderBoard />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/merchant/catalog"
+                  element={
+                    <RequireAccess
+                      allowedActors={['merchant']}
+                      requiredPermissions={['merchant:catalog.read']}
+                    >
+                      <MerchantCatalogManager />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/merchant/notifications"
+                  element={
+                    <RequireAccess
+                      allowedActors={['merchant']}
+                      requiredPermissions={['merchant:notifications.read']}
+                    >
+                      <MerchantNotificationsBoard />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/merchant/reports"
+                  element={
+                    <RequireAccess
+                      allowedActors={['merchant']}
+                      requiredPermissions={['merchant:dashboard.read']}
+                    >
+                      <MerchantSalesReportBoard />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/ops/dashboard"
+                  element={
+                    <RequireAccess
+                      allowedActors={['ops']}
+                      requiredPermissions={['ops:dashboard.read']}
+                    >
+                      <OpsDashboardBoard />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/ops/configuration"
+                  element={
+                    <RequireAccess
+                      allowedActors={['ops']}
+                      requiredPermissions={['ops:merchants.manage']}
+                    >
+                      <OpsConfigurationBoard />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/ops/dispatch"
+                  element={
+                    <RequireAccess
+                      allowedActors={['ops']}
+                      requiredPermissions={['ops:dispatch.manage']}
+                    >
+                      <DispatchBoard />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/ops/settlements"
+                  element={
+                    <RequireAccess
+                      allowedActors={['ops']}
+                      requiredPermissions={['ops:settlements.read']}
+                    >
+                      <SettlementBoard />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/ops/support"
+                  element={
+                    <RequireAccess
+                      allowedActors={['ops']}
+                      requiredPermissions={['ops:support.manage']}
+                    >
+                      <SupportConsole />
+                    </RequireAccess>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+            </Routes>
+          </RouterComponent>
+        </QueryClientProvider>
+      </SessionProvider>
+    </I18nProvider>
   );
 }
 
 function PortalLayout() {
   const { session } = useSession();
+  const { locale, setLocale, t } = useI18n();
   const visibleNav = navItems.filter((item) => item.actors.includes(session.actor));
   const activeAbilities = actorAbilities[session.actor] ?? [];
 
   return (
     <div className="portal-shell">
+      <a className="skip-link" href="#portal-main">
+        {t('common.skipToMain')}
+      </a>
       <div className="portal-grid">
         <aside className="sidebar panel">
           <div className="sidebar-copy">
-            <span className="brand-mark">T</span>
-            <span className="eyebrow">Delivery control</span>
-            <h1>Talabix portal</h1>
-            <p>
-              One React shell, split by actor routes and permissions so merchant staff
-              and ops teams share infrastructure without sharing scope.
-            </p>
+            <span className="brand-mark">{t('portal.brandMark')}</span>
+            <span className="eyebrow">{t('portal.deliveryControl')}</span>
+            <h1>{t('portal.title')}</h1>
+            <p>{t('portal.summary')}</p>
           </div>
 
-          <nav className="nav-list" aria-label="Primary">
+          <nav className="nav-list" aria-label={t('navigation.primary')}>
             {visibleNav.map((item) => (
               <NavLink
                 key={item.path}
                 className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
                 to={item.path}
               >
-                <span>{item.label}</span>
-                <span className="nav-pill">{item.badge}</span>
+                <span>{t(item.labelKey)}</span>
+                <span aria-hidden="true" className="nav-pill">
+                  {t(item.badgeKey)}
+                </span>
               </NavLink>
             ))}
           </nav>
 
+          <div
+            aria-label={t('common.language.switcherLabel')}
+            className="language-switcher"
+            role="group"
+          >
+            <button
+              aria-label={t('common.language.englishNative')}
+              aria-pressed={locale === 'en'}
+              className={locale === 'en' ? 'active' : ''}
+              onClick={() => setLocale('en')}
+              translate="no"
+              type="button"
+            >
+              {t('common.language.englishNative')}
+            </button>
+            <button
+              aria-label={`${t('common.language.arabicNative')} Arabic`}
+              aria-pressed={locale === 'ar'}
+              className={locale === 'ar' ? 'active' : ''}
+              onClick={() => setLocale('ar')}
+              translate="no"
+              type="button"
+            >
+              {t('common.language.arabicNative')}
+            </button>
+          </div>
+
           <div className="session-card">
-            <span className="eyebrow">Active session</span>
+            <span className="eyebrow">{t('portal.activeSession')}</span>
             <strong>{session.label}</strong>
             <p>{session.scopeSummary}</p>
             <div className="session-tags">
               {activeAbilities.slice(0, 5).map((ability) => (
-                <span key={ability}>{ability}</span>
+                <span key={ability} translate="no">
+                  {ability}
+                </span>
               ))}
             </div>
           </div>
         </aside>
 
-        <main className="content">
+        <main className="content" id="portal-main" tabIndex="-1">
           <section className="hero panel">
             <div className="hero-grid">
               <div className="hero-copy">
-                <span className="eyebrow">Route partitioning</span>
-                <h2>Realtime boards without cross-actor leakage.</h2>
-                <p>
-                  The portal keeps merchant order operations and internal ops tools in one
-                  codebase, while policy-aware route guards and scoped abilities decide who
-                  can see or mutate each slice.
-                </p>
+                <span className="eyebrow">{t('portal.routePartitioning')}</span>
+                <h2>{t('portal.heroTitle')}</h2>
+                <p>{t('portal.heroBody')}</p>
               </div>
               <div className="hero-metrics">
                 <div className="metric-card">
-                  <span className="eyebrow">Namespaces</span>
-                  <strong>4 actor APIs</strong>
-                  <p>/customer, /merchant, /rider, and /ops share one Laravel backend.</p>
+                  <span className="eyebrow">{t('portal.namespaces')}</span>
+                  <strong>{t('portal.actorApis')}</strong>
+                  <p>{t('portal.actorApisBody')}</p>
                 </div>
                 <div className="metric-card">
-                  <span className="eyebrow">Contracts</span>
-                  <strong>Shared validators</strong>
-                  <p>Zod schemas, channel names, and ability constants come from one package.</p>
+                  <span className="eyebrow">{t('portal.contracts')}</span>
+                  <strong>{t('portal.sharedValidators')}</strong>
+                  <p>{t('portal.sharedValidatorsBody')}</p>
                 </div>
               </div>
             </div>
@@ -307,6 +341,7 @@ function RequireAccess({
   children,
 }) {
   const { session } = useSession();
+  const { t } = useI18n();
   const hasActorAccess = allowedActors.includes(session.actor);
   const hasPermissionAccess = requiredPermissions.every((permission) =>
     session.permissions.includes(permission)
@@ -315,12 +350,9 @@ function RequireAccess({
   if (!hasActorAccess || !hasPermissionAccess) {
     return (
       <section className="panel unauthorized">
-        <span className="eyebrow">Access blocked</span>
-        <h2>Not authorized for this route</h2>
-        <p>
-          The portal renders shared code, but route groups and ability scopes stay
-          strict. Switch to a session that owns this path to continue.
-        </p>
+        <span className="eyebrow">{t('auth.accessBlocked')}</span>
+        <h2>{t('auth.notAuthorized')}</h2>
+        <p>{t('auth.routeScopeHelp')}</p>
       </section>
     );
   }

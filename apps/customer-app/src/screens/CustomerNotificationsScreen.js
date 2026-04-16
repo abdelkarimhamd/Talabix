@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { getCustomerNotifications, markCustomerNotificationRead } from '../customer-api';
+import { useI18n } from '../i18n';
 import {
   ActionPill,
   InfoCard,
@@ -9,10 +10,6 @@ import {
   SecondaryButton,
   screenStyles,
 } from '../ui';
-
-function humanize(value) {
-  return value.replaceAll('_', ' ');
-}
 
 function applyReadState(currentInbox, notification) {
   if (!currentInbox) {
@@ -35,6 +32,7 @@ function applyReadState(currentInbox, notification) {
 
 export function CustomerNotificationsScreen() {
   const queryClient = useQueryClient();
+  const { labelForEnum } = useI18n();
   const [feedback, setFeedback] = useState();
   const [unreadOnly, setUnreadOnly] = useState(false);
   const { data: inbox } = useQuery({
@@ -94,7 +92,7 @@ export function CustomerNotificationsScreen() {
               title={notification.title}
             >
               <View style={screenStyles.row}>
-                <ActionPill label={humanize(notification.notification_type)} />
+                <ActionPill label={labelForEnum('notificationType', notification.notification_type)} />
                 <ActionPill
                   label={notification.order_uuid ? notification.order_uuid.slice(0, 8).toUpperCase() : 'General'}
                 />

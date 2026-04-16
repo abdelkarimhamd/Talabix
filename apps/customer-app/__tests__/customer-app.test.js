@@ -11,9 +11,10 @@ import { MerchantDetailScreen } from '../src/screens/MerchantDetailScreen';
 import { OrderTrackingScreen } from '../src/screens/OrderTrackingScreen';
 import { AppProviders } from '../src/providers/AppProviders';
 import { resetCustomerApiState } from '../src/customer-api';
+import { labelForEnum } from '@talabix/shared/i18n';
 
-function renderWithProviders(ui) {
-  return render(<AppProviders>{ui}</AppProviders>);
+function renderWithProviders(ui, options = {}) {
+  return render(<AppProviders initialLocale={options.locale}>{ui}</AppProviders>);
 }
 
 beforeEach(() => {
@@ -25,6 +26,18 @@ afterEach(() => {
 });
 
 describe('customer identity and discovery slice', () => {
+  it('renders the customer home screen in Arabic with RTL layout metadata', async () => {
+    renderWithProviders(<CustomerHomeScreen />, { locale: 'ar' });
+
+    expect(
+      await screen.findByText('هوية العميل والاكتشاف يعملان الآن كشريحة واحدة.')
+    ).toBeTruthy();
+    expect(await screen.findByText('تصفية المتاجر حسب العنوان')).toBeTruthy();
+    expect(await screen.findByText('تم الإسناد')).toBeTruthy();
+    expect(screen.queryByText(/^assigned$/i)).toBeNull();
+    expect(await screen.findByTestId('customer-locale-direction')).toHaveTextContent('rtl');
+  });
+
   it('validates and submits the registration form', async () => {
     renderWithProviders(<CustomerRegistrationScreen />);
 
@@ -89,9 +102,17 @@ describe('customer identity and discovery slice', () => {
   });
 
   it('renders customer notifications and marks unread items as read', async () => {
-    renderWithProviders(<CustomerNotificationsScreen />);
+    renderWithProviders(<CustomerNotificationsScreen />, { locale: 'ar' });
 
     expect(await screen.findByText(/rider assigned/i)).toBeTruthy();
+    expect(
+      (await screen.findAllByText(labelForEnum('notificationType', 'order_status_updated', 'ar'))).length
+    ).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByText(labelForEnum('notificationType', 'support_note_added', 'ar'))).length
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText(/^order status updated$/i)).toBeNull();
+    expect(screen.queryByText(/^support note added$/i)).toBeNull();
     // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(async () => {
       fireEvent.press(screen.getByTestId('mark-customer-notification-602'));
@@ -153,9 +174,12 @@ describe('customer identity and discovery slice', () => {
     await act(async () => {
       utils.unmount();
     });
-    renderWithProviders(<OrderTrackingScreen orderId={order.uuid} />);
+    renderWithProviders(<OrderTrackingScreen orderId={order.uuid} />, { locale: 'ar' });
 
     expect(await screen.findByText(/talabix order tracking/i)).toBeTruthy();
-    expect(await screen.findByText(/^placed$/i)).toBeTruthy();
+    expect(await screen.findByText(labelForEnum('orderStatus', 'placed', 'ar'))).toBeTruthy();
+    expect(await screen.findByText(labelForEnum('orderTimelineEventType', 'order_placed', 'ar'))).toBeTruthy();
+    expect(screen.queryByText(/^placed$/i)).toBeNull();
+    expect(screen.queryByText(/^order placed$/i)).toBeNull();
   });
 });

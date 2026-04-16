@@ -456,7 +456,7 @@ export function MerchantCatalogManager() {
           value={searchTerm}
         />
         <button onClick={() => catalogItemsQuery.refetch()} type="button">
-          {catalogItemsQuery.isFetching ? 'Refreshing...' : 'Refresh catalog'}
+          {catalogItemsQuery.isFetching ? 'Refreshing…' : 'Refresh catalog'}
         </button>
       </div>
 
@@ -473,7 +473,11 @@ export function MerchantCatalogManager() {
         </div>
       </div>
 
-      {feedback ? <div className="inline-feedback">{feedback}</div> : null}
+      {feedback ? (
+        <div aria-live="polite" className="inline-feedback" role="status">
+          {feedback}
+        </div>
+      ) : null}
 
       <div className="catalog-layout">
         <aside className="catalog-sidebar">
@@ -675,7 +679,7 @@ export function MerchantCatalogManager() {
                   disabled={createCatalogItemMutation.isPending || !selectedMerchantUuid}
                   type="submit"
                 >
-                  {createCatalogItemMutation.isPending ? 'Creating...' : 'Create catalog item'}
+                  {createCatalogItemMutation.isPending ? 'Creating…' : 'Create catalog item'}
                 </button>
               </form>
             ) : (
@@ -857,7 +861,7 @@ export function MerchantCatalogManager() {
                     disabled={updateCatalogItemMutation.isPending}
                     type="submit"
                   >
-                    {updateCatalogItemMutation.isPending ? 'Saving...' : 'Save base item'}
+                    {updateCatalogItemMutation.isPending ? 'Saving…' : 'Save base item'}
                   </button>
                 </form>
               ) : (
@@ -1066,7 +1070,7 @@ export function MerchantCatalogManager() {
                         disabled={createModifierGroupMutation.isPending}
                         type="submit"
                       >
-                        {createModifierGroupMutation.isPending ? 'Saving group...' : 'Create modifier group'}
+                        {createModifierGroupMutation.isPending ? 'Saving group…' : 'Create modifier group'}
                       </button>
                     </div>
                   </form>
@@ -1306,7 +1310,7 @@ export function MerchantCatalogManager() {
                               onClick={() => handleSaveModifierGroup(group.uuid)}
                               type="button"
                             >
-                              {isSavingGroup ? 'Saving group...' : `Save ${group.name}`}
+                              {isSavingGroup ? 'Saving group…' : `Save ${group.name}`}
                             </button>
                           </div>
                         ) : null}
@@ -1432,7 +1436,7 @@ export function MerchantCatalogManager() {
                         >
                           {branchOverrideMutation.isPending &&
                           branchOverrideMutation.variables?.branchUuid === branch.uuid
-                            ? 'Saving...'
+                            ? 'Saving…'
                             : `Save ${branch.name} override`}
                         </button>
                       ) : null}

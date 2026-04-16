@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+// i18n-audit: strict
 import { useState } from 'react';
 import { Text, View } from 'react-native';
+import { useI18n } from '../i18n';
 import { getRiderNotifications, getRiderOverview, updateRiderAvailability } from '../rider-api';
 import {
   AccentButton,
@@ -12,6 +14,7 @@ import {
 } from '../ui';
 
 export function RiderHomeScreen({ actions = null }) {
+  const { dir, labelForEnum, t, tp } = useI18n();
   const queryClient = useQueryClient();
   const [feedback, setFeedback] = useState();
   const { data } = useQuery({
@@ -26,73 +29,83 @@ export function RiderHomeScreen({ actions = null }) {
     mutationFn: updateRiderAvailability,
     onSuccess: (_, availability) => {
       queryClient.invalidateQueries({ queryKey: ['rider-overview'] });
-      setFeedback(`Availability updated to ${availability}.`);
+      setFeedback(
+        t('rider.home.availabilityUpdated', {
+          availability: labelForEnum('riderAvailability', availability),
+        })
+      );
     },
   });
 
   return (
     <ScreenFrame
-      description="Availability, assignment intake, pickup confirmation, and delivery proof now move through one rider-specific flow that matches the backend lifecycle."
-      eyebrow="Rider app"
-      title="Delivery flow optimized for one active order at a time."
+      description={t('rider.home.description')}
+      eyebrow={t('rider.home.eyebrow')}
+      title={t('rider.home.title')}
     >
+      <Text testID="rider-locale-direction" style={{ height: 0, opacity: 0 }}>
+        {dir}
+      </Text>
       <InfoCard
         accent="#26a69a"
         description={data?.pickupBranch}
-        eyebrow="Active assignment"
-        title={data?.orderUuid ? data.orderUuid.slice(0, 8).toUpperCase() : 'Waiting for dispatch'}
+        eyebrow={t('rider.home.activeAssignment')}
+        title={data?.orderUuid ? data.orderUuid.slice(0, 8).toUpperCase() : t('rider.home.waitingDispatch')}
       >
         <Text style={screenStyles.statValue}>
-          {data ? `${data.activeStops} active stop` : '...'}
+          {data ? tp('rider.home.activeStops', data.activeStops) : '...'}
         </Text>
         <Text style={screenStyles.muted}>
           {data
-            ? `Customer ${data.customerName} - Drop-off ${data.dropoffArea}`
-            : 'Waiting for dispatch data.'}
+            ? t('rider.home.customerDropoff', {
+                customer: data.customerName,
+                dropoff: data.dropoffArea,
+              })
+            : t('rider.home.waitingDispatchData')}
         </Text>
-        {data ? <ActionPill label={`Next: ${data.nextActionLabel}`} /> : null}
+        {data ? <ActionPill label={t('rider.home.nextAction', { action: data.nextActionLabel })} /> : null}
       </InfoCard>
 
       <InfoCard
         accent="#7fc7bc"
-        description="Assignment and support updates now surface through the rider's in-app inbox, separate from push delivery state."
-        eyebrow="Inbox"
+        description={t('rider.home.inboxDescription')}
+        eyebrow={t('rider.home.inbox')}
         title={
           notificationInbox
-            ? `${notificationInbox.meta.unread_count} unread notification${
-                notificationInbox.meta.unread_count === 1 ? '' : 's'
-              }`
-            : 'Loading rider inbox'
+            ? tp('rider.home.unreadNotifications', notificationInbox.meta.unread_count)
+            : t('rider.home.loadingInbox')
         }
       >
         <View style={screenStyles.row}>
-          <ActionPill label={`${notificationInbox?.meta.total ?? 0} total`} />
-          <ActionPill label={`${notificationInbox?.meta.unread_count ?? 0} unread`} />
+          <ActionPill label={t('common.total', { count: notificationInbox?.meta.total ?? 0 })} />
+          <ActionPill
+            label={t('common.unread', { count: notificationInbox?.meta.unread_count ?? 0 })}
+          />
         </View>
         <Text style={screenStyles.muted}>
           {notificationInbox?.data[0]
             ? `${notificationInbox.data[0].title} - ${notificationInbox.data[0].body}`
-            : 'Dispatch and support notifications will appear here for the active rider session.'}
+            : t('rider.home.emptyInbox')}
         </Text>
       </InfoCard>
 
       <InfoCard
         accent="#112134"
-        description="The rider shell mirrors the dispatch assumptions from the backend: no batching, no route optimization, no stacked orders in v1."
-        eyebrow="Availability"
-        title={data ? data.availability : '...'}
+        description={t('rider.home.availabilityDescription')}
+        eyebrow={t('rider.home.availability')}
+        title={data ? labelForEnum('riderAvailability', data.availability) : '...'}
       >
         <Text style={screenStyles.muted}>
-          Toggle online state, then accept, pick up, deliver, and capture proof.
+          {t('rider.home.availabilityHelp')}
         </Text>
         <View style={screenStyles.buttonRow}>
           <AccentButton
-            label="Go available"
+            label={t('rider.home.goAvailable')}
             onPress={() => availabilityMutation.mutate('available')}
             testID="set-rider-available"
           />
           <SecondaryButton
-            label="Go offline"
+            label={t('rider.home.goOffline')}
             onPress={() => availabilityMutation.mutate('offline')}
             testID="set-rider-offline"
           />
@@ -102,9 +115,9 @@ export function RiderHomeScreen({ actions = null }) {
 
       <InfoCard
         accent="#7fc7bc"
-        description="Route files stay in Expo Router, while the screens stay testable as plain React Native components with one mutable assignment state."
-        eyebrow="Next steps"
-        title="Rider actions"
+        description={t('rider.home.nextStepsDescription')}
+        eyebrow={t('rider.home.nextSteps')}
+        title={t('rider.home.riderActions')}
       >
         <View style={screenStyles.row}>{actions}</View>
       </InfoCard>

@@ -266,6 +266,51 @@ describe('portal routing', () => {
     expect(await screen.findByText(/yousef al-anzi/i)).toBeInTheDocument();
   });
 
+  it('exposes keyboard-friendly portal chrome controls', async () => {
+    render(<App initialEntries={['/ops/dashboard']} initialSession={defaultOpsSession} />);
+
+    expect(screen.getByRole('link', { name: /skip to main content/i })).toHaveAttribute(
+      'href',
+      '#portal-main'
+    );
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'portal-main');
+    expect(screen.getByRole('button', { name: /english/i })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: /arabic/i })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+
+    expect(
+      await screen.findByText(/marketplace KPI view across orders, finance, and rider earnings/i)
+    ).toBeInTheDocument();
+  });
+
+  it('renders Arabic RTL portal chrome and can switch back to English', async () => {
+    render(
+      <App
+        initialEntries={['/ops/dashboard']}
+        initialLocale="ar"
+        initialSession={defaultOpsSession}
+      />
+    );
+
+    expect(document.documentElement).toHaveAttribute('lang', 'ar');
+    expect(document.documentElement).toHaveAttribute('dir', 'rtl');
+    expect(await screen.findByRole('link', { name: /لوحة العمليات/i })).toBeInTheDocument();
+    expect(await screen.findByText(/مؤشرات السوق/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /English/i }));
+
+    await waitFor(() => {
+      expect(document.documentElement).toHaveAttribute('lang', 'en');
+    });
+    expect(document.documentElement).toHaveAttribute('dir', 'ltr');
+    expect(await screen.findByRole('link', { name: /Ops Dashboard/i })).toBeInTheDocument();
+  });
+
   it('renders dispatch actions for ops users', async () => {
     render(<App initialEntries={['/ops/dispatch']} initialSession={defaultOpsSession} />);
 

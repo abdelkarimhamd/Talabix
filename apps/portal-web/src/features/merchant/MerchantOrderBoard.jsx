@@ -189,7 +189,7 @@ export function MerchantOrderBoard() {
           ))}
         </select>
         <button onClick={() => refetch()} type="button">
-          {isFetching ? 'Refreshing...' : 'Refresh board'}
+          {isFetching ? 'Refreshing…' : 'Refresh board'}
         </button>
       </div>
 
@@ -206,7 +206,11 @@ export function MerchantOrderBoard() {
         </div>
       </div>
 
-      {feedback ? <div className="inline-feedback">{feedback}</div> : null}
+      {feedback ? (
+        <div aria-live="polite" className="inline-feedback" role="status">
+          {feedback}
+        </div>
+      ) : null}
 
       {filteredOrders.length === 0 ? (
         <div className="empty-state">
@@ -304,7 +308,7 @@ export function MerchantOrderBoard() {
                                   {transitionMutation.isPending &&
                                   transitionMutation.variables?.orderUuid === order.uuid &&
                                   transitionMutation.variables?.action === action
-                                    ? 'Working...'
+                                    ? 'Working…'
                                     : merchantActionLabels[action]}
                                 </button>
                               ))
