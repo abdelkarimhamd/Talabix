@@ -1,0 +1,38 @@
+<?php
+
+use App\Modules\Merchants\Services\CustomerMerchantDiscoveryService;
+use Illuminate\Support\Carbon;
+use Tests\Support\CreatesDomainData;
+
+uses(CreatesDomainData::class);
+
+it('evaluates open now and serviceability consistently', function () {
+    Carbon::setTestNow('2026-04-14 10:00:00');
+
+    $this->seedRoles();
+    $merchantContext = $this->createMerchantContext();
+    $closedMerchantContext = $this->createMerchantContext();
+    $closedMerchantContext['branch']->hours()->update([
+        'opens_at' => '06:00:00',
+        'closes_at' => '08:00:00',
+    ]);
+
+    $customerContext = $this->createCustomerContext();
+
+    $results = app(CustomerMerchantDiscoveryService::class)->list(
+        $customerContext['address'],
+        null,
+        true
+    );
+
+    expect($results)->toHaveCount(1);
+    expect($results->first()->branches)->toHaveCount(1);
+    expect($results->first()->getAttribute('is_open_now'))->toBeTrue();
+    expect($results->first()->branches->first()->getAttribute('serviceability')['is_serviceable'])->toBeTrue();
+    expect($results->first()->branches->first()->getAttribute('serviceability')['estimated_duration_minutes'])
+        ->toBeGreaterThan(0);
+    expect($results->first()->branches->first()->getAttribute('serviceability')['maps_provider'])
+        ->toBe('demo');
+
+    Carbon::setTestNow();
+});

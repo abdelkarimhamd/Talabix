@@ -1,0 +1,8 @@
+apps/api/vendor
+apps/api/storage
+apps/api/bootstrap/cache
+**/node_modules
+**/dist
+**/coverage
+package-lock.json
+apps/api/composer.lock

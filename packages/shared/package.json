@@ -1,0 +1,20 @@
+{
+  "name": "@talabix/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./api/client": "./src/api/client.js",
+    "./contracts/abilities": "./src/contracts/abilities.js",
+    "./contracts/enums": "./src/contracts/enums.js",
+    "./maps/provider": "./src/maps/provider.js",
+    "./realtime/channels": "./src/realtime/channels.js",
+    "./validation/schemas": "./src/validation/schemas.js"
+  },
+  "dependencies": {
+    "axios": "^1.12.2",
+    "zod": "^4.1.12"
+  }
+}

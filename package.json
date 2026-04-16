@@ -1,0 +1,38 @@
+{
+  "name": "talabix-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Talabix delivery marketplace monorepo",
+  "license": "UNLICENSED",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:portal": "npm --workspace @talabix/portal-web run dev",
+    "dev:customer": "npm --workspace @talabix/customer-app run start",
+    "dev:rider": "npm --workspace @talabix/rider-app run start",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "eslint . --ext js,jsx",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test:portal && npm run test:customer && npm run test:rider",
+    "test:portal": "npm --workspace @talabix/portal-web run test -- --run",
+    "test:customer": "npm --workspace @talabix/customer-app run test",
+    "test:rider": "npm --workspace @talabix/rider-app run test",
+    "prepare:docker": "docker compose run --rm api composer install --no-interaction --prefer-dist && docker compose run --rm api php artisan key:generate --force && docker compose run --rm api php artisan migrate --seed --force"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-native": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "eslint-plugin-testing-library": "^7.13.5",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2"
+  }
+}

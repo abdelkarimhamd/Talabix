@@ -1,0 +1,38 @@
+export const actorAbilities = {
+  customer: [
+    'customer:profile.read',
+    'customer:profile.write',
+    'customer:addresses.write',
+    'customer:notifications.read',
+    'customer:notifications.update',
+    'customer:orders.read',
+    'customer:orders.create',
+  ],
+  merchant: [
+    'merchant:dashboard.read',
+    'merchant:orders.read',
+    'merchant:orders.update',
+    'merchant:catalog.read',
+    'merchant:catalog.write',
+    'merchant:notifications.read',
+    'merchant:notifications.update',
+  ],
+  rider: [
+    'rider:availability.update',
+    'rider:location.update',
+    'rider:assignments.read',
+    'rider:assignments.update',
+    'rider:delivery.update',
+    'rider:notifications.read',
+    'rider:notifications.update',
+  ],
+  ops: [
+    'ops:dashboard.read',
+    'ops:merchants.manage',
+    'ops:dispatch.manage',
+    'ops:settlements.read',
+    'ops:settlements.manage',
+    'ops:support.manage',
+    'ops:users.manage',
+  ],
+};

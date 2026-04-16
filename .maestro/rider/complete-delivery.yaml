@@ -1,0 +1,10 @@
+appId: talabix-rider
+---
+- launchApp
+- assertVisible: "Delivery flow optimized for one active order at a time."
+- tapOn: "Open assignments"
+- assertVisible: "Accept or decline the next order"
+- back
+- tapOn: "Delivery detail"
+- assertVisible: "Complete the order and capture proof"
+- assertVisible: "Capture proof"

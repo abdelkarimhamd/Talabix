@@ -1,0 +1,11 @@
+appId: talabix-customer
+---
+- launchApp
+- assertVisible: "Order flow built as a complete vertical slice."
+- assertVisible: "Talabix Demo Kitchen"
+- tapOn: "Open cart"
+- assertVisible: "Ready for COD checkout"
+- back
+- tapOn: "Track live order"
+- assertVisible: "Talabix order tracking"
+- assertVisible: "assigned"
