@@ -7,3 +7,4 @@
 - API resources return stable top-level shapes. Collections return `data`; mutations return `data` plus optional `meta`.
 - Public-facing resource identifiers use UUID route keys even when internal tables keep numeric primary keys.
 - Order state changes are only allowed through `OrderLifecycleService`.
+- Regenerate Scribe after API response/request changes and keep the committed contract at `docs/api/openapi.yaml`.

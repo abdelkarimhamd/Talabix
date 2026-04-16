@@ -9,9 +9,7 @@ use App\Modules\Orders\Services\OrderPricingService;
 
 class DispatchScoringService
 {
-    public function __construct(private readonly OrderPricingService $pricingService)
-    {
-    }
+    public function __construct(private readonly OrderPricingService $pricingService) {}
 
     public function score(Order $order, RiderProfile $rider): ?int
     {

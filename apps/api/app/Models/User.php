@@ -19,6 +19,7 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens;
+
     use HasFactory;
     use HasPublicUuid;
     use HasRoles;

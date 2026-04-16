@@ -18,14 +18,13 @@ use App\Modules\Merchants\Resources\OpsBranchConfigurationResource;
 use App\Modules\Shared\Actions\RecordAuditLogAction;
 use App\Modules\Shared\Enums\AuditActionType;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class MerchantConfigurationController extends Controller
 {
-    public function __construct(private readonly RecordAuditLogAction $recordAuditLogAction)
-    {
-    }
+    public function __construct(private readonly RecordAuditLogAction $recordAuditLogAction) {}
 
-    public function index(\Illuminate\Http\Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $this->ensureAbility($request, 'ops:merchants.manage');
 
@@ -46,7 +45,7 @@ class MerchantConfigurationController extends Controller
         ]);
     }
 
-    public function show(\Illuminate\Http\Request $request, Merchant $merchant): JsonResponse
+    public function show(Request $request, Merchant $merchant): JsonResponse
     {
         $this->ensureAbility($request, 'ops:merchants.manage');
         $this->authorize('view', $merchant);

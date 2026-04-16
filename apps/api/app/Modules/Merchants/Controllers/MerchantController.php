@@ -20,8 +20,7 @@ class MerchantController extends Controller
     public function __construct(
         private readonly CreateMerchantAction $createMerchantAction,
         private readonly CustomerMerchantDiscoveryService $customerMerchantDiscoveryService,
-    ) {
-    }
+    ) {}
 
     public function indexForOps(Request $request): JsonResponse
     {

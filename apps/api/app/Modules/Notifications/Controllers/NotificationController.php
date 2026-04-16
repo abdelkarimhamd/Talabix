@@ -5,8 +5,8 @@ namespace App\Modules\Notifications\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\NotificationDelivery;
 use App\Modules\Notifications\Enums\NotificationChannel;
-use App\Modules\Notifications\Requests\NotificationIndexRequest;
 use App\Modules\Notifications\Requests\NotificationInboxRequest;
+use App\Modules\Notifications\Requests\NotificationIndexRequest;
 use App\Modules\Notifications\Resources\NotificationDeliveryResource;
 use App\Modules\Notifications\Services\NotificationDeliveryService;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,8 +17,7 @@ class NotificationController extends Controller
 {
     public function __construct(
         private readonly NotificationDeliveryService $notificationDeliveryService,
-    ) {
-    }
+    ) {}
 
     public function index(NotificationIndexRequest $request): JsonResponse
     {
@@ -64,7 +63,7 @@ class NotificationController extends Controller
         ]);
     }
 
-    public function retry(\Illuminate\Http\Request $request, NotificationDelivery $notificationDelivery): JsonResponse
+    public function retry(Request $request, NotificationDelivery $notificationDelivery): JsonResponse
     {
         $this->ensureAbility($request, 'ops:support.manage');
 

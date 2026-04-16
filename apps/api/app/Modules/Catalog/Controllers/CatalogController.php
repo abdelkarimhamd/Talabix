@@ -22,9 +22,7 @@ use Illuminate\Support\Str;
 
 class CatalogController extends Controller
 {
-    public function __construct(private readonly RecordAuditLogAction $recordAuditLogAction)
-    {
-    }
+    public function __construct(private readonly RecordAuditLogAction $recordAuditLogAction) {}
 
     public function index(MerchantCatalogIndexRequest $request): JsonResponse
     {
@@ -237,6 +235,7 @@ class CatalogController extends Controller
                         'sort_order' => (int) ($optionPayload['sort_order'] ?? 0),
                     ]);
                     $keptOptionIds[] = $option->id;
+
                     continue;
                 }
 

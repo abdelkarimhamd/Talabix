@@ -30,8 +30,7 @@ class SupportController extends Controller
         private readonly RecordAuditLogAction $recordAuditLogAction,
         private readonly NotificationDeliveryService $notificationDeliveryService,
         private readonly SupportCaseService $supportCaseService,
-    ) {
-    }
+    ) {}
 
     public function searchOrders(Request $request): JsonResponse
     {

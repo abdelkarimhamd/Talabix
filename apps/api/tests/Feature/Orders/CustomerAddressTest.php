@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CustomerAddress;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\CreatesDomainData;
 
@@ -72,7 +73,7 @@ it('stores and updates richer customer address details while keeping a default a
         ->assertJsonPath('data.delivery_notes', 'Call before arrival');
 
     expect(
-        \App\Models\CustomerAddress::query()
+        CustomerAddress::query()
             ->where('customer_profile_id', $customerContext['profile']->id)
             ->where('is_default', true)
             ->count()

@@ -2,12 +2,12 @@
 
 use App\Modules\Catalog\Controllers\CatalogController;
 use App\Modules\Identity\Controllers\AuthController;
-use App\Modules\Orders\Controllers\CustomerAddressController;
-use App\Modules\Orders\Controllers\OrderController;
 use App\Modules\Merchants\Controllers\MerchantController;
 use App\Modules\Notifications\Controllers\NotificationController;
-use Illuminate\Support\Facades\Route;
+use App\Modules\Orders\Controllers\CustomerAddressController;
+use App\Modules\Orders\Controllers\OrderController;
 use App\Modules\Shared\Controllers\MapsController;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('customer')->name('customer.')->group(function () {
     Route::post('auth/register', [AuthController::class, 'customerRegister'])->middleware('throttle:customer-auth');

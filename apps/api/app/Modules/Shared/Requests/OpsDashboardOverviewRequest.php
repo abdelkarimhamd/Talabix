@@ -2,6 +2,4 @@
 
 namespace App\Modules\Shared\Requests;
 
-class OpsDashboardOverviewRequest extends ReportRangeRequest
-{
-}
+class OpsDashboardOverviewRequest extends ReportRangeRequest {}

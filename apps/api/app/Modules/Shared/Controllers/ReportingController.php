@@ -18,8 +18,7 @@ class ReportingController extends Controller
 {
     public function __construct(
         private readonly ReportingService $reportingService,
-    ) {
-    }
+    ) {}
 
     public function merchantSales(MerchantSalesReportRequest $request): JsonResponse
     {

@@ -10,9 +10,7 @@ use Illuminate\Http\JsonResponse;
 
 class MapsController extends Controller
 {
-    public function __construct(private readonly MapsProviderService $mapsProviderService)
-    {
-    }
+    public function __construct(private readonly MapsProviderService $mapsProviderService) {}
 
     public function customerPlaces(PlaceSearchRequest $request): JsonResponse
     {

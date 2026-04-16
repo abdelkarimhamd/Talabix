@@ -353,7 +353,7 @@ endpoints:
       -
         custom: []
         status: 422
-        content: '{"message":"A signed-in customer is required to filter merchants by address.","errors":{"address_uuid":["A signed-in customer is required to filter merchants by address."]}}'
+        content: '{"message":"Please review the required fields.","errors":{"address_uuid":["A signed-in customer is required to filter merchants by address."]}}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -853,7 +853,7 @@ endpoints:
         name: is_default
         description: ''
         required: false
-        example: false
+        example: true
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -871,7 +871,7 @@ endpoints:
       city: d
       latitude: 4326.41688
       longitude: 4326.41688
-      is_default: false
+      is_default: true
     fileParameters: []
     responses: []
     responseFields: []
@@ -1044,7 +1044,7 @@ endpoints:
         name: is_default
         description: ''
         required: false
-        example: false
+        example: true
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -1062,7 +1062,7 @@ endpoints:
       city: d
       latitude: 4326.41688
       longitude: 4326.41688
-      is_default: false
+      is_default: true
     fileParameters: []
     responses: []
     responseFields: []
@@ -1169,7 +1169,7 @@ endpoints:
         name: unread_only
         description: ''
         required: false
-        example: true
+        example: false
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -1177,7 +1177,7 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       order_uuid: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-      unread_only: true
+      unread_only: false
     fileParameters: []
     responses:
       -
@@ -1701,7 +1701,7 @@ endpoints:
         name: unread_only
         description: ''
         required: false
-        example: true
+        example: false
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -1709,7 +1709,7 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       order_uuid: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-      unread_only: true
+      unread_only: false
     fileParameters: []
     responses:
       -
@@ -2172,7 +2172,7 @@ endpoints:
         name: is_active
         description: ''
         required: false
-        example: false
+        example: true
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -2187,7 +2187,7 @@ endpoints:
       image_url: 'http://www.ernser.org/harum-mollitia-modi-deserunt-aut-ab-provident-perspiciatis-quo.html'
       base_price_minor: 38
       base_stock: 50
-      is_active: false
+      is_active: true
     fileParameters: []
     responses: []
     responseFields: []
@@ -2385,7 +2385,7 @@ endpoints:
         name: 'options[].is_active'
         description: ''
         required: false
-        example: true
+        example: false
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -2417,7 +2417,7 @@ endpoints:
           description: 'Eius et animi quos velit et.'
           price_delta_minor: 60
           is_default: false
-          is_active: true
+          is_active: false
           sort_order: 42
     fileParameters: []
     responses: []
@@ -2504,7 +2504,7 @@ endpoints:
         name: selection_type
         description: ''
         required: true
-        example: multiple
+        example: single
         type: string
         enumValues:
           - single
@@ -2617,7 +2617,7 @@ endpoints:
         name: 'options[].is_default'
         description: ''
         required: false
-        example: true
+        example: false
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -2628,7 +2628,7 @@ endpoints:
         name: 'options[].is_active'
         description: ''
         required: false
-        example: false
+        example: true
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -2648,7 +2648,7 @@ endpoints:
     cleanBodyParameters:
       name: b
       description: 'Eius et animi quos velit et.'
-      selection_type: multiple
+      selection_type: single
       min_selected: 60
       max_selected: 26
       is_active: false
@@ -2659,8 +2659,8 @@ endpoints:
           name: g
           description: 'Eius et animi quos velit et.'
           price_delta_minor: 60
-          is_default: true
-          is_active: false
+          is_default: false
+          is_active: true
           sort_order: 42
     fileParameters: []
     responses: []
@@ -3733,7 +3733,7 @@ endpoints:
         name: proof_type
         description: ''
         required: true
-        example: handoff_code
+        example: photo
         type: string
         enumValues:
           - photo
@@ -3776,7 +3776,7 @@ endpoints:
         nullable: true
         deprecated: false
     cleanBodyParameters:
-      proof_type: handoff_code
+      proof_type: photo
       recipient_name: b
       proof_notes: 'n'
       proof_reference: g
@@ -4215,7 +4215,7 @@ endpoints:
         name: 'branch.hours[].opens_at'
         description: 'Must be a valid date in the format <code>H:i</code>.'
         required: false
-        example: '11:59'
+        example: '16:19'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -4226,7 +4226,7 @@ endpoints:
         name: 'branch.hours[].closes_at'
         description: 'Must be a valid date in the format <code>H:i</code>.'
         required: false
-        example: '11:59'
+        example: '16:19'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -4333,8 +4333,8 @@ endpoints:
         hours:
           -
             day_of_week: 1
-            opens_at: '11:59'
-            closes_at: '11:59'
+            opens_at: '16:19'
+            closes_at: '16:19'
         zones:
           -
             name: architecto
@@ -4571,7 +4571,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: active
+        example: inactive
         type: string
         enumValues:
           - active
@@ -4584,15 +4584,15 @@ endpoints:
         name: accepts_orders
         description: ''
         required: false
-        example: false
+        example: true
         type: boolean
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      status: active
-      accepts_orders: false
+      status: inactive
+      accepts_orders: true
     fileParameters: []
     responses: []
     responseFields: []
@@ -4841,7 +4841,7 @@ endpoints:
         name: is_active
         description: ''
         required: true
-        example: false
+        example: true
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -4854,7 +4854,7 @@ endpoints:
       center_latitude: 4326.41688
       center_longitude: 4326.41688
       radius_meters: 93
-      is_active: false
+      is_active: true
     fileParameters: []
     responses: []
     responseFields: []
@@ -5237,7 +5237,7 @@ endpoints:
         name: entry_type
         description: ''
         required: false
-        example: platform_commission
+        example: adjustment
         type: string
         enumValues:
           - merchant_receivable
@@ -5263,7 +5263,7 @@ endpoints:
         name: direction
         description: ''
         required: false
-        example: negative
+        example: positive
         type: string
         enumValues:
           - positive
@@ -5272,9 +5272,9 @@ endpoints:
         nullable: true
         deprecated: false
     cleanBodyParameters:
-      entry_type: platform_commission
+      entry_type: adjustment
       order_uuid: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-      direction: negative
+      direction: positive
     fileParameters: []
     responses:
       -
@@ -5323,7 +5323,7 @@ endpoints:
         name: entry_type
         description: ''
         required: false
-        example: platform_commission
+        example: adjustment
         type: string
         enumValues:
           - merchant_receivable
@@ -5349,7 +5349,7 @@ endpoints:
         name: direction
         description: ''
         required: false
-        example: positive
+        example: negative
         type: string
         enumValues:
           - positive
@@ -5358,9 +5358,9 @@ endpoints:
         nullable: true
         deprecated: false
     cleanBodyParameters:
-      entry_type: platform_commission
+      entry_type: adjustment
       order_uuid: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-      direction: positive
+      direction: negative
     fileParameters: []
     responses:
       -
@@ -5505,7 +5505,7 @@ endpoints:
         name: channel
         description: ''
         required: false
-        example: push
+        example: sms
         type: string
         enumValues:
           - in_app
@@ -5531,7 +5531,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: queued
+        example: failed
         type: string
         enumValues:
           - queued
@@ -5556,9 +5556,9 @@ endpoints:
     cleanBodyParameters:
       order_uuid: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       recipient_actor: customer
-      channel: push
+      channel: sms
       provider: g
-      status: queued
+      status: failed
       notification_type: support_note_added
     fileParameters: []
     responses:

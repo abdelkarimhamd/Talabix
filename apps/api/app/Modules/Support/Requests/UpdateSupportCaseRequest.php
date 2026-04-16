@@ -8,6 +8,7 @@ use App\Modules\Support\Enums\SupportIssueType;
 use App\Modules\Support\Enums\SupportResolutionType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateSupportCaseRequest extends FormRequest
 {
@@ -25,6 +26,24 @@ class UpdateSupportCaseRequest extends FormRequest
             'cancellation_reason_code' => ['nullable', 'string', Rule::in(array_column(OrderCancellationReasonCode::cases(), 'value'))],
             'resolution_type' => ['nullable', 'string', Rule::in(array_column(SupportResolutionType::cases(), 'value'))],
             'resolution_notes' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                $supportCase = $this->route('supportCase');
+                $effectiveStatus = $this->input('status', $supportCase?->status?->value);
+                $effectiveResolutionType = $this->input('resolution_type', $supportCase?->resolution_type?->value);
+
+                if (
+                    $effectiveStatus === SupportCaseStatus::RESOLVED->value
+                    && blank($effectiveResolutionType)
+                ) {
+                    $validator->errors()->add('resolution_type', __('validation.required'));
+                }
+            },
         ];
     }
 

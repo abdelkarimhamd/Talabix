@@ -98,8 +98,26 @@ class MapsProviderService
             'mode' => $mode,
             'distance_meters' => $distanceMeters,
             'duration_minutes' => max(1, (int) ceil($distanceMeters / $metersPerMinute)),
+            'duration_seconds' => max(60, (int) ceil(($distanceMeters / $metersPerMinute) * 60)),
+            'distance_text' => $this->distanceText($distanceMeters),
+            'duration_text' => trans_choice(
+                'messages.maps.duration_minutes',
+                max(1, (int) ceil($distanceMeters / $metersPerMinute)),
+                ['minutes' => max(1, (int) ceil($distanceMeters / $metersPerMinute))]
+            ),
             'provider' => $this->provider(),
         ];
+    }
+
+    private function distanceText(int $distanceMeters): string
+    {
+        if ($distanceMeters < 1000) {
+            return __('messages.maps.distance_meters', ['meters' => $distanceMeters]);
+        }
+
+        return __('messages.maps.distance_kilometers', [
+            'kilometers' => number_format($distanceMeters / 1000, 1),
+        ]);
     }
 
     public function directionsUrl(

@@ -8,9 +8,7 @@ use App\Modules\Settlements\Services\SettlementService;
 
 class CreateOrderSettlementEntries
 {
-    public function __construct(private readonly SettlementService $settlementService)
-    {
-    }
+    public function __construct(private readonly SettlementService $settlementService) {}
 
     public function handle(OrderStatusChanged $event): void
     {

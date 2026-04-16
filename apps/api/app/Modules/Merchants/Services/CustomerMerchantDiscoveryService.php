@@ -15,8 +15,7 @@ class CustomerMerchantDiscoveryService
     public function __construct(
         private readonly OrderPricingService $orderPricingService,
         private readonly MapsProviderService $mapsProviderService,
-    ) {
-    }
+    ) {}
 
     public function list(?CustomerAddress $address = null, ?string $search = null, bool $openNow = false): Collection
     {
@@ -128,21 +127,42 @@ class CustomerMerchantDiscoveryService
             ->first(fn ($candidate) => $distance >= $candidate->min_distance_meters
                 && $distance <= $candidate->max_distance_meters);
 
-        $isServiceable = (bool) $zone && (bool) $feeBand;
         $routeEstimate = $this->mapsProviderService->distanceEstimate(
             (float) $branch->latitude,
             (float) $branch->longitude,
             (float) $address->latitude,
             (float) $address->longitude,
         );
+        $isServiceable = (bool) $zone && (bool) $feeBand;
+        $reasonCode = match (true) {
+            $isServiceable => 'serviceable',
+            ! $zone => 'outside_service_zone',
+            default => 'outside_fee_band',
+        };
 
         return [
             'address_uuid' => $address->uuid,
             'is_serviceable' => $isServiceable,
+            'reason_code' => $reasonCode,
             'distance_meters' => $distance,
             'delivery_fee_minor' => $isServiceable ? $feeBand->fee_minor : null,
             'estimated_duration_minutes' => $isServiceable ? $routeEstimate['duration_minutes'] : null,
             'maps_provider' => $routeEstimate['provider'],
+            'route' => [
+                'provider' => $routeEstimate['provider'],
+                'mode' => $routeEstimate['mode'],
+                'distance_meters' => $routeEstimate['distance_meters'],
+                'duration_minutes' => $routeEstimate['duration_minutes'],
+                'duration_seconds' => $routeEstimate['duration_seconds'],
+                'distance_text' => $routeEstimate['distance_text'],
+                'duration_text' => $routeEstimate['duration_text'],
+                'directions_url' => $this->mapsProviderService->directionsUrl(
+                    (float) $address->latitude,
+                    (float) $address->longitude,
+                    (float) $branch->latitude,
+                    (float) $branch->longitude,
+                ),
+            ],
         ];
     }
 

@@ -23,9 +23,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function __construct(private readonly IssueTokenAction $issueTokenAction)
-    {
-    }
+    public function __construct(private readonly IssueTokenAction $issueTokenAction) {}
 
     public function customerLogin(LoginRequest $request): JsonResponse
     {

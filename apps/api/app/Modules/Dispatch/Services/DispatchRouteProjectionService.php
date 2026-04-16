@@ -23,8 +23,7 @@ class DispatchRouteProjectionService
     public function __construct(
         private readonly MapsProviderService $mapsProviderService,
         private readonly DispatchScoringService $scoringService,
-    ) {
-    }
+    ) {}
 
     public function activeAssignments(): Collection
     {
@@ -80,7 +79,7 @@ class DispatchRouteProjectionService
             'orderAcceptedAt' => $order->accepted_at,
             'zone' => $this->zoneName($order),
             'riderUuid' => $rider->uuid,
-            'riderName' => $rider->user?->name ?? 'Unassigned rider',
+            'riderName' => $rider->user?->name ?? __('messages.dispatch.fallbacks.unassigned_rider'),
             'riderAvailability' => $rider->availability?->value ?? (string) $rider->availability,
             'assignmentStatus' => $assignment->status,
             'assignmentType' => $assignment->assignment_type,
@@ -96,7 +95,9 @@ class DispatchRouteProjectionService
             'pickupEtaMinutes' => (int) $pickupEstimate['duration_minutes'],
             'dropoffEtaMinutes' => (int) $dropoffEstimate['duration_minutes'],
             'riderLocation' => [
-                'label' => $riderLocation ? 'Rider live position' : 'Rider location unavailable',
+                'label' => $riderLocation
+                    ? __('messages.dispatch.locations.rider_live_position')
+                    : __('messages.dispatch.locations.rider_location_unavailable'),
                 'latitude' => $riderLatitude,
                 'longitude' => $riderLongitude,
             ],
@@ -175,7 +176,7 @@ class DispatchRouteProjectionService
 
                 return [
                     'riderUuid' => $rider->uuid,
-                    'riderName' => $rider->user?->name ?? 'Unknown rider',
+                    'riderName' => $rider->user?->name ?? __('messages.dispatch.fallbacks.unknown_rider'),
                     'availability' => $rider->availability?->value ?? (string) $rider->availability,
                     'score' => $score,
                     'activeLoad' => $this->activeLoad($rider),
@@ -218,13 +219,13 @@ class DispatchRouteProjectionService
 
         if ($minutesRemaining < 0) {
             $level = 'breached';
-            $label = 'SLA breached';
+            $label = __('messages.dispatch.sla.breached');
         } elseif ($minutesRemaining <= $warningMinutes) {
             $level = 'warning';
-            $label = 'SLA at risk';
+            $label = __('messages.dispatch.sla.warning');
         } else {
             $level = 'on_track';
-            $label = 'On track';
+            $label = __('messages.dispatch.sla.on_track');
         }
 
         return [

@@ -64,6 +64,41 @@ it('rejects duplicate customer registration emails', function () {
     ])->assertStatus(422);
 });
 
+it('returns Arabic validation messages when Arabic is requested', function () {
+    $this->seedRoles();
+
+    $this
+        ->withHeader('Accept-Language', 'ar')
+        ->postJson('/api/v1/customer/auth/register', [
+            'email' => 'not-an-email',
+            'password' => 'short',
+            'password_confirmation' => 'different',
+        ])
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'يرجى مراجعة الحقول المطلوبة.')
+        ->assertJson(fn ($json) => $json
+            ->has('errors.name')
+            ->has('errors.email')
+            ->has('errors.password')
+            ->etc()
+        );
+});
+
+it('returns Arabic ability errors when Arabic is requested', function () {
+    $this->seedRoles();
+    ['customerUser' => $customer] = $this->createCustomerContext();
+
+    Sanctum::actingAs($customer, ['customer:profile.read']);
+
+    $this
+        ->withHeader('Accept-Language', 'ar')
+        ->patchJson('/api/v1/customer/auth/me', [
+            'name' => 'Updated Customer',
+        ])
+        ->assertForbidden()
+        ->assertJsonPath('message', 'صلاحية الرمز المطلوبة غير متوفرة: customer:profile.write.');
+});
+
 it('throttles repeated customer login attempts', function () {
     $this->seedRoles();
     $this->createUserWithRole('customer', ['email' => 'ratelimit@talabix.test']);

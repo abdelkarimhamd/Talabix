@@ -16,8 +16,7 @@ class SendSupportNoteNotificationJob implements ShouldQueue
         public readonly Order $order,
         public readonly SupportNote $note,
         public readonly ?int $actorUserId = null,
-    ) {
-    }
+    ) {}
 
     public function handle(NotificationDeliveryService $notificationDeliveryService): void
     {

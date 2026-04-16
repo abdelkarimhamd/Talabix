@@ -6,8 +6,8 @@ use App\Modules\Merchants\Controllers\MerchantConfigurationController;
 use App\Modules\Merchants\Controllers\MerchantController;
 use App\Modules\Notifications\Controllers\NotificationController;
 use App\Modules\Orders\Controllers\OrderController;
-use App\Modules\Shared\Controllers\ReportingController;
 use App\Modules\Settlements\Controllers\SettlementController;
+use App\Modules\Shared\Controllers\ReportingController;
 use App\Modules\Support\Controllers\SupportController;
 use Illuminate\Support\Facades\Route;
 

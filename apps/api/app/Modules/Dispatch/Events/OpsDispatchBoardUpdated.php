@@ -19,8 +19,7 @@ class OpsDispatchBoardUpdated implements ShouldBroadcast
         public ?Order $order = null,
         public string $reason = 'dispatch_state_changed',
         public array $payload = [],
-    ) {
-    }
+    ) {}
 
     public function broadcastOn(): array
     {

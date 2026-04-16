@@ -2,14 +2,15 @@
 
 namespace App\Providers;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Horizon\Horizon;
+use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
@@ -40,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
-        Sanctum::usePersonalAccessTokenModel(\Laravel\Sanctum\PersonalAccessToken::class);
+        Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
         Gate::define('viewHorizon', fn ($user) => $user->hasAnyRole(['ops_admin', 'ops_support']));
         Horizon::auth(fn ($request) => $request->user()?->hasAnyRole(['ops_admin', 'ops_support']) ?? false);
     }

@@ -39,6 +39,10 @@ class OrderResource extends JsonResource
             'item_count' => $items->sum('quantity'),
             'merchant_actions' => $this->merchantActions(),
             'delivery_assignment' => $latestAssignment ? [
+                'rider_uuid' => $latestAssignment->riderProfile?->uuid,
+                'rider_name' => $latestAssignment->riderProfile?->user?->name,
+                'rider_availability' => $latestAssignment->riderProfile?->availability?->value
+                    ?? $latestAssignment->riderProfile?->availability,
                 'status' => $latestAssignment->status,
                 'assignment_type' => $latestAssignment->assignment_type,
                 'score' => $latestAssignment->score,

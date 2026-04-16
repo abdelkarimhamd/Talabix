@@ -8,15 +8,13 @@ use App\Models\RiderProfile;
 use App\Modules\Orders\Enums\OrderStatus;
 use App\Modules\Orders\Enums\OrderTimelineEventType;
 use App\Modules\Orders\Services\OrderLifecycleService;
-use Illuminate\Support\Collection;
 
 class AutoAssignOrderAction
 {
     public function __construct(
         private readonly DispatchScoringService $scoringService,
         private readonly OrderLifecycleService $lifecycleService,
-    ) {
-    }
+    ) {}
 
     public function execute(Order $order): ?DeliveryAssignment
     {

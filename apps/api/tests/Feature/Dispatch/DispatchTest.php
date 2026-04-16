@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\DeliveryAssignment;
 use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\CreatesDomainData;
@@ -42,7 +43,7 @@ it('records audit and timeline entries for ops reassignment', function () {
         'rider_profile_id' => $firstRider->id,
     ]);
 
-    \App\Models\DeliveryAssignment::query()->create([
+    DeliveryAssignment::query()->create([
         'order_id' => $order->id,
         'rider_profile_id' => $firstRider->id,
         'assignment_type' => 'auto',
@@ -67,6 +68,88 @@ it('records audit and timeline entries for ops reassignment', function () {
     ]);
 });
 
+it('rejects reassignment to the current active rider', function () {
+    $this->seedRoles();
+    $merchantContext = $this->createMerchantContext();
+    $customerContext = $this->createCustomerContext();
+    ['profile' => $currentRider] = $this->createRiderContext(null, true, ['latitude' => 24.7140, 'longitude' => 46.6760]);
+    $ops = $this->createUserWithRole('ops_dispatcher');
+    $order = $this->createPlacedOrder($customerContext, $merchantContext);
+    $order->update([
+        'status' => 'assigned',
+        'rider_profile_id' => $currentRider->id,
+    ]);
+
+    DeliveryAssignment::query()->create([
+        'order_id' => $order->id,
+        'rider_profile_id' => $currentRider->id,
+        'assignment_type' => 'auto',
+        'status' => 'active',
+        'assigned_at' => now(),
+    ]);
+
+    Sanctum::actingAs($ops, ['ops:dispatch.manage']);
+
+    $this->postJson("/api/v1/ops/dispatch/orders/{$order->uuid}/reassign", [
+        'rider_uuid' => $currentRider->uuid,
+        'reason_code' => 'ops_override',
+        'reason_note' => 'Duplicate assignment attempt.',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['rider_uuid']);
+
+    $this->assertDatabaseCount('delivery_assignments', 1);
+    $this->assertDatabaseMissing('audit_logs', [
+        'event' => 'rider_reassigned',
+    ]);
+});
+
+it('rejects reassignment to unavailable riders and terminal orders', function () {
+    $this->seedRoles();
+    $merchantContext = $this->createMerchantContext();
+    $customerContext = $this->createCustomerContext();
+    ['profile' => $currentRider] = $this->createRiderContext(null, true, ['latitude' => 24.7140, 'longitude' => 46.6760]);
+    ['profile' => $offlineRider] = $this->createRiderContext(null, false, ['latitude' => 24.7150, 'longitude' => 46.6770]);
+    ['profile' => $availableRider] = $this->createRiderContext(null, true, ['latitude' => 24.7160, 'longitude' => 46.6780]);
+    $ops = $this->createUserWithRole('ops_dispatcher');
+    $order = $this->createPlacedOrder($customerContext, $merchantContext);
+    $order->update([
+        'status' => 'assigned',
+        'rider_profile_id' => $currentRider->id,
+    ]);
+
+    DeliveryAssignment::query()->create([
+        'order_id' => $order->id,
+        'rider_profile_id' => $currentRider->id,
+        'assignment_type' => 'auto',
+        'status' => 'active',
+        'assigned_at' => now(),
+    ]);
+
+    Sanctum::actingAs($ops, ['ops:dispatch.manage']);
+
+    $this->postJson("/api/v1/ops/dispatch/orders/{$order->uuid}/reassign", [
+        'rider_uuid' => $offlineRider->uuid,
+        'reason_code' => 'rider_unavailable',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['rider_uuid']);
+
+    $order->update(['status' => 'delivered']);
+
+    $this->postJson("/api/v1/ops/dispatch/orders/{$order->uuid}/reassign", [
+        'rider_uuid' => $availableRider->uuid,
+        'reason_code' => 'ops_override',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['order']);
+
+    $this->assertDatabaseCount('delivery_assignments', 1);
+    $this->assertDatabaseMissing('audit_logs', [
+        'event' => 'rider_reassigned',
+    ]);
+});
+
 it('returns route and eta projections for ops dispatch assignments', function () {
     $this->seedRoles();
     $merchantContext = $this->createMerchantContext();
@@ -82,7 +165,7 @@ it('returns route and eta projections for ops dispatch assignments', function ()
         'rider_profile_id' => $rider->id,
     ]);
 
-    \App\Models\DeliveryAssignment::query()->create([
+    DeliveryAssignment::query()->create([
         'order_id' => $order->id,
         'rider_profile_id' => $rider->id,
         'assignment_type' => 'auto',
@@ -112,6 +195,59 @@ it('returns route and eta projections for ops dispatch assignments', function ()
         ]);
 });
 
+it('returns realtime assignment visibility with the ops dispatch board', function () {
+    $this->seedRoles();
+    $merchantContext = $this->createMerchantContext();
+    $customerContext = $this->createCustomerContext();
+    ['profile' => $rider] = $this->createRiderContext(null, true, [
+        'latitude' => 24.7140,
+        'longitude' => 46.6760,
+    ]);
+    $ops = $this->createUserWithRole('ops_dispatcher');
+    $order = $this->createPlacedOrder($customerContext, $merchantContext);
+    $order->update([
+        'status' => 'assigned',
+        'rider_profile_id' => $rider->id,
+    ]);
+
+    $assignment = DeliveryAssignment::query()->create([
+        'order_id' => $order->id,
+        'rider_profile_id' => $rider->id,
+        'assignment_type' => 'manual',
+        'status' => 'active',
+        'score' => 81,
+        'assigned_at' => now()->subMinutes(9),
+    ]);
+
+    Sanctum::actingAs($ops, ['ops:dispatch.manage']);
+
+    $this->getJson('/api/v1/ops/dispatch/orders')
+        ->assertOk()
+        ->assertJsonPath('meta.realtime.channel', 'ops.dispatch')
+        ->assertJsonPath('meta.realtime.event', 'ops.dispatch.updated')
+        ->assertJsonPath('data.0.uuid', $order->uuid)
+        ->assertJsonPath('data.0.delivery_assignment.rider_uuid', $rider->uuid)
+        ->assertJsonPath('data.0.dispatch.assignmentId', $assignment->id)
+        ->assertJsonPath('data.0.dispatch.riderUuid', $rider->uuid)
+        ->assertJsonStructure([
+            'data' => [
+                [
+                    'dispatch' => [
+                        'pickupEtaMinutes',
+                        'dropoffEtaMinutes',
+                        'sla' => ['level', 'targetMinutes', 'elapsedMinutes'],
+                        'reassignment' => ['canReassign', 'reasonCodes'],
+                        'realtime' => ['channel', 'event'],
+                    ],
+                ],
+            ],
+            'meta' => [
+                'realtime' => ['channel', 'event'],
+                'total_active_orders',
+            ],
+        ]);
+});
+
 it('returns realtime sla reassignment and rider state visibility for ops dispatch assignments', function () {
     $this->seedRoles();
     $merchantContext = $this->createMerchantContext();
@@ -133,7 +269,7 @@ it('returns realtime sla reassignment and rider state visibility for ops dispatc
         'accepted_at' => now()->subMinutes(37),
     ]);
 
-    $assignment = \App\Models\DeliveryAssignment::query()->create([
+    $assignment = DeliveryAssignment::query()->create([
         'order_id' => $order->id,
         'rider_profile_id' => $currentRider->id,
         'assignment_type' => 'auto',
@@ -204,7 +340,7 @@ it('records reassignment reason metadata and broadcasts ops dispatch updates', f
         'rider_profile_id' => $firstRider->id,
     ]);
 
-    \App\Models\DeliveryAssignment::query()->create([
+    DeliveryAssignment::query()->create([
         'order_id' => $order->id,
         'rider_profile_id' => $firstRider->id,
         'assignment_type' => 'auto',

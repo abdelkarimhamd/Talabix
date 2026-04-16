@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\LedgerEntry;
 use App\Models\Order;
 use App\Modules\Orders\Enums\OrderStatus;
-use App\Modules\Shared\Actions\RecordAuditLogAction;
-use App\Modules\Shared\Enums\AuditActionType;
 use App\Modules\Settlements\Requests\SettlementLedgerIndexRequest;
 use App\Modules\Settlements\Requests\StoreSettlementAdjustmentRequest;
 use App\Modules\Settlements\Resources\LedgerEntryResource;
 use App\Modules\Settlements\Services\SettlementService;
+use App\Modules\Shared\Actions\RecordAuditLogAction;
+use App\Modules\Shared\Enums\AuditActionType;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -20,8 +20,7 @@ class SettlementController extends Controller
     public function __construct(
         private readonly SettlementService $settlementService,
         private readonly RecordAuditLogAction $recordAuditLogAction,
-    ) {
-    }
+    ) {}
 
     public function index(SettlementLedgerIndexRequest $request): JsonResponse
     {
@@ -56,17 +55,7 @@ class SettlementController extends Controller
 
         return response()->streamDownload(function () use ($entries) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, [
-                'id',
-                'order_uuid',
-                'merchant_name',
-                'rider_name',
-                'entry_type',
-                'amount_minor',
-                'currency',
-                'notes',
-                'occurred_at',
-            ]);
+            fputcsv($handle, $this->exportHeaders());
 
             foreach ($entries as $entry) {
                 fputcsv($handle, [
@@ -90,7 +79,9 @@ class SettlementController extends Controller
     {
         $this->ensureAbility($request, 'ops:settlements.manage');
 
-        abort_unless($order->status === OrderStatus::DELIVERED, 422, 'Adjustments can only be created for delivered orders.');
+        if ($order->status !== OrderStatus::DELIVERED) {
+            abort(422, __('messages.settlements.adjustment_requires_delivered'));
+        }
 
         $entry = $this->settlementService->createAdjustment(
             $order,
@@ -136,5 +127,20 @@ class SettlementController extends Controller
                 $request->string('direction')->toString() === 'negative',
                 fn ($query) => $query->where('amount_minor', '<', 0)
             );
+    }
+
+    private function exportHeaders(): array
+    {
+        return [
+            __('messages.settlements.export_headers.id'),
+            __('messages.settlements.export_headers.order_uuid'),
+            __('messages.settlements.export_headers.merchant_name'),
+            __('messages.settlements.export_headers.rider_name'),
+            __('messages.settlements.export_headers.entry_type'),
+            __('messages.settlements.export_headers.amount_minor'),
+            __('messages.settlements.export_headers.currency'),
+            __('messages.settlements.export_headers.notes'),
+            __('messages.settlements.export_headers.occurred_at'),
+        ];
     }
 }

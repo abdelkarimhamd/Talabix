@@ -2,6 +2,4 @@
 
 namespace App\Modules\Shared\Requests;
 
-class RiderEarningsReportRequest extends ReportRangeRequest
-{
-}
+class RiderEarningsReportRequest extends ReportRangeRequest {}

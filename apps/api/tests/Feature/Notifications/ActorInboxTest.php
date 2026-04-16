@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\NotificationDelivery;
+use App\Models\Order;
 use App\Modules\Notifications\Services\NotificationDeliveryService;
 use App\Modules\Orders\Enums\OrderStatus;
 use Laravel\Sanctum\Sanctum;
@@ -8,7 +9,7 @@ use Tests\Support\CreatesDomainData;
 
 uses(CreatesDomainData::class);
 
-function queueActorNotifications(\App\Models\Order $order): void
+function queueActorNotifications(Order $order): void
 {
     app(NotificationDeliveryService::class)->queueOrderStatusNotifications($order->fresh(), OrderStatus::ASSIGNED);
     app(NotificationDeliveryService::class)->queueOrderStatusNotifications($order->fresh(), OrderStatus::PICKED_UP);

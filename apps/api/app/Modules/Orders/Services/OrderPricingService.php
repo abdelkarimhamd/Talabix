@@ -5,16 +5,14 @@ namespace App\Modules\Orders\Services;
 use App\Models\Branch;
 use App\Models\CatalogItem;
 use App\Models\CustomerAddress;
-use App\Modules\Shared\Services\MapsProviderService;
 use App\Modules\Settlements\Enums\LedgerEntryType;
+use App\Modules\Shared\Services\MapsProviderService;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class OrderPricingService
 {
-    public function __construct(private readonly MapsProviderService $mapsProviderService)
-    {
-    }
+    public function __construct(private readonly MapsProviderService $mapsProviderService) {}
 
     public function quote(Branch $branch, CustomerAddress $address, Collection $lineItems): array
     {

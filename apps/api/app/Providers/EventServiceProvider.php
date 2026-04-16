@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Modules\Notifications\Listeners\QueueOrderStatusNotifications;
 use App\Modules\Dispatch\Listeners\BroadcastOpsDispatchBoardUpdate;
+use App\Modules\Notifications\Listeners\QueueOrderStatusNotifications;
 use App\Modules\Orders\Events\OrderStatusChanged;
 use App\Modules\Orders\Listeners\AttemptAutoDispatch;
 use App\Modules\Settlements\Listeners\CreateOrderSettlementEntries;

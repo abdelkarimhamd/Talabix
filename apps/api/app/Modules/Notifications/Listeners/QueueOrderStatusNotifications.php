@@ -9,8 +9,7 @@ class QueueOrderStatusNotifications
 {
     public function __construct(
         private readonly NotificationDeliveryService $notificationDeliveryService,
-    ) {
-    }
+    ) {}
 
     public function handle(OrderStatusChanged $event): void
     {

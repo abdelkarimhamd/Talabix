@@ -19,8 +19,7 @@ class NotificationDeliveryService
     public function __construct(
         private readonly NotificationTransportManager $notificationTransportManager,
         private readonly NotificationTemplateService $notificationTemplateService,
-    ) {
-    }
+    ) {}
 
     public function queueOrderStatusNotifications(
         Order $order,

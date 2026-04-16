@@ -19,6 +19,5 @@ class OrderStatusChanged
         public OrderStatus $to,
         public ?User $actor,
         public array $metadata = [],
-    ) {
-    }
+    ) {}
 }

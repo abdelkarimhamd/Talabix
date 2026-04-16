@@ -7,6 +7,7 @@ use App\Modules\Support\Enums\SupportIssueType;
 use App\Modules\Support\Enums\SupportResolutionType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreSupportCaseRequest extends FormRequest
 {
@@ -23,6 +24,20 @@ class StoreSupportCaseRequest extends FormRequest
             'status' => ['nullable', 'string', Rule::in(array_column(SupportCaseStatus::cases(), 'value'))],
             'resolution_type' => ['nullable', 'string', Rule::in(array_column(SupportResolutionType::cases(), 'value'))],
             'resolution_notes' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if (
+                    $this->input('status') === SupportCaseStatus::RESOLVED->value
+                    && blank($this->input('resolution_type'))
+                ) {
+                    $validator->errors()->add('resolution_type', __('validation.required'));
+                }
+            },
         ];
     }
 

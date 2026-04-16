@@ -13,9 +13,10 @@ abstract class Controller
 
     protected function ensureAbility(Request $request, string $ability): void
     {
-        abort_unless($request->user()?->tokenCan($ability) ?? false, 403, sprintf(
-            'Missing required token ability [%s].',
-            $ability
-        ));
+        abort_unless(
+            $request->user()?->tokenCan($ability) ?? false,
+            403,
+            __('messages.auth.missing_ability', ['ability' => $ability])
+        );
     }
 }

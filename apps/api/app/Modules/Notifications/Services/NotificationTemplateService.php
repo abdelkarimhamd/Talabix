@@ -25,43 +25,54 @@ class NotificationTemplateService
     public function supportNoteMessage(Order $order, SupportNote $note, string $actor): array
     {
         $orderCode = Str::upper(Str::substr($order->uuid, 0, 8));
-        $author = $note->author?->name ?? 'Talabix support';
+        $author = $note->author?->name ?? __('messages.notifications.support_author');
         $snippet = Str::limit($note->body, 96);
 
         return match ($actor) {
             'customer' => [
-                'title' => 'Support updated your order',
-                'body' => sprintf('%s added a note to order %s: %s', $author, $orderCode, $snippet),
+                'title' => __('messages.notifications.customer.support_note.title'),
+                'body' => __('messages.notifications.customer.support_note.body', [
+                    'author' => $author,
+                    'order' => $orderCode,
+                    'snippet' => $snippet,
+                ]),
                 'channels' => [NotificationChannel::IN_APP, NotificationChannel::PUSH, NotificationChannel::EMAIL],
                 'payload' => $this->basePayload($order, [
                     'support_note_id' => $note->id,
-                    'action_label' => 'Open order tracking',
+                    'action_label' => $this->actionLabel('open_order_tracking'),
                     'action_route' => sprintf('/orders/%s', $order->uuid),
                 ]),
             ],
             'merchant' => [
-                'title' => 'Support updated an active order',
-                'body' => sprintf('Support added a note to order %s for %s: %s', $orderCode, $order->customerProfile?->user?->name ?? 'the customer', $snippet),
+                'title' => __('messages.notifications.merchant.support_note.title'),
+                'body' => __('messages.notifications.merchant.support_note.body', [
+                    'order' => $orderCode,
+                    'customer' => $order->customerProfile?->user?->name ?? __('messages.notifications.fallbacks.customer'),
+                    'snippet' => $snippet,
+                ]),
                 'channels' => [NotificationChannel::IN_APP, NotificationChannel::EMAIL],
                 'payload' => $this->basePayload($order, [
                     'support_note_id' => $note->id,
-                    'action_label' => 'Open merchant board',
+                    'action_label' => $this->actionLabel('open_merchant_board'),
                     'action_route' => '/merchant/orders',
                 ]),
             ],
             'rider' => [
-                'title' => 'Support updated the drop-off',
-                'body' => sprintf('Support added handoff instructions for order %s: %s', $orderCode, $snippet),
+                'title' => __('messages.notifications.rider.support_note.title'),
+                'body' => __('messages.notifications.rider.support_note.body', [
+                    'order' => $orderCode,
+                    'snippet' => $snippet,
+                ]),
                 'channels' => [NotificationChannel::IN_APP, NotificationChannel::PUSH],
                 'payload' => $this->basePayload($order, [
                     'support_note_id' => $note->id,
-                    'action_label' => 'Open delivery',
+                    'action_label' => $this->actionLabel('open_delivery'),
                     'action_route' => '/delivery',
                 ]),
             ],
             default => [
-                'title' => 'Support updated your order',
-                'body' => sprintf('Support added a note for order %s.', $orderCode),
+                'title' => __('messages.notifications.generic.support_title'),
+                'body' => __('messages.notifications.generic.support_body', ['order' => $orderCode]),
                 'channels' => [NotificationChannel::IN_APP],
                 'payload' => $this->basePayload($order, [
                     'support_note_id' => $note->id,
@@ -84,34 +95,33 @@ class NotificationTemplateService
         }
 
         [$title, $body] = match ($status) {
-            OrderStatus::ACCEPTED => [
-                'Your order was accepted',
-                sprintf('%s accepted order %s and started fulfillment.', $order->merchant?->name ?? 'The merchant', $orderCode),
-            ],
-            OrderStatus::PREPARING => [
-                'Your order is being prepared',
-                sprintf('%s is preparing order %s.', $order->merchant?->name ?? 'The merchant', $orderCode),
-            ],
-            OrderStatus::READY_FOR_PICKUP => [
-                'Your order is almost ready',
-                sprintf('Order %s is staged for rider pickup from %s.', $orderCode, $order->branch?->name ?? 'the branch'),
-            ],
-            OrderStatus::ASSIGNED => [
-                'Rider assigned',
-                sprintf('%s is heading to %s for order %s.', $order->riderProfile?->user?->name ?? 'A rider', $order->branch?->name ?? 'the branch', $orderCode),
-            ],
-            OrderStatus::PICKED_UP => [
-                'Order picked up',
-                sprintf('%s picked up order %s and is heading to you.', $order->riderProfile?->user?->name ?? 'Your rider', $orderCode),
-            ],
-            OrderStatus::DELIVERED => [
-                'Order delivered',
-                sprintf('Order %s was marked delivered. Contact support if anything is wrong.', $orderCode),
-            ],
-            OrderStatus::CANCELLED => [
-                'Order cancelled',
-                sprintf('Order %s was cancelled. Support can help if you need a replacement order.', $orderCode),
-            ],
+            OrderStatus::ACCEPTED => $this->titleBody('customer.accepted', [
+                'merchant' => $order->merchant?->name ?? __('messages.notifications.fallbacks.merchant'),
+                'order' => $orderCode,
+            ]),
+            OrderStatus::PREPARING => $this->titleBody('customer.preparing', [
+                'merchant' => $order->merchant?->name ?? __('messages.notifications.fallbacks.merchant'),
+                'order' => $orderCode,
+            ]),
+            OrderStatus::READY_FOR_PICKUP => $this->titleBody('customer.ready_for_pickup', [
+                'order' => $orderCode,
+                'branch' => $order->branch?->name ?? __('messages.notifications.fallbacks.branch'),
+            ]),
+            OrderStatus::ASSIGNED => $this->titleBody('customer.assigned', [
+                'rider' => $order->riderProfile?->user?->name ?? __('messages.notifications.fallbacks.rider'),
+                'branch' => $order->branch?->name ?? __('messages.notifications.fallbacks.branch'),
+                'order' => $orderCode,
+            ]),
+            OrderStatus::PICKED_UP => $this->titleBody('customer.picked_up', [
+                'rider' => $order->riderProfile?->user?->name ?? __('messages.notifications.fallbacks.customer_rider'),
+                'order' => $orderCode,
+            ]),
+            OrderStatus::DELIVERED => $this->titleBody('customer.delivered', [
+                'order' => $orderCode,
+            ]),
+            OrderStatus::CANCELLED => $this->titleBody('customer.cancelled', [
+                'order' => $orderCode,
+            ]),
             default => $this->genericTitleBody($orderCode, $status),
         };
 
@@ -122,7 +132,7 @@ class NotificationTemplateService
             'payload' => $this->basePayload($order, [
                 'status' => $status->value,
                 'metadata' => $metadata,
-                'action_label' => 'Open order tracking',
+                'action_label' => $this->actionLabel('open_order_tracking'),
                 'action_route' => sprintf('/orders/%s', $order->uuid),
             ]),
         ];
@@ -131,26 +141,26 @@ class NotificationTemplateService
     private function merchantOrderStatusMessage(Order $order, OrderStatus $status, array $metadata, string $orderCode): array
     {
         [$title, $body] = match ($status) {
-            OrderStatus::ACCEPTED => [
-                'Order accepted',
-                sprintf('Order %s is accepted and committed for preparation at %s.', $orderCode, $order->branch?->name ?? 'your branch'),
-            ],
-            OrderStatus::ASSIGNED => [
-                'Rider assigned',
-                sprintf('%s is assigned to order %s from %s.', $order->riderProfile?->user?->name ?? 'A rider', $orderCode, $order->branch?->name ?? 'your branch'),
-            ],
-            OrderStatus::PICKED_UP => [
-                'Order picked up',
-                sprintf('%s confirmed pickup for order %s.', $order->riderProfile?->user?->name ?? 'The rider', $orderCode),
-            ],
-            OrderStatus::DELIVERED => [
-                'Order delivered',
-                sprintf('Order %s was delivered to %s.', $orderCode, $order->customerProfile?->user?->name ?? 'the customer'),
-            ],
-            OrderStatus::CANCELLED => [
-                'Order cancelled',
-                sprintf('Order %s was cancelled after merchant acceptance.', $orderCode),
-            ],
+            OrderStatus::ACCEPTED => $this->titleBody('merchant.accepted', [
+                'order' => $orderCode,
+                'branch' => $order->branch?->name ?? __('messages.notifications.fallbacks.merchant_branch'),
+            ]),
+            OrderStatus::ASSIGNED => $this->titleBody('merchant.assigned', [
+                'rider' => $order->riderProfile?->user?->name ?? __('messages.notifications.fallbacks.rider'),
+                'order' => $orderCode,
+                'branch' => $order->branch?->name ?? __('messages.notifications.fallbacks.merchant_branch'),
+            ]),
+            OrderStatus::PICKED_UP => $this->titleBody('merchant.picked_up', [
+                'rider' => $order->riderProfile?->user?->name ?? __('messages.notifications.fallbacks.merchant_rider'),
+                'order' => $orderCode,
+            ]),
+            OrderStatus::DELIVERED => $this->titleBody('merchant.delivered', [
+                'order' => $orderCode,
+                'customer' => $order->customerProfile?->user?->name ?? __('messages.notifications.fallbacks.customer'),
+            ]),
+            OrderStatus::CANCELLED => $this->titleBody('merchant.cancelled', [
+                'order' => $orderCode,
+            ]),
             default => $this->genericTitleBody($orderCode, $status),
         };
 
@@ -161,7 +171,7 @@ class NotificationTemplateService
             'payload' => $this->basePayload($order, [
                 'status' => $status->value,
                 'metadata' => $metadata,
-                'action_label' => 'Open merchant board',
+                'action_label' => $this->actionLabel('open_merchant_board'),
                 'action_route' => '/merchant/orders',
             ]),
         ];
@@ -170,14 +180,13 @@ class NotificationTemplateService
     private function riderOrderStatusMessage(Order $order, OrderStatus $status, array $metadata, string $orderCode): array
     {
         [$title, $body] = match ($status) {
-            OrderStatus::ASSIGNED => [
-                'New assignment ready',
-                sprintf('Head to %s for order %s and confirm acceptance when you are ready.', $order->branch?->name ?? 'the branch', $orderCode),
-            ],
-            OrderStatus::CANCELLED => [
-                'Assignment cancelled',
-                sprintf('Order %s is no longer active. Return to the assignment queue.', $orderCode),
-            ],
+            OrderStatus::ASSIGNED => $this->titleBody('rider.assigned', [
+                'branch' => $order->branch?->name ?? __('messages.notifications.fallbacks.branch'),
+                'order' => $orderCode,
+            ]),
+            OrderStatus::CANCELLED => $this->titleBody('rider.cancelled', [
+                'order' => $orderCode,
+            ]),
             default => $this->genericTitleBody($orderCode, $status),
         };
 
@@ -188,7 +197,7 @@ class NotificationTemplateService
             'payload' => $this->basePayload($order, [
                 'status' => $status->value,
                 'metadata' => $metadata,
-                'action_label' => 'Open delivery',
+                'action_label' => $this->actionLabel('open_delivery'),
                 'action_route' => '/delivery',
             ]),
         ];
@@ -209,12 +218,30 @@ class NotificationTemplateService
         ];
     }
 
-    private function genericTitleBody(string $orderCode, OrderStatus $status): array
+    private function titleBody(string $key, array $replace = []): array
     {
         return [
-            sprintf('Order %s updated', $orderCode),
-            sprintf('Order %s is now %s.', $orderCode, str_replace('_', ' ', $status->value)),
+            __("messages.notifications.{$key}.title", $replace),
+            __("messages.notifications.{$key}.body", $replace),
         ];
+    }
+
+    private function genericTitleBody(string $orderCode, OrderStatus $status): array
+    {
+        $statusLabel = str_replace('_', ' ', $status->value);
+
+        return [
+            __('messages.notifications.generic.title', ['order' => $orderCode]),
+            __('messages.notifications.generic.body', [
+                'order' => $orderCode,
+                'status' => $statusLabel,
+            ]),
+        ];
+    }
+
+    private function actionLabel(string $action): string
+    {
+        return __("messages.notifications.actions.{$action}");
     }
 
     private function basePayload(Order $order, array $extra = []): array
@@ -223,6 +250,7 @@ class NotificationTemplateService
             'order_uuid' => $order->uuid,
             'branch_name' => $order->branch?->name,
             'merchant_name' => $order->merchant?->name,
+            'locale' => app()->getLocale(),
         ], $extra);
     }
 }

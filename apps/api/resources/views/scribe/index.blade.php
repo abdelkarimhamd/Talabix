@@ -1110,7 +1110,7 @@ access-control-allow-origin: *
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;A signed-in customer is required to filter merchants by address.&quot;,
+    &quot;message&quot;: &quot;Please review the required fields.&quot;,
     &quot;errors&quot;: {
         &quot;address_uuid&quot;: [
             &quot;A signed-in customer is required to filter merchants by address.&quot;
@@ -2221,7 +2221,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     \"city\": \"d\",
     \"latitude\": 4326.41688,
     \"longitude\": 4326.41688,
-    \"is_default\": false
+    \"is_default\": true
 }"
 </code></pre></div>
 
@@ -2249,7 +2249,7 @@ let body = {
     "city": "d",
     "latitude": 4326.41688,
     "longitude": 4326.41688,
-    "is_default": false
+    "is_default": true
 };
 
 fetch(url, {
@@ -2498,7 +2498,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <code>false</code>
         </label>
     <br>
-<p>Example: <code>false</code></p>
+<p>Example: <code>true</code></p>
         </div>
         </form>
 
@@ -2532,7 +2532,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     \"city\": \"d\",
     \"latitude\": 4326.41688,
     \"longitude\": 4326.41688,
-    \"is_default\": false
+    \"is_default\": true
 }"
 </code></pre></div>
 
@@ -2560,7 +2560,7 @@ let body = {
     "city": "d",
     "latitude": 4326.41688,
     "longitude": 4326.41688,
-    "is_default": false
+    "is_default": true
 };
 
 fetch(url, {
@@ -2822,7 +2822,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <code>false</code>
         </label>
     <br>
-<p>Example: <code>false</code></p>
+<p>Example: <code>true</code></p>
         </div>
         </form>
 
@@ -3007,7 +3007,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Accept: application/json" \
     --data "{
     \"order_uuid\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
-    \"unread_only\": true
+    \"unread_only\": false
 }"
 </code></pre></div>
 
@@ -3025,7 +3025,7 @@ const headers = {
 
 let body = {
     "order_uuid": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
-    "unread_only": true
+    "unread_only": false
 };
 
 fetch(url, {
@@ -3170,7 +3170,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <code>false</code>
         </label>
     <br>
-<p>Example: <code>true</code></p>
+<p>Example: <code>false</code></p>
         </div>
         </form>
 
@@ -4458,7 +4458,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Accept: application/json" \
     --data "{
     \"order_uuid\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
-    \"unread_only\": true
+    \"unread_only\": false
 }"
 </code></pre></div>
 
@@ -4476,7 +4476,7 @@ const headers = {
 
 let body = {
     "order_uuid": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
-    "unread_only": true
+    "unread_only": false
 };
 
 fetch(url, {
@@ -4621,7 +4621,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <code>false</code>
         </label>
     <br>
-<p>Example: <code>true</code></p>
+<p>Example: <code>false</code></p>
         </div>
         </form>
 
@@ -5400,7 +5400,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     \"image_url\": \"http:\\/\\/www.ernser.org\\/harum-mollitia-modi-deserunt-aut-ab-provident-perspiciatis-quo.html\",
     \"base_price_minor\": 38,
     \"base_stock\": 50,
-    \"is_active\": false
+    \"is_active\": true
 }"
 </code></pre></div>
 
@@ -5425,7 +5425,7 @@ let body = {
     "image_url": "http:\/\/www.ernser.org\/harum-mollitia-modi-deserunt-aut-ab-provident-perspiciatis-quo.html",
     "base_price_minor": 38,
     "base_stock": 50,
-    "is_active": false
+    "is_active": true
 };
 
 fetch(url, {
@@ -5651,7 +5651,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <code>false</code>
         </label>
     <br>
-<p>Example: <code>false</code></p>
+<p>Example: <code>true</code></p>
         </div>
         </form>
 
@@ -5688,7 +5688,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
             \"description\": \"Eius et animi quos velit et.\",
             \"price_delta_minor\": 60,
             \"is_default\": false,
-            \"is_active\": true,
+            \"is_active\": false,
             \"sort_order\": 42
         }
     ]
@@ -5722,7 +5722,7 @@ let body = {
             "description": "Eius et animi quos velit et.",
             "price_delta_minor": 60,
             "is_default": false,
-            "is_active": true,
+            "is_active": false,
             "sort_order": 42
         }
     ]
@@ -6031,7 +6031,7 @@ Must be one of:
             <code>false</code>
         </label>
     <br>
-<p>Example: <code>true</code></p>
+<p>Example: <code>false</code></p>
                     </div>
                                                                 <div style="margin-left: 14px; clear: unset;">
                         <b style="line-height: 2;"><code>sort_order</code></b>&nbsp;&nbsp;
@@ -6070,7 +6070,7 @@ Must be one of:
     --data "{
     \"name\": \"b\",
     \"description\": \"Eius et animi quos velit et.\",
-    \"selection_type\": \"multiple\",
+    \"selection_type\": \"single\",
     \"min_selected\": 60,
     \"max_selected\": 26,
     \"is_active\": false,
@@ -6081,8 +6081,8 @@ Must be one of:
             \"name\": \"g\",
             \"description\": \"Eius et animi quos velit et.\",
             \"price_delta_minor\": 60,
-            \"is_default\": true,
-            \"is_active\": false,
+            \"is_default\": false,
+            \"is_active\": true,
             \"sort_order\": 42
         }
     ]
@@ -6104,7 +6104,7 @@ const headers = {
 let body = {
     "name": "b",
     "description": "Eius et animi quos velit et.",
-    "selection_type": "multiple",
+    "selection_type": "single",
     "min_selected": 60,
     "max_selected": 26,
     "is_active": false,
@@ -6115,8 +6115,8 @@ let body = {
             "name": "g",
             "description": "Eius et animi quos velit et.",
             "price_delta_minor": 60,
-            "is_default": true,
-            "is_active": false,
+            "is_default": false,
+            "is_active": true,
             "sort_order": 42
         }
     ]
@@ -6272,10 +6272,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="selection_type"                data-endpoint="PATCHapi-v1-merchant-catalog-items--catalogItem_uuid--modifier-groups--modifierGroup_uuid-"
-               value="multiple"
+               value="single"
                data-component="body">
     <br>
-<p>Example: <code>multiple</code></p>
+<p>Example: <code>single</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>single</code></li> <li><code>multiple</code></li></ul>
         </div>
@@ -6415,7 +6415,7 @@ Must be one of:
             <code>false</code>
         </label>
     <br>
-<p>Example: <code>true</code></p>
+<p>Example: <code>false</code></p>
                     </div>
                                                                 <div style="margin-left: 14px; clear: unset;">
                         <b style="line-height: 2;"><code>is_active</code></b>&nbsp;&nbsp;
@@ -6437,7 +6437,7 @@ Must be one of:
             <code>false</code>
         </label>
     <br>
-<p>Example: <code>false</code></p>
+<p>Example: <code>true</code></p>
                     </div>
                                                                 <div style="margin-left: 14px; clear: unset;">
                         <b style="line-height: 2;"><code>sort_order</code></b>&nbsp;&nbsp;
@@ -9367,7 +9367,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"proof_type\": \"handoff_code\",
+    \"proof_type\": \"photo\",
     \"recipient_name\": \"b\",
     \"proof_notes\": \"n\",
     \"proof_reference\": \"g\"
@@ -9387,7 +9387,7 @@ const headers = {
 };
 
 let body = {
-    "proof_type": "handoff_code",
+    "proof_type": "photo",
     "recipient_name": "b",
     "proof_notes": "n",
     "proof_reference": "g"
@@ -9507,10 +9507,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="proof_type"                data-endpoint="POSTapi-v1-rider-orders--order_uuid--delivered"
-               value="handoff_code"
+               value="photo"
                data-component="body">
     <br>
-<p>Example: <code>handoff_code</code></p>
+<p>Example: <code>photo</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>photo</code></li> <li><code>recipient_confirmation</code></li> <li><code>handoff_code</code></li></ul>
         </div>
@@ -10331,8 +10331,8 @@ You can check the Dev Tools console for debugging information.</code></pre>
         \"hours\": [
             {
                 \"day_of_week\": 1,
-                \"opens_at\": \"11:59\",
-                \"closes_at\": \"11:59\"
+                \"opens_at\": \"16:19\",
+                \"closes_at\": \"16:19\"
             }
         ],
         \"zones\": [
@@ -10380,8 +10380,8 @@ let body = {
         "hours": [
             {
                 "day_of_week": 1,
-                "opens_at": "11:59",
-                "closes_at": "11:59"
+                "opens_at": "16:19",
+                "closes_at": "16:19"
             }
         ],
         "zones": [
@@ -10632,10 +10632,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="branch.hours.0.opens_at"                data-endpoint="POSTapi-v1-ops-merchants"
-               value="11:59"
+               value="16:19"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>H:i</code>. Example: <code>11:59</code></p>
+<p>Must be a valid date in the format <code>H:i</code>. Example: <code>16:19</code></p>
                     </div>
                                                                 <div style="margin-left: 28px; clear: unset;">
                         <b style="line-height: 2;"><code>closes_at</code></b>&nbsp;&nbsp;
@@ -10644,10 +10644,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="branch.hours.0.closes_at"                data-endpoint="POSTapi-v1-ops-merchants"
-               value="11:59"
+               value="16:19"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>H:i</code>. Example: <code>11:59</code></p>
+<p>Must be a valid date in the format <code>H:i</code>. Example: <code>16:19</code></p>
                     </div>
                                     </details>
         </div>
@@ -11267,8 +11267,8 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"status\": \"active\",
-    \"accepts_orders\": false
+    \"status\": \"inactive\",
+    \"accepts_orders\": true
 }"
 </code></pre></div>
 
@@ -11285,8 +11285,8 @@ const headers = {
 };
 
 let body = {
-    "status": "active",
-    "accepts_orders": false
+    "status": "inactive",
+    "accepts_orders": true
 };
 
 fetch(url, {
@@ -11403,10 +11403,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="PATCHapi-v1-ops-configuration-branches--branch_uuid-"
-               value="active"
+               value="inactive"
                data-component="body">
     <br>
-<p>Example: <code>active</code></p>
+<p>Example: <code>inactive</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li></ul>
         </div>
@@ -11430,7 +11430,7 @@ Must be one of:
             <code>false</code>
         </label>
     <br>
-<p>Example: <code>false</code></p>
+<p>Example: <code>true</code></p>
         </div>
         </form>
 
@@ -11713,7 +11713,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     \"center_latitude\": 4326.41688,
     \"center_longitude\": 4326.41688,
     \"radius_meters\": 93,
-    \"is_active\": false
+    \"is_active\": true
 }"
 </code></pre></div>
 
@@ -11736,7 +11736,7 @@ let body = {
     "center_latitude": 4326.41688,
     "center_longitude": 4326.41688,
     "radius_meters": 93,
-    "is_active": false
+    "is_active": true
 };
 
 fetch(url, {
@@ -11938,7 +11938,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
             <code>false</code>
         </label>
     <br>
-<p>Example: <code>false</code></p>
+<p>Example: <code>true</code></p>
         </div>
         </form>
 
@@ -12811,9 +12811,9 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"entry_type\": \"platform_commission\",
+    \"entry_type\": \"adjustment\",
     \"order_uuid\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
-    \"direction\": \"negative\"
+    \"direction\": \"positive\"
 }"
 </code></pre></div>
 
@@ -12830,9 +12830,9 @@ const headers = {
 };
 
 let body = {
-    "entry_type": "platform_commission",
+    "entry_type": "adjustment",
     "order_uuid": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
-    "direction": "negative"
+    "direction": "positive"
 };
 
 fetch(url, {
@@ -12952,10 +12952,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="entry_type"                data-endpoint="GETapi-v1-ops-settlements-ledger"
-               value="platform_commission"
+               value="adjustment"
                data-component="body">
     <br>
-<p>Example: <code>platform_commission</code></p>
+<p>Example: <code>adjustment</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>merchant_receivable</code></li> <li><code>platform_commission</code></li> <li><code>rider_earning</code></li> <li><code>adjustment</code></li></ul>
         </div>
@@ -12978,10 +12978,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="direction"                data-endpoint="GETapi-v1-ops-settlements-ledger"
-               value="negative"
+               value="positive"
                data-component="body">
     <br>
-<p>Example: <code>negative</code></p>
+<p>Example: <code>positive</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>positive</code></li> <li><code>negative</code></li></ul>
         </div>
@@ -13006,9 +13006,9 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"entry_type\": \"platform_commission\",
+    \"entry_type\": \"adjustment\",
     \"order_uuid\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
-    \"direction\": \"positive\"
+    \"direction\": \"negative\"
 }"
 </code></pre></div>
 
@@ -13025,9 +13025,9 @@ const headers = {
 };
 
 let body = {
-    "entry_type": "platform_commission",
+    "entry_type": "adjustment",
     "order_uuid": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
-    "direction": "positive"
+    "direction": "negative"
 };
 
 fetch(url, {
@@ -13147,10 +13147,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="entry_type"                data-endpoint="GETapi-v1-ops-settlements-export"
-               value="platform_commission"
+               value="adjustment"
                data-component="body">
     <br>
-<p>Example: <code>platform_commission</code></p>
+<p>Example: <code>adjustment</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>merchant_receivable</code></li> <li><code>platform_commission</code></li> <li><code>rider_earning</code></li> <li><code>adjustment</code></li></ul>
         </div>
@@ -13173,10 +13173,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="direction"                data-endpoint="GETapi-v1-ops-settlements-export"
-               value="positive"
+               value="negative"
                data-component="body">
     <br>
-<p>Example: <code>positive</code></p>
+<p>Example: <code>negative</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>positive</code></li> <li><code>negative</code></li></ul>
         </div>
@@ -13377,9 +13377,9 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --data "{
     \"order_uuid\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
     \"recipient_actor\": \"customer\",
-    \"channel\": \"push\",
+    \"channel\": \"sms\",
     \"provider\": \"g\",
-    \"status\": \"queued\",
+    \"status\": \"failed\",
     \"notification_type\": \"support_note_added\"
 }"
 </code></pre></div>
@@ -13399,9 +13399,9 @@ const headers = {
 let body = {
     "order_uuid": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
     "recipient_actor": "customer",
-    "channel": "push",
+    "channel": "sms",
     "provider": "g",
-    "status": "queued",
+    "status": "failed",
     "notification_type": "support_note_added"
 };
 
@@ -13548,10 +13548,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="channel"                data-endpoint="GETapi-v1-ops-notifications"
-               value="push"
+               value="sms"
                data-component="body">
     <br>
-<p>Example: <code>push</code></p>
+<p>Example: <code>sms</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>in_app</code></li> <li><code>email</code></li> <li><code>push</code></li> <li><code>sms</code></li></ul>
         </div>
@@ -13574,10 +13574,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-v1-ops-notifications"
-               value="queued"
+               value="failed"
                data-component="body">
     <br>
-<p>Example: <code>queued</code></p>
+<p>Example: <code>failed</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>queued</code></li> <li><code>sent</code></li> <li><code>failed</code></li></ul>
         </div>
@@ -14563,7 +14563,7 @@ Must be one of:
     --header "Content-Type: multipart/form-data" \
     --header "Accept: application/json" \
     --form "body=Customer confirmed they can meet the rider in the lobby."\
-    --form "attachment=@/tmp/phpopCCqI" </code></pre></div>
+    --form "attachment=@/tmp/phpe5wtNo" </code></pre></div>
 
 
 <div class="javascript-example">
@@ -14710,7 +14710,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
                value=""
                data-component="body">
     <br>
-<p>Optional support attachment file. Maximum size is 5 MB. Must be a file. Must not be greater than 5120 kilobytes. Example: <code>/tmp/phpopCCqI</code></p>
+<p>Optional support attachment file. Maximum size is 5 MB. Must be a file. Must not be greater than 5120 kilobytes. Example: <code>/tmp/phpe5wtNo</code></p>
         </div>
         </form>
 

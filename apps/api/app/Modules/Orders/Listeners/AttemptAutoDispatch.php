@@ -8,9 +8,7 @@ use App\Modules\Orders\Events\OrderStatusChanged;
 
 class AttemptAutoDispatch
 {
-    public function __construct(private readonly AutoAssignOrderAction $autoAssignOrderAction)
-    {
-    }
+    public function __construct(private readonly AutoAssignOrderAction $autoAssignOrderAction) {}
 
     public function handle(OrderStatusChanged $event): void
     {

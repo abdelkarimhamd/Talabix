@@ -17,8 +17,7 @@ class SendOrderStatusNotificationJob implements ShouldQueue
         public readonly OrderStatus $status,
         public readonly ?int $actorUserId = null,
         public readonly array $metadata = [],
-    ) {
-    }
+    ) {}
 
     public function handle(NotificationDeliveryService $notificationDeliveryService): void
     {

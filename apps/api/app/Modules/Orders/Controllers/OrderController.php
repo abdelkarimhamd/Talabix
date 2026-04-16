@@ -3,13 +3,14 @@
 namespace App\Modules\Orders\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\CatalogItem;
 use App\Models\CustomerAddress;
 use App\Models\DeliveryAssignment;
 use App\Models\Order;
-use App\Models\Branch;
 use App\Modules\Orders\Enums\OrderStatus;
 use App\Modules\Orders\Enums\OrderTimelineEventType;
+use App\Modules\Orders\Enums\PaymentStatus;
 use App\Modules\Orders\Requests\CheckoutRequest;
 use App\Modules\Orders\Requests\CompleteDeliveryRequest;
 use App\Modules\Orders\Resources\OrderResource;
@@ -26,8 +27,7 @@ class OrderController extends Controller
     public function __construct(
         private readonly OrderPricingService $orderPricingService,
         private readonly OrderLifecycleService $orderLifecycleService,
-    ) {
-    }
+    ) {}
 
     public function customerIndex(Request $request): JsonResponse
     {
@@ -76,7 +76,7 @@ class OrderController extends Controller
                 'merchant_id' => $merchant->id,
                 'branch_id' => $branch->id,
                 'status' => OrderStatus::PLACED,
-                'payment_status' => \App\Modules\Orders\Enums\PaymentStatus::PENDING_COD,
+                'payment_status' => PaymentStatus::PENDING_COD,
                 'currency' => 'SAR',
                 'subtotal_minor' => $quote['pricing']['subtotal_minor'],
                 'delivery_fee_minor' => $quote['pricing']['delivery_fee_minor'],

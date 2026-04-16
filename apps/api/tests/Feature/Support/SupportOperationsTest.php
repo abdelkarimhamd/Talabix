@@ -42,7 +42,7 @@ it('adds a support note and queues recipient notifications', function () {
         'notification_type' => NotificationType::SUPPORT_NOTE_ADDED,
         'channel' => 'email',
         'provider' => 'mail',
-        'status' => 'queued',
+        'status' => 'sent',
         'attempt_count' => 1,
     ]);
 
@@ -94,6 +94,35 @@ it('creates and updates a structured support case', function () {
 
     $this->assertDatabaseHas('audit_logs', [
         'event' => 'support_case_updated',
+    ]);
+});
+
+it('requires a structured outcome before resolving a support case', function () {
+    $this->seedRoles();
+    $merchantContext = $this->createMerchantContext();
+    $customerContext = $this->createCustomerContext();
+    $opsSupport = $this->createUserWithRole('ops_support');
+    $order = $this->createPlacedOrder($customerContext, $merchantContext);
+
+    Sanctum::actingAs($opsSupport, ['ops:support.manage']);
+
+    $createResponse = $this->postJson("/api/v1/ops/support/orders/{$order->uuid}/cases", [
+        'summary' => 'Customer needs delivery instruction clarification.',
+        'issue_type' => 'customer_request',
+    ])->assertCreated();
+
+    $supportCaseUuid = $createResponse->json('data.uuid');
+
+    $this->patchJson("/api/v1/ops/support/cases/{$supportCaseUuid}", [
+        'status' => 'resolved',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['resolution_type']);
+
+    $this->assertDatabaseHas('support_cases', [
+        'order_id' => $order->id,
+        'status' => 'open',
+        'resolution_type' => null,
     ]);
 });
 
@@ -149,7 +178,7 @@ it('cancels support orders with a structured reason and resolves the support cas
 
     $this->getJson("/api/v1/ops/notifications?order_uuid={$order->uuid}&notification_type=order_status_updated&status=sent")
         ->assertOk()
-        ->assertJsonPath('meta.total', 4)
+        ->assertJsonPath('meta.total', 6)
         ->assertJsonPath('data.0.notification_type', 'order_status_updated')
         ->assertJsonPath('data.0.status', 'sent');
 

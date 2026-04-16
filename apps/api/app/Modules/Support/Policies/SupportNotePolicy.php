@@ -2,7 +2,6 @@
 
 namespace App\Modules\Support\Policies;
 
-use App\Models\SupportNote;
 use App\Models\User;
 
 class SupportNotePolicy

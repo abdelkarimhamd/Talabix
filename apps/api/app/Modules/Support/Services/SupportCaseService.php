@@ -7,6 +7,7 @@ use App\Models\SupportCase;
 use App\Models\User;
 use App\Modules\Support\Enums\SupportCaseStatus;
 use App\Modules\Support\Enums\SupportResolutionType;
+use Illuminate\Support\Str;
 
 class SupportCaseService
 {
@@ -16,7 +17,7 @@ class SupportCaseService
 
         if (! $supportCase->exists) {
             $supportCase->fill([
-                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'uuid' => (string) Str::uuid(),
                 'order_id' => $order->id,
                 'opened_by_user_id' => $actor->id,
                 'opened_at' => now(),

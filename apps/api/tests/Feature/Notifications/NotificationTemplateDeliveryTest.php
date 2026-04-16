@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\NotificationDelivery;
+use App\Modules\Notifications\Mail\NotificationDeliveryMail;
 use App\Modules\Notifications\Services\NotificationDeliveryService;
 use App\Modules\Orders\Enums\OrderStatus;
 use Laravel\Sanctum\Sanctum;
@@ -36,6 +37,62 @@ it('builds rider-specific assignment copy for in-app notifications', function ()
     expect($delivery->title)->toBe('New assignment ready');
     expect($delivery->body)->toContain('Main Branch');
     expect($delivery->payload['action_route'])->toBe('/delivery');
+});
+
+it('builds Arabic rider assignment copy when Arabic locale is active', function () {
+    app()->setLocale('ar');
+    $this->seedRoles();
+
+    $merchantContext = $this->createMerchantContext();
+    $customerContext = $this->createCustomerContext();
+    ['profile' => $riderProfile] = $this->createRiderContext();
+    $order = $this->createPlacedOrder($customerContext, $merchantContext);
+    $order->update([
+        'status' => OrderStatus::ASSIGNED,
+        'rider_profile_id' => $riderProfile->id,
+    ]);
+
+    app(NotificationDeliveryService::class)->queueOrderStatusNotifications(
+        $order->fresh(),
+        OrderStatus::ASSIGNED,
+        null,
+        ['assignment_type' => 'auto']
+    );
+
+    $delivery = NotificationDelivery::query()
+        ->where('order_id', $order->id)
+        ->where('recipient_actor', 'rider')
+        ->where('channel', 'in_app')
+        ->firstOrFail();
+
+    expect($delivery->title)->toBe('مهمة توصيل جديدة');
+    expect($delivery->body)->toContain('Main Branch');
+    expect($delivery->payload['action_label'])->toBe('فتح شاشة التوصيل');
+});
+
+it('renders Arabic notification mail direction and order label', function () {
+    app()->setLocale('ar');
+    $this->seedRoles();
+
+    $merchantContext = $this->createMerchantContext();
+    $customerContext = $this->createCustomerContext();
+    $order = $this->createPlacedOrder($customerContext, $merchantContext);
+
+    app(NotificationDeliveryService::class)->queueOrderStatusNotifications(
+        $order->fresh(),
+        OrderStatus::ACCEPTED
+    );
+
+    $delivery = NotificationDelivery::query()
+        ->where('order_id', $order->id)
+        ->where('recipient_actor', 'customer')
+        ->where('channel', 'email')
+        ->firstOrFail();
+
+    $html = (new NotificationDeliveryMail($delivery))->render();
+
+    expect($html)->toContain('dir="rtl"');
+    expect($html)->toContain('الطلب:');
 });
 
 it('queues customer sms deliveries for critical delivered updates with actor-specific copy', function () {

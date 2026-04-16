@@ -18,8 +18,7 @@ class NotificationTransportManager
         private readonly LogPushNotificationTransport $logPushNotificationTransport,
         private readonly LogSmsNotificationTransport $logSmsNotificationTransport,
         private readonly FailingNotificationTransport $failingNotificationTransport,
-    ) {
-    }
+    ) {}
 
     public function forDelivery(NotificationDelivery $delivery): NotificationChannelTransport
     {

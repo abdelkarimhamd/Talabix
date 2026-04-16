@@ -1,0 +1,3013 @@
+openapi: 3.0.3
+info:
+  title: 'Talabix Delivery Marketplace API'
+  description: 'Versioned actor-scoped API for Talabix marketplace clients.'
+  version: 1.0.0
+servers:
+  -
+    url: 'http://localhost:8000'
+tags:
+  -
+    name: Endpoints
+    description: ''
+components:
+  securitySchemes:
+    default:
+      type: http
+      scheme: bearer
+      description: 'Authenticate with a Sanctum bearer token issued by the actor-specific login endpoints.'
+security:
+  -
+    default: []
+paths:
+  /api/v1/customer/auth/register:
+    post:
+      summary: ''
+      operationId: postApiV1CustomerAuthRegister
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: b
+                email:
+                  type: string
+                  description: 'Must be a valid email address. Must not be greater than 255 characters.'
+                  example: zbailey@example.net
+                phone:
+                  type: string
+                  description: 'Must not be greater than 32 characters.'
+                  example: i
+                password:
+                  type: string
+                  description: ''
+                  example: architecto
+                device_name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: 'n'
+              required:
+                - name
+                - email
+                - phone
+                - password
+                - device_name
+  /api/v1/customer/auth/login:
+    post:
+      summary: ''
+      operationId: postApiV1CustomerAuthLogin
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: gbailey@example.net
+                password:
+                  type: string
+                  description: ''
+                  example: '|]|{+-'
+                device_name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: v
+              required:
+                - email
+                - password
+                - device_name
+  /api/v1/customer/auth/forgot-password:
+    post:
+      summary: ''
+      operationId: postApiV1CustomerAuthForgotPassword
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: gbailey@example.net
+              required:
+                - email
+  /api/v1/customer/auth/reset-password:
+    post:
+      summary: ''
+      operationId: postApiV1CustomerAuthResetPassword
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: gbailey@example.net
+                token:
+                  type: string
+                  description: ''
+                  example: architecto
+                password:
+                  type: string
+                  description: 'Must be at least 8 characters.'
+                  example: ']|{+-0pBNvYg'
+              required:
+                - email
+                - token
+                - password
+  /api/v1/customer/merchants:
+    get:
+      summary: ''
+      operationId: getApiV1CustomerMerchants
+      description: ''
+      parameters: []
+      responses:
+        422:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Please review the required fields.'
+                  errors:
+                    address_uuid:
+                      - 'A signed-in customer is required to filter merchants by address.'
+                properties:
+                  message:
+                    type: string
+                    example: 'Please review the required fields.'
+                  errors:
+                    type: object
+                    properties:
+                      address_uuid:
+                        type: array
+                        example:
+                          - 'A signed-in customer is required to filter merchants by address.'
+                        items:
+                          type: string
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                  nullable: true
+                search:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: g
+                  nullable: true
+                open_now:
+                  type: boolean
+                  description: ''
+                  example: true
+                  nullable: true
+  '/api/v1/customer/merchants/{merchant_uuid}':
+    get:
+      summary: ''
+      operationId: getApiV1CustomerMerchantsMerchant_uuid
+      description: ''
+      parameters: []
+      responses:
+        404:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'No query results for model [App\Models\Merchant] 6ff8f7f6-1eb3-3525-be4a-3932c805afed'
+                properties:
+                  message:
+                    type: string
+                    example: 'No query results for model [App\Models\Merchant] 6ff8f7f6-1eb3-3525-be4a-3932c805afed'
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                  nullable: true
+                search:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: g
+                  nullable: true
+                open_now:
+                  type: boolean
+                  description: ''
+                  example: true
+                  nullable: true
+    parameters:
+      -
+        in: path
+        name: merchant_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/customer/branches/{branch_uuid}/catalog':
+    get:
+      summary: ''
+      operationId: getApiV1CustomerBranchesBranch_uuidCatalog
+      description: ''
+      parameters: []
+      responses:
+        404:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'No query results for model [App\Models\Branch] 6ff8f7f6-1eb3-3525-be4a-3932c805afed'
+                properties:
+                  message:
+                    type: string
+                    example: 'No query results for model [App\Models\Branch] 6ff8f7f6-1eb3-3525-be4a-3932c805afed'
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: branch_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  /api/v1/customer/auth/me:
+    get:
+      summary: ''
+      operationId: getApiV1CustomerAuthMe
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+    patch:
+      summary: ''
+      operationId: patchApiV1CustomerAuthMe
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: b
+                phone:
+                  type: string
+                  description: 'Must not be greater than 32 characters.'
+                  example: 'n'
+  /api/v1/customer/auth/logout:
+    post:
+      summary: ''
+      operationId: postApiV1CustomerAuthLogout
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+  /api/v1/customer/addresses:
+    get:
+      summary: ''
+      operationId: getApiV1CustomerAddresses
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+    post:
+      summary: ''
+      operationId: postApiV1CustomerAddresses
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: b
+                line_1:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: 'n'
+                line_2:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: g
+                  nullable: true
+                building:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: z
+                  nullable: true
+                floor:
+                  type: string
+                  description: 'Must not be greater than 60 characters.'
+                  example: m
+                  nullable: true
+                apartment:
+                  type: string
+                  description: 'Must not be greater than 60 characters.'
+                  example: i
+                  nullable: true
+                landmark:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: 'y'
+                  nullable: true
+                delivery_notes:
+                  type: string
+                  description: 'Must not be greater than 1000 characters.'
+                  example: v
+                  nullable: true
+                city:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: d
+                latitude:
+                  type: number
+                  description: ''
+                  example: 4326.41688
+                longitude:
+                  type: number
+                  description: ''
+                  example: 4326.41688
+                is_default:
+                  type: boolean
+                  description: ''
+                  example: true
+              required:
+                - label
+                - line_1
+                - city
+                - latitude
+                - longitude
+  '/api/v1/customer/addresses/{address_uuid}':
+    patch:
+      summary: ''
+      operationId: patchApiV1CustomerAddressesAddress_uuid
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: b
+                line_1:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: 'n'
+                line_2:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: g
+                  nullable: true
+                building:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: z
+                  nullable: true
+                floor:
+                  type: string
+                  description: 'Must not be greater than 60 characters.'
+                  example: m
+                  nullable: true
+                apartment:
+                  type: string
+                  description: 'Must not be greater than 60 characters.'
+                  example: i
+                  nullable: true
+                landmark:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: 'y'
+                  nullable: true
+                delivery_notes:
+                  type: string
+                  description: 'Must not be greater than 1000 characters.'
+                  example: v
+                  nullable: true
+                city:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: d
+                latitude:
+                  type: number
+                  description: ''
+                  example: 4326.41688
+                longitude:
+                  type: number
+                  description: ''
+                  example: 4326.41688
+                is_default:
+                  type: boolean
+                  description: ''
+                  example: true
+              required:
+                - label
+                - line_1
+                - city
+                - latitude
+                - longitude
+    parameters:
+      -
+        in: path
+        name: address_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  /api/v1/customer/maps/places:
+    get:
+      summary: ''
+      operationId: getApiV1CustomerMapsPlaces
+      description: ''
+      parameters:
+        -
+          in: query
+          name: query
+          description: 'Place search text entered by the customer while creating an address. Must be at least 2 characters. Must not be greater than 120 characters.'
+          example: 'King Fahd'
+          required: true
+          schema:
+            type: string
+            description: 'Place search text entered by the customer while creating an address. Must be at least 2 characters. Must not be greater than 120 characters.'
+            example: 'King Fahd'
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+  /api/v1/customer/notifications:
+    get:
+      summary: ''
+      operationId: getApiV1CustomerNotifications
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                  nullable: true
+                unread_only:
+                  type: boolean
+                  description: ''
+                  example: false
+                  nullable: true
+  '/api/v1/customer/notifications/{notificationDelivery_id}/read':
+    post:
+      summary: ''
+      operationId: postApiV1CustomerNotificationsNotificationDelivery_idRead
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: notificationDelivery_id
+        description: 'The ID of the notificationDelivery.'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/customer/orders:
+    get:
+      summary: ''
+      operationId: getApiV1CustomerOrders
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+  /api/v1/customer/orders/checkout:
+    post:
+      summary: ''
+      operationId: postApiV1CustomerOrdersCheckout
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                branch_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                address_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6b72fe4a-5b40-307c-bc24-f79acf9a1bb9
+                notes:
+                  type: string
+                  description: ''
+                  example: architecto
+                  nullable: true
+                items:
+                  type: array
+                  description: 'Must have at least 1 items.'
+                  example:
+                    - []
+                  items:
+                    type: object
+                    properties:
+                      catalog_item_uuid:
+                        type: string
+                        description: 'Must be a valid UUID.'
+                        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                      quantity:
+                        type: integer
+                        description: 'Must be at least 1.'
+                        example: 67
+                      modifier_option_uuids:
+                        type: array
+                        description: 'Must be a valid UUID.'
+                        example:
+                          - c90237e9-ced5-3af6-88ea-84aeaa148878
+                        items:
+                          type: string
+                    required:
+                      - catalog_item_uuid
+                      - quantity
+                      - modifier_option_uuids
+              required:
+                - branch_uuid
+                - address_uuid
+                - items
+  '/api/v1/customer/orders/{order_uuid}':
+    get:
+      summary: ''
+      operationId: getApiV1CustomerOrdersOrder_uuid
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  /api/v1/merchant/auth/login:
+    post:
+      summary: ''
+      operationId: postApiV1MerchantAuthLogin
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: gbailey@example.net
+                password:
+                  type: string
+                  description: ''
+                  example: '|]|{+-'
+                device_name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: v
+              required:
+                - email
+                - password
+                - device_name
+  /api/v1/merchant/auth/me:
+    get:
+      summary: ''
+      operationId: getApiV1MerchantAuthMe
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+  /api/v1/merchant/auth/logout:
+    post:
+      summary: ''
+      operationId: postApiV1MerchantAuthLogout
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+  /api/v1/merchant/me/merchants:
+    get:
+      summary: ''
+      operationId: getApiV1MerchantMeMerchants
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+  /api/v1/merchant/notifications:
+    get:
+      summary: ''
+      operationId: getApiV1MerchantNotifications
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                  nullable: true
+                unread_only:
+                  type: boolean
+                  description: ''
+                  example: false
+                  nullable: true
+  '/api/v1/merchant/notifications/{notificationDelivery_id}/read':
+    post:
+      summary: ''
+      operationId: postApiV1MerchantNotificationsNotificationDelivery_idRead
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: notificationDelivery_id
+        description: 'The ID of the notificationDelivery.'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/merchant/reports/sales:
+    get:
+      summary: ''
+      operationId: getApiV1MerchantReportsSales
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                range_days:
+                  type: integer
+                  description: 'Must be at least 1. Must not be greater than 90.'
+                  example: 1
+                  nullable: true
+                merchant_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: a4855dc5-0acb-33c3-b921-f4291f719ca0
+              required:
+                - merchant_uuid
+  /api/v1/merchant/catalog/items:
+    get:
+      summary: ''
+      operationId: getApiV1MerchantCatalogItems
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                merchant_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+              required:
+                - merchant_uuid
+    post:
+      summary: ''
+      operationId: postApiV1MerchantCatalogItems
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                merchant_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: g
+                category_name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: z
+                  nullable: true
+                sku:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: m
+                  nullable: true
+                description:
+                  type: string
+                  description: ''
+                  example: 'Eius et animi quos velit et.'
+                  nullable: true
+                image_url:
+                  type: string
+                  description: 'Must be a valid URL. Must not be greater than 2048 characters.'
+                  example: 'http://www.ernser.org/harum-mollitia-modi-deserunt-aut-ab-provident-perspiciatis-quo.html'
+                  nullable: true
+                base_price_minor:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 38
+                base_stock:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 50
+                  nullable: true
+                is_active:
+                  type: boolean
+                  description: ''
+                  example: false
+              required:
+                - merchant_uuid
+                - name
+                - base_price_minor
+  '/api/v1/merchant/catalog/items/{catalogItem_uuid}':
+    patch:
+      summary: ''
+      operationId: patchApiV1MerchantCatalogItemsCatalogItem_uuid
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                merchant_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: g
+                category_name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: z
+                  nullable: true
+                sku:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: m
+                  nullable: true
+                description:
+                  type: string
+                  description: ''
+                  example: 'Eius et animi quos velit et.'
+                  nullable: true
+                image_url:
+                  type: string
+                  description: 'Must be a valid URL. Must not be greater than 2048 characters.'
+                  example: 'http://www.ernser.org/harum-mollitia-modi-deserunt-aut-ab-provident-perspiciatis-quo.html'
+                  nullable: true
+                base_price_minor:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 38
+                base_stock:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 50
+                  nullable: true
+                is_active:
+                  type: boolean
+                  description: ''
+                  example: true
+              required:
+                - merchant_uuid
+                - name
+                - base_price_minor
+    parameters:
+      -
+        in: path
+        name: catalogItem_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/merchant/catalog/items/{catalogItem_uuid}/modifier-groups':
+    post:
+      summary: ''
+      operationId: postApiV1MerchantCatalogItemsCatalogItem_uuidModifierGroups
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: b
+                description:
+                  type: string
+                  description: ''
+                  example: 'Eius et animi quos velit et.'
+                  nullable: true
+                selection_type:
+                  type: string
+                  description: ''
+                  example: multiple
+                  enum:
+                    - single
+                    - multiple
+                min_selected:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 60
+                  nullable: true
+                max_selected:
+                  type: integer
+                  description: 'Must be at least 1.'
+                  example: 26
+                  nullable: true
+                is_active:
+                  type: boolean
+                  description: ''
+                  example: false
+                sort_order:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 37
+                  nullable: true
+                options:
+                  type: array
+                  description: 'Must have at least 1 items.'
+                  example:
+                    - []
+                  items:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        description: 'Must be a valid UUID.'
+                        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                        nullable: true
+                      name:
+                        type: string
+                        description: 'Must not be greater than 255 characters.'
+                        example: g
+                      description:
+                        type: string
+                        description: ''
+                        example: 'Eius et animi quos velit et.'
+                        nullable: true
+                      price_delta_minor:
+                        type: integer
+                        description: 'Must be at least 0.'
+                        example: 60
+                      is_default:
+                        type: boolean
+                        description: ''
+                        example: false
+                      is_active:
+                        type: boolean
+                        description: ''
+                        example: false
+                      sort_order:
+                        type: integer
+                        description: 'Must be at least 0.'
+                        example: 42
+                        nullable: true
+                    required:
+                      - name
+                      - price_delta_minor
+              required:
+                - name
+                - selection_type
+                - options
+    parameters:
+      -
+        in: path
+        name: catalogItem_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/merchant/catalog/items/{catalogItem_uuid}/modifier-groups/{modifierGroup_uuid}':
+    patch:
+      summary: ''
+      operationId: patchApiV1MerchantCatalogItemsCatalogItem_uuidModifierGroupsModifierGroup_uuid
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: b
+                description:
+                  type: string
+                  description: ''
+                  example: 'Eius et animi quos velit et.'
+                  nullable: true
+                selection_type:
+                  type: string
+                  description: ''
+                  example: single
+                  enum:
+                    - single
+                    - multiple
+                min_selected:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 60
+                  nullable: true
+                max_selected:
+                  type: integer
+                  description: 'Must be at least 1.'
+                  example: 26
+                  nullable: true
+                is_active:
+                  type: boolean
+                  description: ''
+                  example: false
+                sort_order:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 37
+                  nullable: true
+                options:
+                  type: array
+                  description: 'Must have at least 1 items.'
+                  example:
+                    - []
+                  items:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        description: 'Must be a valid UUID.'
+                        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                        nullable: true
+                      name:
+                        type: string
+                        description: 'Must not be greater than 255 characters.'
+                        example: g
+                      description:
+                        type: string
+                        description: ''
+                        example: 'Eius et animi quos velit et.'
+                        nullable: true
+                      price_delta_minor:
+                        type: integer
+                        description: 'Must be at least 0.'
+                        example: 60
+                      is_default:
+                        type: boolean
+                        description: ''
+                        example: false
+                      is_active:
+                        type: boolean
+                        description: ''
+                        example: true
+                      sort_order:
+                        type: integer
+                        description: 'Must be at least 0.'
+                        example: 42
+                        nullable: true
+                    required:
+                      - name
+                      - price_delta_minor
+              required:
+                - name
+                - selection_type
+                - options
+    parameters:
+      -
+        in: path
+        name: catalogItem_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: modifierGroup_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/merchant/branches/{branch_uuid}/catalog-overrides/{catalogItem_uuid}':
+    post:
+      summary: ''
+      operationId: postApiV1MerchantBranchesBranch_uuidCatalogOverridesCatalogItem_uuid
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                price_minor:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 27
+                  nullable: true
+                stock_quantity:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 39
+                  nullable: true
+                is_available:
+                  type: boolean
+                  description: ''
+                  example: true
+              required:
+                - is_available
+    parameters:
+      -
+        in: path
+        name: branch_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: catalogItem_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/merchant/branches/{branch_uuid}/orders':
+    get:
+      summary: ''
+      operationId: getApiV1MerchantBranchesBranch_uuidOrders
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: branch_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/merchant/orders/{order_uuid}/accept':
+    post:
+      summary: ''
+      operationId: postApiV1MerchantOrdersOrder_uuidAccept
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/merchant/orders/{order_uuid}/reject':
+    post:
+      summary: ''
+      operationId: postApiV1MerchantOrdersOrder_uuidReject
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/merchant/orders/{order_uuid}/start-preparing':
+    post:
+      summary: ''
+      operationId: postApiV1MerchantOrdersOrder_uuidStartPreparing
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/merchant/orders/{order_uuid}/ready-for-pickup':
+    post:
+      summary: ''
+      operationId: postApiV1MerchantOrdersOrder_uuidReadyForPickup
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/merchant/orders/{order_uuid}':
+    get:
+      summary: ''
+      operationId: getApiV1MerchantOrdersOrder_uuid
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  /api/v1/rider/auth/login:
+    post:
+      summary: ''
+      operationId: postApiV1RiderAuthLogin
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: gbailey@example.net
+                password:
+                  type: string
+                  description: ''
+                  example: '|]|{+-'
+                device_name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: v
+              required:
+                - email
+                - password
+                - device_name
+  /api/v1/rider/auth/me:
+    get:
+      summary: ''
+      operationId: getApiV1RiderAuthMe
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+  /api/v1/rider/auth/logout:
+    post:
+      summary: ''
+      operationId: postApiV1RiderAuthLogout
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+  /api/v1/rider/availability:
+    post:
+      summary: ''
+      operationId: postApiV1RiderAvailability
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                availability:
+                  type: string
+                  description: ''
+                  example: paused
+                  enum:
+                    - offline
+                    - available
+                    - busy
+                    - paused
+              required:
+                - availability
+  /api/v1/rider/location:
+    post:
+      summary: ''
+      operationId: postApiV1RiderLocation
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                  description: ''
+                  example: 4326.41688
+                longitude:
+                  type: number
+                  description: ''
+                  example: 4326.41688
+              required:
+                - latitude
+                - longitude
+  /api/v1/rider/earnings:
+    get:
+      summary: ''
+      operationId: getApiV1RiderEarnings
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                range_days:
+                  type: integer
+                  description: 'Must be at least 1. Must not be greater than 90.'
+                  example: 1
+                  nullable: true
+  /api/v1/rider/notifications:
+    get:
+      summary: ''
+      operationId: getApiV1RiderNotifications
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                  nullable: true
+                unread_only:
+                  type: boolean
+                  description: ''
+                  example: false
+                  nullable: true
+  '/api/v1/rider/notifications/{notificationDelivery_id}/read':
+    post:
+      summary: ''
+      operationId: postApiV1RiderNotificationsNotificationDelivery_idRead
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: notificationDelivery_id
+        description: 'The ID of the notificationDelivery.'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/rider/assignments/current:
+    get:
+      summary: ''
+      operationId: getApiV1RiderAssignmentsCurrent
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+  '/api/v1/rider/orders/{order_uuid}':
+    get:
+      summary: ''
+      operationId: getApiV1RiderOrdersOrder_uuid
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/rider/orders/{order_uuid}/accept-assignment':
+    post:
+      summary: ''
+      operationId: postApiV1RiderOrdersOrder_uuidAcceptAssignment
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/rider/orders/{order_uuid}/picked-up':
+    post:
+      summary: ''
+      operationId: postApiV1RiderOrdersOrder_uuidPickedUp
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/rider/orders/{order_uuid}/delivered':
+    post:
+      summary: ''
+      operationId: postApiV1RiderOrdersOrder_uuidDelivered
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                proof_type:
+                  type: string
+                  description: ''
+                  example: photo
+                  enum:
+                    - photo
+                    - recipient_confirmation
+                    - handoff_code
+                recipient_name:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: b
+                  nullable: true
+                proof_notes:
+                  type: string
+                  description: 'Must not be greater than 1000 characters.'
+                  example: 'n'
+                  nullable: true
+                proof_reference:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: g
+                  nullable: true
+              required:
+                - proof_type
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  /api/v1/ops/auth/login:
+    post:
+      summary: ''
+      operationId: postApiV1OpsAuthLogin
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: gbailey@example.net
+                password:
+                  type: string
+                  description: ''
+                  example: '|]|{+-'
+                device_name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: v
+              required:
+                - email
+                - password
+                - device_name
+  /api/v1/ops/auth/me:
+    get:
+      summary: ''
+      operationId: getApiV1OpsAuthMe
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+  /api/v1/ops/auth/logout:
+    post:
+      summary: ''
+      operationId: postApiV1OpsAuthLogout
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+  /api/v1/ops/dashboard/overview:
+    get:
+      summary: ''
+      operationId: getApiV1OpsDashboardOverview
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                range_days:
+                  type: integer
+                  description: 'Must be at least 1. Must not be greater than 90.'
+                  example: 1
+                  nullable: true
+  /api/v1/ops/merchants:
+    get:
+      summary: ''
+      operationId: getApiV1OpsMerchants
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+    post:
+      summary: ''
+      operationId: postApiV1OpsMerchants
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: b
+                slug:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: 'n'
+                platform_commission_bps:
+                  type: integer
+                  description: 'Must be between 0 and 10000.'
+                  example: 0
+                  nullable: true
+                branch:
+                  type: object
+                  description: ''
+                  example: []
+                  properties:
+                    name:
+                      type: string
+                      description: 'Must not be greater than 255 characters.'
+                      example: z
+                    city:
+                      type: string
+                      description: 'Must not be greater than 120 characters.'
+                      example: m
+                    address_line:
+                      type: string
+                      description: 'Must not be greater than 255 characters.'
+                      example: i
+                    latitude:
+                      type: number
+                      description: ''
+                      example: 4326.41688
+                    longitude:
+                      type: number
+                      description: ''
+                      example: 4326.41688
+                    hours:
+                      type: array
+                      description: 'Must have at least 1 items.'
+                      example:
+                        - []
+                      items:
+                        type: object
+                        properties:
+                          day_of_week:
+                            type: integer
+                            description: 'Must be between 0 and 6.'
+                            example: 1
+                          opens_at:
+                            type: string
+                            description: 'Must be a valid date in the format <code>H:i</code>.'
+                            example: '16:19'
+                            nullable: true
+                          closes_at:
+                            type: string
+                            description: 'Must be a valid date in the format <code>H:i</code>.'
+                            example: '16:19'
+                            nullable: true
+                        required:
+                          - day_of_week
+                    zones:
+                      type: array
+                      description: 'Must have at least 1 items.'
+                      example:
+                        - []
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: ''
+                            example: architecto
+                          city:
+                            type: string
+                            description: ''
+                            example: architecto
+                          center_latitude:
+                            type: number
+                            description: ''
+                            example: 4326.41688
+                          center_longitude:
+                            type: number
+                            description: ''
+                            example: 4326.41688
+                          radius_meters:
+                            type: integer
+                            description: 'Must be at least 100.'
+                            example: 93
+                        required:
+                          - name
+                          - city
+                          - center_latitude
+                          - center_longitude
+                          - radius_meters
+                    fee_bands:
+                      type: array
+                      description: 'Must have at least 1 items.'
+                      example:
+                        - []
+                      items:
+                        type: object
+                        properties:
+                          min_distance_meters:
+                            type: integer
+                            description: 'Must be at least 0.'
+                            example: 8
+                          max_distance_meters:
+                            type: integer
+                            description: 'Must be at least 1.'
+                            example: 43
+                          fee_minor:
+                            type: integer
+                            description: 'Must be at least 0.'
+                            example: 60
+                        required:
+                          - min_distance_meters
+                          - max_distance_meters
+                          - fee_minor
+                  required:
+                    - name
+                    - city
+                    - address_line
+                    - latitude
+                    - longitude
+                    - hours
+                    - zones
+                    - fee_bands
+              required:
+                - name
+                - slug
+  /api/v1/ops/configuration/merchants:
+    get:
+      summary: ''
+      operationId: getApiV1OpsConfigurationMerchants
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+  '/api/v1/ops/configuration/merchants/{merchant_uuid}':
+    get:
+      summary: ''
+      operationId: getApiV1OpsConfigurationMerchantsMerchant_uuid
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+    patch:
+      summary: ''
+      operationId: patchApiV1OpsConfigurationMerchantsMerchant_uuid
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  description: ''
+                  example: active
+                  enum:
+                    - active
+                    - inactive
+                platform_commission_bps:
+                  type: integer
+                  description: 'Must be between 0 and 10000.'
+                  example: 1
+    parameters:
+      -
+        in: path
+        name: merchant_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/ops/configuration/branches/{branch_uuid}':
+    patch:
+      summary: ''
+      operationId: patchApiV1OpsConfigurationBranchesBranch_uuid
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  description: ''
+                  example: inactive
+                  enum:
+                    - active
+                    - inactive
+                accepts_orders:
+                  type: boolean
+                  description: ''
+                  example: true
+    parameters:
+      -
+        in: path
+        name: branch_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/ops/configuration/branches/{branch_uuid}/service-zones':
+    post:
+      summary: ''
+      operationId: postApiV1OpsConfigurationBranchesBranch_uuidServiceZones
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: b
+                city:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: 'n'
+                postal_code:
+                  type: string
+                  description: 'Must not be greater than 40 characters.'
+                  example: g
+                  nullable: true
+                center_latitude:
+                  type: number
+                  description: ''
+                  example: 4326.41688
+                center_longitude:
+                  type: number
+                  description: ''
+                  example: 4326.41688
+                radius_meters:
+                  type: integer
+                  description: 'Must be at least 100.'
+                  example: 93
+                is_active:
+                  type: boolean
+                  description: ''
+                  example: true
+              required:
+                - name
+                - city
+                - center_latitude
+                - center_longitude
+                - radius_meters
+                - is_active
+    parameters:
+      -
+        in: path
+        name: branch_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/ops/configuration/service-zones/{serviceZone_uuid}':
+    patch:
+      summary: ''
+      operationId: patchApiV1OpsConfigurationServiceZonesServiceZone_uuid
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: b
+                city:
+                  type: string
+                  description: 'Must not be greater than 120 characters.'
+                  example: 'n'
+                postal_code:
+                  type: string
+                  description: 'Must not be greater than 40 characters.'
+                  example: g
+                  nullable: true
+                center_latitude:
+                  type: number
+                  description: ''
+                  example: 4326.41688
+                center_longitude:
+                  type: number
+                  description: ''
+                  example: 4326.41688
+                radius_meters:
+                  type: integer
+                  description: 'Must be at least 100.'
+                  example: 93
+                is_active:
+                  type: boolean
+                  description: ''
+                  example: true
+              required:
+                - name
+                - city
+                - center_latitude
+                - center_longitude
+                - radius_meters
+                - is_active
+    parameters:
+      -
+        in: path
+        name: serviceZone_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/ops/configuration/branches/{branch_uuid}/fee-bands':
+    post:
+      summary: ''
+      operationId: postApiV1OpsConfigurationBranchesBranch_uuidFeeBands
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                min_distance_meters:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 27
+                max_distance_meters:
+                  type: integer
+                  description: 'Must be at least 1.'
+                  example: 22
+                fee_minor:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 84
+              required:
+                - min_distance_meters
+                - max_distance_meters
+                - fee_minor
+    parameters:
+      -
+        in: path
+        name: branch_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/ops/configuration/fee-bands/{feeBand_uuid}':
+    patch:
+      summary: ''
+      operationId: patchApiV1OpsConfigurationFeeBandsFeeBand_uuid
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                min_distance_meters:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 27
+                max_distance_meters:
+                  type: integer
+                  description: 'Must be at least 1.'
+                  example: 22
+                fee_minor:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 84
+              required:
+                - min_distance_meters
+                - max_distance_meters
+                - fee_minor
+    parameters:
+      -
+        in: path
+        name: feeBand_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  /api/v1/ops/dispatch/orders:
+    get:
+      summary: ''
+      operationId: getApiV1OpsDispatchOrders
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+  /api/v1/ops/dispatch/assignments:
+    get:
+      summary: ''
+      operationId: getApiV1OpsDispatchAssignments
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+  '/api/v1/ops/dispatch/orders/{order_uuid}/reassign':
+    post:
+      summary: ''
+      operationId: postApiV1OpsDispatchOrdersOrder_uuidReassign
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rider_uuid:
+                  type: string
+                  description: 'UUID of the replacement rider profile selected by ops. Must be a valid UUID.'
+                  example: ff10916f-9ec0-412f-b6c6-bd8f436f4002
+                reason_code:
+                  type: string
+                  description: 'Structured reason for the manual reassignment.'
+                  example: sla_risk
+                  enum:
+                    - sla_risk
+                    - rider_unavailable
+                    - customer_request
+                    - load_balance
+                    - ops_override
+                    - other
+                reason_note:
+                  type: string
+                  description: 'Optional ops note explaining the reassignment decision. Must not be greater than 1000 characters.'
+                  example: 'Pickup SLA is at risk; move to the closest available rider.'
+                  nullable: true
+              required:
+                - rider_uuid
+                - reason_code
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  /api/v1/ops/settlements/ledger:
+    get:
+      summary: ''
+      operationId: getApiV1OpsSettlementsLedger
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entry_type:
+                  type: string
+                  description: ''
+                  example: adjustment
+                  enum:
+                    - merchant_receivable
+                    - platform_commission
+                    - rider_earning
+                    - adjustment
+                  nullable: true
+                order_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                  nullable: true
+                direction:
+                  type: string
+                  description: ''
+                  example: positive
+                  enum:
+                    - positive
+                    - negative
+                  nullable: true
+  /api/v1/ops/settlements/export:
+    get:
+      summary: ''
+      operationId: getApiV1OpsSettlementsExport
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entry_type:
+                  type: string
+                  description: ''
+                  example: adjustment
+                  enum:
+                    - merchant_receivable
+                    - platform_commission
+                    - rider_earning
+                    - adjustment
+                  nullable: true
+                order_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                  nullable: true
+                direction:
+                  type: string
+                  description: ''
+                  example: negative
+                  enum:
+                    - positive
+                    - negative
+                  nullable: true
+  '/api/v1/ops/settlements/orders/{order_uuid}/adjustments':
+    post:
+      summary: ''
+      operationId: postApiV1OpsSettlementsOrdersOrder_uuidAdjustments
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount_minor:
+                  type: integer
+                  description: 'Must not be one of <code>0</code>.'
+                  example: 16
+                notes:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: 'n'
+              required:
+                - amount_minor
+                - notes
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  /api/v1/ops/notifications:
+    get:
+      summary: ''
+      operationId: getApiV1OpsNotifications
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_uuid:
+                  type: string
+                  description: 'Must be a valid UUID.'
+                  example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+                  nullable: true
+                recipient_actor:
+                  type: string
+                  description: ''
+                  example: customer
+                  enum:
+                    - customer
+                    - merchant
+                    - rider
+                  nullable: true
+                channel:
+                  type: string
+                  description: ''
+                  example: sms
+                  enum:
+                    - in_app
+                    - email
+                    - push
+                    - sms
+                  nullable: true
+                provider:
+                  type: string
+                  description: 'Must not be greater than 40 characters.'
+                  example: g
+                  nullable: true
+                status:
+                  type: string
+                  description: ''
+                  example: failed
+                  enum:
+                    - queued
+                    - sent
+                    - failed
+                  nullable: true
+                notification_type:
+                  type: string
+                  description: ''
+                  example: support_note_added
+                  enum:
+                    - order_status_updated
+                    - support_note_added
+                  nullable: true
+  '/api/v1/ops/notifications/{notificationDelivery_id}/retry':
+    post:
+      summary: ''
+      operationId: postApiV1OpsNotificationsNotificationDelivery_idRetry
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: notificationDelivery_id
+        description: 'The ID of the notificationDelivery.'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/ops/support/orders/search:
+    get:
+      summary: ''
+      operationId: getApiV1OpsSupportOrdersSearch
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+  '/api/v1/ops/support/orders/{order_uuid}/cases':
+    post:
+      summary: ''
+      operationId: postApiV1OpsSupportOrdersOrder_uuidCases
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                summary:
+                  type: string
+                  description: 'Short support case summary visible to ops users. Must not be greater than 255 characters.'
+                  example: 'Customer needs a pre-arrival call before rider handoff.'
+                issue_type:
+                  type: string
+                  description: 'Structured support issue category.'
+                  example: customer_request
+                  enum:
+                    - customer_request
+                    - delivery_delay
+                    - address_issue
+                    - merchant_issue
+                    - rider_issue
+                    - order_accuracy
+                    - payment_issue
+                    - other
+                status:
+                  type: string
+                  description: 'Current support case status.'
+                  example: investigating
+                  enum:
+                    - open
+                    - investigating
+                    - resolved
+                  nullable: true
+                resolution_type:
+                  type: string
+                  description: 'Optional resolution type when the case outcome is already known.'
+                  example: customer_contacted
+                  enum:
+                    - customer_contacted
+                    - merchant_contacted
+                    - rider_contacted
+                    - clarified_instructions
+                    - cancelled_order
+                    - compensation_offered
+                    - monitoring_only
+                    - other
+                  nullable: true
+                resolution_notes:
+                  type: string
+                  description: 'Optional resolution notes for support audit context. Must not be greater than 1000 characters.'
+                  example: 'Customer confirmed the rider can leave the order at reception.'
+                  nullable: true
+              required:
+                - summary
+                - issue_type
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/ops/support/cases/{supportCase_uuid}':
+    patch:
+      summary: ''
+      operationId: patchApiV1OpsSupportCasesSupportCase_uuid
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                summary:
+                  type: string
+                  description: 'Updated support case summary. Must not be greater than 255 characters.'
+                  example: 'Merchant confirmed one item is unavailable.'
+                issue_type:
+                  type: string
+                  description: 'Updated structured issue category.'
+                  example: merchant_issue
+                  enum:
+                    - customer_request
+                    - delivery_delay
+                    - address_issue
+                    - merchant_issue
+                    - rider_issue
+                    - order_accuracy
+                    - payment_issue
+                    - other
+                status:
+                  type: string
+                  description: 'Updated support case status.'
+                  example: resolved
+                  enum:
+                    - open
+                    - investigating
+                    - resolved
+                cancellation_reason_code:
+                  type: string
+                  description: 'Structured cancellation reason when the support outcome includes cancellation.'
+                  example: out_of_stock
+                  enum:
+                    - customer_request
+                    - merchant_unavailable
+                    - out_of_stock
+                    - address_unserviceable
+                    - rider_issue
+                    - duplicate_order
+                    - fraud_review
+                    - ops_override
+                    - other
+                  nullable: true
+                resolution_type:
+                  type: string
+                  description: 'Structured support outcome.'
+                  example: cancelled_order
+                  enum:
+                    - customer_contacted
+                    - merchant_contacted
+                    - rider_contacted
+                    - clarified_instructions
+                    - cancelled_order
+                    - compensation_offered
+                    - monitoring_only
+                    - other
+                  nullable: true
+                resolution_notes:
+                  type: string
+                  description: 'Detailed support outcome notes. Must not be greater than 1000 characters.'
+                  example: 'Customer was notified and the merchant confirmed the stock issue.'
+                  nullable: true
+    parameters:
+      -
+        in: path
+        name: supportCase_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/ops/support/orders/{order_uuid}/cancel':
+    post:
+      summary: ''
+      operationId: postApiV1OpsSupportOrdersOrder_uuidCancel
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                summary:
+                  type: string
+                  description: 'Support case summary for the cancellation decision. Must not be greater than 255 characters.'
+                  example: 'Merchant confirmed the requested items are unavailable.'
+                issue_type:
+                  type: string
+                  description: 'Structured issue category that led to cancellation.'
+                  example: merchant_issue
+                  enum:
+                    - customer_request
+                    - delivery_delay
+                    - address_issue
+                    - merchant_issue
+                    - rider_issue
+                    - order_accuracy
+                    - payment_issue
+                    - other
+                reason_code:
+                  type: string
+                  description: 'Structured cancellation reason code.'
+                  example: out_of_stock
+                  enum:
+                    - customer_request
+                    - merchant_unavailable
+                    - out_of_stock
+                    - address_unserviceable
+                    - rider_issue
+                    - duplicate_order
+                    - fraud_review
+                    - ops_override
+                    - other
+                reason_note:
+                  type: string
+                  description: 'Optional human-readable cancellation context. Must not be greater than 1000 characters.'
+                  example: 'Merchant confirmed the burger line is unavailable tonight.'
+                  nullable: true
+              required:
+                - summary
+                - issue_type
+                - reason_code
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/ops/support/orders/{order_uuid}/notes':
+    post:
+      summary: ''
+      operationId: postApiV1OpsSupportOrdersOrder_uuidNotes
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                body:
+                  type: string
+                  description: 'Support note body visible to ops users and included in the order support history.'
+                  example: 'Customer confirmed they can meet the rider in the lobby.'
+                attachment:
+                  type: string
+                  format: binary
+                  description: 'Optional support attachment file. Maximum size is 5 MB. Must be a file. Must not be greater than 5120 kilobytes.'
+                  nullable: true
+              required:
+                - body
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string
+  '/api/v1/ops/orders/{order_uuid}':
+    get:
+      summary: ''
+      operationId: getApiV1OpsOrdersOrder_uuid
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: Unauthenticated.
+                properties:
+                  message:
+                    type: string
+                    example: Unauthenticated.
+      tags:
+        - Endpoints
+    parameters:
+      -
+        in: path
+        name: order_uuid
+        description: ''
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        required: true
+        schema:
+          type: string

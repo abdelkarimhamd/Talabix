@@ -7,6 +7,7 @@ use App\Models\OrderTimeline;
 use App\Models\User;
 use App\Modules\Orders\Enums\OrderStatus;
 use App\Modules\Orders\Enums\OrderTimelineEventType;
+use App\Modules\Orders\Enums\PaymentStatus;
 use App\Modules\Orders\Events\OrderStatusChanged;
 use App\Modules\Orders\Exceptions\InvalidOrderTransitionException;
 use Illuminate\Support\Facades\DB;
@@ -75,7 +76,7 @@ class OrderLifecycleService
 
             if ($toStatus === OrderStatus::DELIVERED) {
                 $order->delivered_at = now();
-                $order->payment_status = \App\Modules\Orders\Enums\PaymentStatus::COLLECTED_COD;
+                $order->payment_status = PaymentStatus::COLLECTED_COD;
             }
 
             $order->save();
