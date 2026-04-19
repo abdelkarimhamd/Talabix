@@ -1,5 +1,139 @@
 # Talabix Continuous Improvement Log
 
+## 2026-04-19 - Readiness checks, Docker VM deploy target, and maps fallback hardening
+
+### Issues Found
+
+- The production hardening runbook still had three open first-step items: API readiness checks, a concrete deployment target/CI-CD path, and production maps behavior.
+- The existing Sentry/backup dependency work in the dirty tree pulled Symfony 8 bridge packages into `composer.lock`; those packages require PHP 8.4 and would not match the repo's PHP 8.3 target.
+- Local API runtime verification remains blocked because the workstation PHP is 8.2.12 and PHPUnit now uses PHP 8.3 typed constants.
+- Customer address search fallback copy did not clearly tell users they could continue with manual address and coordinate entry when map suggestions were unavailable.
+
+### Fixes Implemented
+
+- Added `GET /api/v1/readiness` with a shared `X-Talabix-Readiness-Key` header and per-check status for database, cache, queue, and Reverb configuration.
+- Added readiness feature tests and Google Maps provider unit tests for place search, Distance Matrix estimates, and demo fallback behavior.
+- Hardened `MapsProviderService` to support Google Places Find Place and Distance Matrix calls with configurable timeout, location bias, region, and demo fallback.
+- Chose the deployment target as a Linux Docker Compose VM behind a TLS reverse proxy and added `.github/workflows/deploy.yml`.
+- Added a VM compose overlay, portal Nginx image, and deployment instructions under `deploy/`.
+- Added customer address fallback UX copy and regression coverage.
+- Constrained `symfony/options-resolver` and `symfony/psr-http-message-bridge` to `>=7.4 <8.0` so Sentry remains compatible with PHP 8.3 instead of locking PHP 8.4-only Symfony 8 packages.
+
+### Enhancements Implemented
+
+- Added deploy-time readiness smoke checks to the GitHub Actions workflow.
+- Added `READINESS_CHECK_KEY`, Google Maps production knobs, and `PORTAL_FORWARD_PORT` to env examples.
+- Wired Sentry exception capture and a JSON stderr log channel for deployable runtime observability.
+- Updated the production runbook and engineering alignment doc to reflect the selected deployment target and remaining launch gaps.
+
+### Files Changed
+
+- `.github/workflows/deploy.yml`
+- `.env.example`
+- `apps/api/.env.example`
+- `apps/api/app/Modules/Shared/Controllers/ReadinessController.php`
+- `apps/api/app/Modules/Shared/Services/ReadinessCheckService.php`
+- `apps/api/app/Modules/Shared/Services/MapsProviderService.php`
+- `apps/api/bootstrap/app.php`
+- `apps/api/composer.json`
+- `apps/api/composer.lock`
+- `apps/api/config/logging.php`
+- `apps/api/config/services.php`
+- `apps/api/routes/api.php`
+- `apps/api/tests/Feature/Ops/ReadinessTest.php`
+- `apps/api/tests/Unit/Shared/MapsProviderServiceTest.php`
+- `apps/customer-app/__tests__/customer-app.test.js`
+- `apps/customer-app/src/screens/AddressBookScreen.js`
+- `deploy/README.md`
+- `deploy/docker-compose.vm.yml`
+- `deploy/nginx/portal.conf`
+- `deploy/portal.Dockerfile`
+- `docs/ops/production-readiness.md`
+- `docs/talabix-engineering-pack-alignment.md`
+- `docs/continuous-improvement-log.md`
+
+### Migrations Added
+
+- None.
+
+### Validation Completed
+
+- Red test attempt: `php artisan test tests/Feature/Ops/ReadinessTest.php tests/Unit/Shared/MapsProviderServiceTest.php` is blocked locally by PHP 8.2.12 parsing PHPUnit's PHP 8.3 typed constant syntax.
+- `php -l` passed for touched API PHP source and test files.
+- `composer validate --no-check-publish` passed.
+- `composer install --dry-run --no-interaction --ignore-platform-req=php --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-posix` passed with the updated lock file.
+- `npm.cmd run lint -- --max-warnings=0` passed.
+- `npm.cmd run i18n:audit` passed.
+- `npm.cmd run test:shared` passed, 4 tests.
+- `npm.cmd --workspace @talabix/portal-web run test -- --run` passed, 20 tests.
+- `npm.cmd run test:customer` passed, 26 tests, with pre-existing `CustomerNotificationsScreen` act warnings.
+- `npm.cmd run test:rider` passed, 15 tests, with a pre-existing `RiderNotificationsScreen` act warning.
+- `npm.cmd run build --workspaces --if-present` passed, with the existing portal chunk-size warning.
+- `docker compose -f docker-compose.yml -f deploy/docker-compose.vm.yml config --quiet` passed.
+- `npx.cmd prettier --check .github/workflows/deploy.yml deploy/README.md deploy/docker-compose.vm.yml docs/ops/production-readiness.md docs/talabix-engineering-pack-alignment.md apps/customer-app/__tests__/customer-app.test.js apps/customer-app/src/screens/AddressBookScreen.js apps/api/composer.json` passed.
+- `git diff --check` passed.
+
+### Risks And Follow-Up Items
+
+- The new API readiness/maps tests need to be run in CI or a local PHP 8.3+ environment.
+- The deploy workflow has been encoded but not executed against a real GitHub Environment/VM.
+- Google Maps provider behavior uses the configured API key and official web-service endpoints, but live credentials, quotas, and provider dashboard alerts still need environment-level setup.
+- Native GPS permission handling is not yet implemented in the Expo app; this run only improved backend provider fallback and customer manual-entry UX.
+- Backup package dependencies are present in the dirty tree, but automated backup verification and restore evidence are still open.
+
+### Recommended Next Priorities
+
+- Provision the staging VM, add GitHub Environment secrets, and run `.github/workflows/deploy.yml` end to end.
+- Run the API readiness/maps tests in PHP 8.3 CI and fix any environment-specific failures.
+- Add monitoring alerts for `/api/v1/readiness`, queue depth, failed jobs, Reverb, Maps provider fallback rate, database, and Redis.
+- Implement backup verification and a documented restore drill.
+- Add native GPS permission handling in the customer app address flow.
+
+## 2026-04-19 - Production readiness runbook baseline
+
+### Issues Found
+
+- The latest backlog identified staging and production hardening as the next major priority after the i18n audit and mobile test-harness stabilization work.
+- The repo had local Docker unavailable and local PHP 8.2.12, while the API requires PHP 8.3+, so API runtime work could not be verified safely on this workstation.
+- Existing docs covered local development and architecture decisions but did not yet define a production deployment, monitoring, backup, rollback, or incident-response baseline.
+
+### Fixes Implemented
+
+- Added a production readiness runbook under `docs/ops/production-readiness.md`.
+- Defined the staging/production environment model, required runtime processes, required secrets, release checklist, monitoring baseline, backup policy, rollback process, and incident-response flow.
+- Linked the new operations runbook from the root `README.md`.
+
+### Enhancements Implemented
+
+- Converted the broad production-hardening backlog item into concrete launch gates and follow-up slices.
+- Captured readiness endpoint work, CI/CD encoding, monitoring tool selection, backup restore evidence, maps hardening, and SLA/timeout handling as explicit next items.
+
+### Files Changed
+
+- `docs/ops/production-readiness.md`
+- `README.md`
+- `docs/continuous-improvement-log.md`
+
+### Migrations Added
+
+- None.
+
+### Validation Completed
+
+- `npx.cmd prettier --check README.md docs/ops/production-readiness.md docs/continuous-improvement-log.md` passed after formatting the touched Markdown files.
+
+### Risks And Follow-Up Items
+
+- API health/readiness endpoint work remains unimplemented because this workstation cannot currently run the API test loop.
+- Deployment automation still needs a chosen hosting target before a CI/CD workflow can be encoded.
+- Monitoring and backup policies are now specified, but provider/tool selection and implementation remain open.
+
+### Recommended Next Priorities
+
+- Add an API readiness endpoint with database, Redis, queue, and Reverb dependency checks in a PHP 8.3+ or Docker-capable environment.
+- Choose the staging/production deployment target and encode the runbook checklist into CI/CD.
+- Start maps production hardening with real provider credentials, GPS permission UX, and provider-failure handling.
+
 ## 2026-04-19 - i18n audit fix and CustomerHomeScreen test harness stabilization
 
 ### Issues Found
@@ -51,6 +185,7 @@
 - Review and commit the broad dirty worktree as one product slice.
 - Finish staging/production hardening: deployment automation, monitoring, backups.
 - Harden production maps behavior: real provider credentials, GPS permission handling, and graceful provider-failure UX.
+
 ## 2026-04-19 - Rider availability and navigation pending-state hardening
 
 ### Issues Found

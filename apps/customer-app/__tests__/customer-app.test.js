@@ -186,6 +186,19 @@ describe('customer identity and discovery slice', () => {
     expect(await screen.findByText(/notes: use side entrance/i)).toBeTruthy();
   });
 
+  it('keeps manual address entry clear when map suggestions are unavailable', async () => {
+    renderWithProviders(<AddressBookScreen />);
+
+    fireEvent.changeText(
+      screen.getByTestId('place-search-query'),
+      'No Match Place'
+    );
+
+    expect(
+      await screen.findByText(/enter the address and coordinates manually/i)
+    ).toBeTruthy();
+  });
+
   it('prevents duplicate address saves while pending', async () => {
     let releaseAddress;
     const pendingAddress = new Promise((resolve) => {

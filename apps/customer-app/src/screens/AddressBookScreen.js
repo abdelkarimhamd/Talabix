@@ -178,7 +178,8 @@ export function AddressBookScreen() {
                 ))
               ) : (
                 <Text style={screenStyles.muted}>
-                  No map suggestions match the current query.
+                  No map suggestions match the current query. You can still
+                  enter the address and coordinates manually.
                 </Text>
               )}
             </View>

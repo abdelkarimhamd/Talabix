@@ -264,17 +264,19 @@ These items are valid product ideas, but they should not be treated as immediate
 ### EPIC 19 - DevOps, Monitoring & Release Engineering
 
 - Status: partial.
-- Done: Docker local infra, CI, backend/frontend test/build loop.
-- Missing: staging/prod environments, deployment automation, observability, backups, incident runbooks.
+- Done: Docker local infra, CI, backend/frontend test/build loop, production readiness runbook, Docker VM deployment target, GitHub Actions deploy workflow, and readiness endpoint contract.
+- Missing: live environment provisioning, alert wiring, backup restore evidence, and incident drill evidence.
 
 ## Exact Next Build Backlog
 
 If we continue from the current repo and stay aligned with both the document and the repo MVP plan, the next work should be:
 
-1. Finish staging/production hardening: deployment automation, monitoring, backups, and incident runbooks.
-2. Harden production maps behavior: real provider credentials, GPS permission handling, and graceful provider-failure UX.
-3. Add SLA/timeout handling for dispatch and rider delivery exceptions.
-4. If auth scope changes beyond the current repo MVP, add OTP messaging separately as an explicit scope expansion.
+1. Provision the staging VM, add GitHub Environment secrets, and run the deploy workflow end to end.
+2. Select monitoring tools and wire alerts for readiness, queue depth, failed jobs, Reverb, database, Redis, maps, and notification delivery.
+3. Implement automated MySQL backup verification and document restore evidence.
+4. Complete maps production hardening with live provider credentials, provider dashboard alerts, and native GPS permission handling.
+5. Add SLA/timeout handling for dispatch and rider delivery exceptions.
+6. If auth scope changes beyond the current repo MVP, add OTP messaging separately as an explicit scope expansion.
 
 ## Recommended Rule For Future Planning
 

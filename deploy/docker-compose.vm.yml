@@ -1,0 +1,40 @@
+services:
+  api:
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'php -r "exit(@file_get_contents(''http://127.0.0.1:8000/up'') === false ? 1 : 0);"',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  worker:
+    restart: unless-stopped
+
+  scheduler:
+    restart: unless-stopped
+
+  reverb:
+    restart: unless-stopped
+
+  portal:
+    build:
+      context: .
+      dockerfile: deploy/portal.Dockerfile
+    restart: unless-stopped
+    ports:
+      - '${PORTAL_FORWARD_PORT:-5173}:80'
+
+  mysql:
+    restart: unless-stopped
+
+  redis:
+    restart: unless-stopped
+
+  mailpit:
+    profiles:
+      - local-only

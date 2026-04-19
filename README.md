@@ -34,4 +34,4 @@ The root `.env` controls host-facing Docker ports. By default MySQL is exposed o
 - Redis-backed queues, Horizon workers, and Reverb websocket server
 - Shared enums and validation contracts in `@talabix/shared`
 
-See [docs/local-dev/setup.md](./docs/local-dev/setup.md) and [docs/adr/0001-modular-monolith.md](./docs/adr/0001-modular-monolith.md) for the repo-level decisions.
+See [docs/local-dev/setup.md](./docs/local-dev/setup.md), [docs/ops/production-readiness.md](./docs/ops/production-readiness.md), and [docs/adr/0001-modular-monolith.md](./docs/adr/0001-modular-monolith.md) for the repo-level decisions and operating runbooks.
