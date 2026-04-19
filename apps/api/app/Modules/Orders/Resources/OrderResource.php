@@ -28,6 +28,7 @@ class OrderResource extends JsonResource
             'rider_earning_minor' => $this->rider_earning_minor,
             'total_minor' => $this->total_minor,
             'pricing_snapshot' => $this->pricing_snapshot,
+            'applied_offer_ids' => $this->applied_offer_ids ?? [],
             'delivery_address_snapshot' => $this->delivery_address_snapshot,
             'notes' => $this->notes,
             'placed_at' => $this->placed_at,

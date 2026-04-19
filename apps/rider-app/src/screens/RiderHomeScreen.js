@@ -3,7 +3,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { useI18n } from '../i18n';
-import { getRiderNotifications, getRiderOverview, updateRiderAvailability } from '../rider-api';
+import {
+  getRiderNotifications,
+  getRiderOverview,
+  updateRiderAvailability,
+} from '../rider-api';
 import {
   AccentButton,
   ActionPill,
@@ -35,7 +39,12 @@ export function RiderHomeScreen({ actions = null }) {
         })
       );
     },
+    onError: (error) => {
+      setFeedback(error.message ?? t('rider.home.availabilityUpdateFailed'));
+    },
   });
+  const isAvailabilityPending = availabilityMutation.isPending;
+  const pendingAvailabilityLabel = t('rider.home.updatingAvailability');
 
   return (
     <ScreenFrame
@@ -50,7 +59,11 @@ export function RiderHomeScreen({ actions = null }) {
         accent="#26a69a"
         description={data?.pickupBranch}
         eyebrow={t('rider.home.activeAssignment')}
-        title={data?.orderUuid ? data.orderUuid.slice(0, 8).toUpperCase() : t('rider.home.waitingDispatch')}
+        title={
+          data?.orderUuid
+            ? data.orderUuid.slice(0, 8).toUpperCase()
+            : t('rider.home.waitingDispatch')
+        }
       >
         <Text style={screenStyles.statValue}>
           {data ? tp('rider.home.activeStops', data.activeStops) : '...'}
@@ -63,7 +76,11 @@ export function RiderHomeScreen({ actions = null }) {
               })
             : t('rider.home.waitingDispatchData')}
         </Text>
-        {data ? <ActionPill label={t('rider.home.nextAction', { action: data.nextActionLabel })} /> : null}
+        {data ? (
+          <ActionPill
+            label={t('rider.home.nextAction', { action: data.nextActionLabel })}
+          />
+        ) : null}
       </InfoCard>
 
       <InfoCard
@@ -72,14 +89,23 @@ export function RiderHomeScreen({ actions = null }) {
         eyebrow={t('rider.home.inbox')}
         title={
           notificationInbox
-            ? tp('rider.home.unreadNotifications', notificationInbox.meta.unread_count)
+            ? tp(
+                'rider.home.unreadNotifications',
+                notificationInbox.meta.unread_count
+              )
             : t('rider.home.loadingInbox')
         }
       >
         <View style={screenStyles.row}>
-          <ActionPill label={t('common.total', { count: notificationInbox?.meta.total ?? 0 })} />
           <ActionPill
-            label={t('common.unread', { count: notificationInbox?.meta.unread_count ?? 0 })}
+            label={t('common.total', {
+              count: notificationInbox?.meta.total ?? 0,
+            })}
+          />
+          <ActionPill
+            label={t('common.unread', {
+              count: notificationInbox?.meta.unread_count ?? 0,
+            })}
           />
         </View>
         <Text style={screenStyles.muted}>
@@ -93,24 +119,40 @@ export function RiderHomeScreen({ actions = null }) {
         accent="#112134"
         description={t('rider.home.availabilityDescription')}
         eyebrow={t('rider.home.availability')}
-        title={data ? labelForEnum('riderAvailability', data.availability) : '...'}
+        title={
+          data ? labelForEnum('riderAvailability', data.availability) : '...'
+        }
       >
         <Text style={screenStyles.muted}>
           {t('rider.home.availabilityHelp')}
         </Text>
         <View style={screenStyles.buttonRow}>
           <AccentButton
-            label={t('rider.home.goAvailable')}
+            disabled={isAvailabilityPending}
+            label={
+              isAvailabilityPending &&
+              availabilityMutation.variables === 'available'
+                ? pendingAvailabilityLabel
+                : t('rider.home.goAvailable')
+            }
             onPress={() => availabilityMutation.mutate('available')}
             testID="set-rider-available"
           />
           <SecondaryButton
-            label={t('rider.home.goOffline')}
+            disabled={isAvailabilityPending}
+            label={
+              isAvailabilityPending &&
+              availabilityMutation.variables === 'offline'
+                ? pendingAvailabilityLabel
+                : t('rider.home.goOffline')
+            }
             onPress={() => availabilityMutation.mutate('offline')}
             testID="set-rider-offline"
           />
         </View>
-        {feedback ? <Text style={screenStyles.helperText}>{feedback}</Text> : null}
+        {feedback ? (
+          <Text style={screenStyles.helperText}>{feedback}</Text>
+        ) : null}
       </InfoCard>
 
       <InfoCard

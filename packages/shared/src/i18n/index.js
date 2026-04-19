@@ -57,10 +57,12 @@ export const translations = {
       primary: 'Primary',
       merchantOrders: 'Merchant Orders',
       merchantCatalog: 'Merchant Catalog',
+      merchantPromotions: 'Merchant Promotions',
       merchantReports: 'Merchant Reports',
       merchantInbox: 'Merchant Inbox',
       opsDashboard: 'Ops Dashboard',
       opsConfiguration: 'Ops Configuration',
+      opsPromotions: 'Promotion Offers',
       dispatchBoard: 'Dispatch Board',
       supportConsole: 'Support Console',
       settlementLedger: 'Settlement Ledger',
@@ -71,6 +73,7 @@ export const translations = {
         inbox: 'Inbox',
         kpi: 'KPI',
         config: 'Config',
+        offers: 'Offers',
         ops: 'Ops',
         audit: 'Audit',
         finance: 'Finance',
@@ -89,7 +92,8 @@ export const translations = {
         'The portal keeps merchant order operations and internal ops tools in one codebase, while policy-aware route guards and scoped abilities decide who can see or mutate each slice.',
       namespaces: 'Namespaces',
       actorApis: '4 actor APIs',
-      actorApisBody: '/customer, /merchant, /rider, and /ops share one Laravel backend.',
+      actorApisBody:
+        '/customer, /merchant, /rider, and /ops share one Laravel backend.',
       contracts: 'Contracts',
       sharedValidators: 'Shared validators',
       sharedValidatorsBody:
@@ -113,7 +117,8 @@ export const translations = {
         discoveryContextDescription:
           'Discovery uses the selected default or manually chosen address so the merchant list only shows serviceable results.',
         selectAddress: 'Select a delivery address',
-        createAddressHelp: 'Create an address to unlock serviceability-aware discovery.',
+        createAddressHelp:
+          'Create an address to unlock serviceability-aware discovery.',
         defaultAddress: '{label} default',
         filters: 'Filters',
         discoveryTitle: 'Address-aware merchant discovery',
@@ -137,7 +142,8 @@ export const translations = {
         noActiveBranches: 'No active branches match the current filters.',
         noMerchants: 'No merchants',
         noMerchantsTitle: 'No merchants match the current address and filters.',
-        noMerchantsDescription: 'Try a broader search or turn off the open-now filter.',
+        noMerchantsDescription:
+          'Try a broader search or turn off the open-now filter.',
         noMerchantsBody:
           'Merchant discovery is intentionally constrained to serviceable branches only when an address is selected.',
         inbox: 'Inbox',
@@ -154,12 +160,19 @@ export const translations = {
         trackOrder: 'Track order {code}',
         preparingOrder: 'Preparing live order',
         loadingOrder: 'Loading order status',
-        lifecycleEvents: '{count} projected lifecycle events visible on-device.',
+        lifecycleEvents:
+          '{count} projected lifecycle events visible on-device.',
         waitingOrder: 'Waiting for order data.',
         routes: 'Routes',
         routesTitle: 'Continue the customer flow',
         routesDescription:
           'Profile, registration, addresses, cart, and live order tracking stay as separate routes while sharing the same query client and contract package.',
+        promoBannerEyebrow: 'Talabix Now',
+        promoBannerTitle: 'Your delivery starts here',
+        promoBannerDescription:
+          'Meals, groceries, pharmacy basics, and gifts from one address-aware feed.',
+        dailyOffersTitle: 'Daily offers',
+        categoryPickerTitle: 'What do you need?',
       },
     },
     rider: {
@@ -186,9 +199,12 @@ export const translations = {
         availability: 'Availability',
         availabilityDescription:
           'The rider shell mirrors the dispatch assumptions from the backend: no batching, no route optimization, no stacked orders in v1.',
-        availabilityHelp: 'Toggle online state, then accept, pick up, deliver, and capture proof.',
+        availabilityHelp:
+          'Toggle online state, then accept, pick up, deliver, and capture proof.',
         goAvailable: 'Go available',
         goOffline: 'Go offline',
+        updatingAvailability: 'Updating availability',
+        availabilityUpdateFailed: 'Availability could not be updated.',
         availabilityUpdated: 'Availability updated to {availability}.',
         nextSteps: 'Next steps',
         riderActions: 'Rider actions',
@@ -199,13 +215,15 @@ export const translations = {
     ops: {
       dashboard: {
         eyebrow: 'Ops dashboard',
-        title: 'Marketplace KPI view across orders, finance, and rider earnings',
+        title:
+          'Marketplace KPI view across orders, finance, and rider earnings',
         activeOrders: '{count} active orders',
         rangeLabel: 'Select ops dashboard range',
         last7Days: 'Last 7 days',
         last30Days: 'Last 30 days',
         grossSales: 'Gross sales',
-        grossSalesDescription: 'Non-cancelled order subtotal across the selected reporting window.',
+        grossSalesDescription:
+          'Non-cancelled order subtotal across the selected reporting window.',
         platformNet: 'Platform net',
         platformNetDescription:
           'Commission plus adjustments, kept separate from merchant and rider liabilities.',
@@ -359,10 +377,12 @@ export const translations = {
       primary: 'التنقل الرئيسي',
       merchantOrders: 'طلبات التاجر',
       merchantCatalog: 'كتالوج التاجر',
+      merchantPromotions: 'عروض التاجر',
       merchantReports: 'تقارير التاجر',
       merchantInbox: 'صندوق التاجر',
       opsDashboard: 'لوحة العمليات',
       opsConfiguration: 'إعدادات العمليات',
+      opsPromotions: 'عروض الترويج',
       dispatchBoard: 'لوحة الإسناد',
       supportConsole: 'وحدة الدعم',
       settlementLedger: 'سجل التسويات',
@@ -373,6 +393,7 @@ export const translations = {
         inbox: 'صندوق',
         kpi: 'مؤشرات',
         config: 'إعداد',
+        offers: 'عروض',
         ops: 'عمليات',
         audit: 'تدقيق',
         finance: 'مالية',
@@ -391,7 +412,8 @@ export const translations = {
         'تحافظ البوابة على عمليات التاجر وأدوات العمليات الداخلية في قاعدة واحدة، بينما تحدد حراسة المسارات والصلاحيات من يرى أو يعدل كل جزء.',
       namespaces: 'المساحات',
       actorApis: '٤ واجهات API للأدوار',
-      actorApisBody: 'تشترك /customer و /merchant و /rider و /ops في نفس خلفية Laravel.',
+      actorApisBody:
+        'تشترك /customer و /merchant و /rider و /ops في نفس خلفية Laravel.',
       contracts: 'العقود',
       sharedValidators: 'مدققات مشتركة',
       sharedValidatorsBody:
@@ -448,8 +470,7 @@ export const translations = {
         unreadNotifications: '{count} إشعار غير مقروء',
         unreadNotifications_plural: '{count} إشعارات غير مقروءة',
         loadingInbox: 'جار تحميل الصندوق',
-        emptyInbox:
-          'ستظهر إشعارات الطلب والدعم هنا بعد إضافتها للعميل المسجل.',
+        emptyInbox: 'ستظهر إشعارات الطلب والدعم هنا بعد إضافتها للعميل المسجل.',
         activeOrder: 'الطلب النشط',
         activeOrderDescription:
           'تظل بطاقة الطلب الحي مطابقة للخط الزمني الملحق حتى يدخل مسار الاكتشاف الجديد إلى شاشة الطلب الحالية دون تغيير الدفع.',
@@ -462,6 +483,12 @@ export const translations = {
         routesTitle: 'تابع مسار العميل',
         routesDescription:
           'يبقى الملف الشخصي والتسجيل والعناوين والسلة وتتبع الطلب كمسارات منفصلة مع نفس عميل الاستعلام والحزمة المشتركة.',
+        promoBannerEyebrow: 'طلبكس الآن',
+        promoBannerTitle: 'توصيلك يبدأ من هنا',
+        promoBannerDescription:
+          'وجبات والبقالة وأساسيات الصيدلية والهدايا من خلاصة واحدة تراعي عنوانك.',
+        dailyOffersTitle: 'عروض اليوم',
+        categoryPickerTitle: 'ماذا تحتاج؟',
       },
     },
     rider: {
@@ -483,14 +510,16 @@ export const translations = {
         unreadNotifications: '{count} إشعار غير مقروء',
         unreadNotifications_plural: '{count} إشعارات غير مقروءة',
         loadingInbox: 'جار تحميل صندوق المندوب',
-        emptyInbox:
-          'ستظهر إشعارات الإسناد والدعم هنا لجلسة المندوب النشطة.',
+        emptyInbox: 'ستظهر إشعارات الإسناد والدعم هنا لجلسة المندوب النشطة.',
         availability: 'الإتاحة',
         availabilityDescription:
           'تعكس شاشة المندوب افتراضات الإسناد في الخلفية: لا تجميع، لا تحسين مسارات، ولا طلبات مكدسة في الإصدار الأول.',
-        availabilityHelp: 'بدّل حالة الاتصال، ثم اقبل واستلم وسلّم والتقط الإثبات.',
+        availabilityHelp:
+          'بدّل حالة الاتصال، ثم اقبل واستلم وسلّم والتقط الإثبات.',
         goAvailable: 'اجعلني متاحاً',
         goOffline: 'إيقاف الاتصال',
+        updatingAvailability: 'جار تحديث الإتاحة',
+        availabilityUpdateFailed: 'تعذر تحديث الإتاحة.',
         availabilityUpdated: 'تم تحديث الإتاحة إلى {availability}.',
         nextSteps: 'الخطوات التالية',
         riderActions: 'إجراءات المندوب',
@@ -507,7 +536,8 @@ export const translations = {
         last7Days: 'آخر ٧ أيام',
         last30Days: 'آخر ٣٠ يوماً',
         grossSales: 'إجمالي المبيعات',
-        grossSalesDescription: 'إجمالي الطلبات غير الملغاة ضمن نافذة التقرير المحددة.',
+        grossSalesDescription:
+          'إجمالي الطلبات غير الملغاة ضمن نافذة التقرير المحددة.',
         platformNet: 'صافي المنصة',
         platformNetDescription:
           'العمولة مع التسويات، مفصولة عن التزامات التجار والمندوبين.',
@@ -704,7 +734,12 @@ export function formatPercentage(value, locale = fallbackLocale, options = {}) {
   }).format(value);
 }
 
-export function formatCurrency(amountMinor, currency = 'SAR', locale = fallbackLocale, options = {}) {
+export function formatCurrency(
+  amountMinor,
+  currency = 'SAR',
+  locale = fallbackLocale,
+  options = {}
+) {
   return new Intl.NumberFormat(getIntlLocale(locale), {
     style: 'currency',
     currency,

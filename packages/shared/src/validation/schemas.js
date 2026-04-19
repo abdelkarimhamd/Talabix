@@ -518,6 +518,43 @@ export const merchantCatalogItemInputSchema = z.object({
   is_active: z.boolean().default(true),
 });
 
+export const promotionOfferSchema = z.object({
+  uuid: z.string().uuid(),
+  merchant_uuid: z.string().uuid().nullable().optional(),
+  merchant_name: z.string().nullable().optional(),
+  branch_uuid: z.string().uuid(),
+  branch_name: z.string().nullable().optional(),
+  catalog_item_uuid: z.string().uuid().nullable().optional(),
+  catalog_item_name: z.string().nullable().optional(),
+  code: z.string().nullable().optional(),
+  title: z.string().min(1),
+  discount_label: z.string().min(1),
+  discount_type: z.enum(['delivery', 'item_percent', 'item_fixed']),
+  percent: z.number().int().min(1).max(100).nullable().optional(),
+  amount_minor: z.number().int().nonnegative().nullable().optional(),
+  min_spend_minor: z.number().int().nonnegative().default(0),
+  requires_promo_code: z.boolean().default(false),
+  is_active: z.boolean().default(true),
+  starts_at: z.string().nullable().optional(),
+  expires_at: z.string().nullable().optional(),
+});
+
+export const promotionOfferInputSchema = z.object({
+  branch_uuid: z.string().uuid(),
+  catalog_item_uuid: z.string().uuid().nullable().optional(),
+  code: z.string().trim().max(64).nullable().optional(),
+  title: z.string().min(1),
+  discount_label: z.string().min(1),
+  discount_type: z.enum(['delivery', 'item_percent', 'item_fixed']),
+  percent: z.number().int().min(1).max(100).nullable().optional(),
+  amount_minor: z.number().int().nonnegative().nullable().optional(),
+  min_spend_minor: z.number().int().nonnegative().default(0),
+  requires_promo_code: z.boolean().default(false),
+  is_active: z.boolean().default(true),
+  starts_at: z.string().nullable().optional(),
+  expires_at: z.string().nullable().optional(),
+});
+
 export const merchantCatalogModifierGroupInputSchema = z.object({
   name: z.string().min(1),
   description: z.string().nullable().optional(),
@@ -573,9 +610,27 @@ export const cartSummarySchema = z.object({
   itemCount: z.number().int().nonnegative(),
   subtotalMinor: z.number().int().nonnegative(),
   deliveryFeeMinor: z.number().int().nonnegative(),
+  itemDiscountMinor: z.number().int().nonnegative().default(0),
+  deliveryDiscountMinor: z.number().int().nonnegative().default(0),
+  discountMinor: z.number().int().nonnegative().default(0),
   totalMinor: z.number().int().nonnegative(),
   currency: z.string().length(3).default('SAR'),
   notes: z.string().nullable().optional(),
+  appliedOffers: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        title: z.string().min(1),
+        discountLabel: z.string().min(1),
+        discountMinor: z.number().int().nonnegative(),
+        discountType: z.enum(['delivery', 'item_percent', 'item_fixed']),
+        promoCode: z.string().nullable().optional(),
+        requiresPromoCode: z.boolean().default(false),
+      })
+    )
+    .default([]),
+  appliedOfferIds: z.array(z.string().min(1)).default([]),
+  redeemedPromoCodes: z.array(z.string().min(1)).default([]),
   items: z.array(cartItemSchema),
 });
 
@@ -607,6 +662,9 @@ export const orderSchema = z.object({
   payment_status: z.enum(paymentStatuses),
   currency: z.string().length(3),
   total_minor: z.number(),
+  applied_offer_ids: z.array(z.string()).default([]),
+  discount_minor: z.number().int().nonnegative().optional(),
+  pricing_snapshot: z.record(z.string(), z.any()).optional(),
   timeline: z.array(orderTimelineEntrySchema),
 });
 

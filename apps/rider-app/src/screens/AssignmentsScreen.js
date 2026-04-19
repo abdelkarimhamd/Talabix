@@ -23,12 +23,17 @@ export function AssignmentsScreen() {
       queryClient.invalidateQueries({ queryKey: ['rider-overview'] });
       queryClient.invalidateQueries({ queryKey: ['rider-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['rider-current-order'] });
-      setFeedback('Assignment accepted. Head to the merchant and confirm pickup next.');
+      setFeedback(
+        'Assignment accepted. Head to the merchant and confirm pickup next.'
+      );
     },
     onError: (error) => {
       setFeedback(error.message ?? 'Assignment could not be accepted.');
     },
   });
+  const pendingAssignmentUuid = acceptMutation.isPending
+    ? acceptMutation.variables
+    : null;
 
   return (
     <ScreenFrame
@@ -45,7 +50,8 @@ export function AssignmentsScreen() {
             title="Dispatch queue is clear"
           >
             <Text style={screenStyles.emptyState}>
-              No assigned or picked-up orders are waiting for this rider right now.
+              No assigned or picked-up orders are waiting for this rider right
+              now.
             </Text>
           </InfoCard>
         ) : null}
@@ -59,7 +65,8 @@ export function AssignmentsScreen() {
             title={assignment.customer_name ?? 'Assigned customer'}
           >
             <Text style={screenStyles.statValue}>
-              {assignment.delivery_address_snapshot?.line_1 ?? 'Drop-off loading'}
+              {assignment.delivery_address_snapshot?.line_1 ??
+                'Drop-off loading'}
             </Text>
             <Text style={screenStyles.muted}>
               {assignment.delivery_address_snapshot?.delivery_notes ??
@@ -75,7 +82,12 @@ export function AssignmentsScreen() {
             <View style={screenStyles.buttonRow}>
               {assignment.rider_actions.includes('accept_assignment') ? (
                 <AccentButton
-                  label="Accept assignment"
+                  disabled={pendingAssignmentUuid === assignment.uuid}
+                  label={
+                    pendingAssignmentUuid === assignment.uuid
+                      ? 'Accepting'
+                      : 'Accept assignment'
+                  }
                   onPress={() => acceptMutation.mutate(assignment.uuid)}
                   testID="accept-assignment"
                 />
@@ -84,7 +96,9 @@ export function AssignmentsScreen() {
           </InfoCard>
         ))}
 
-        {feedback ? <Text style={screenStyles.helperText}>{feedback}</Text> : null}
+        {feedback ? (
+          <Text style={screenStyles.helperText}>{feedback}</Text>
+        ) : null}
       </View>
     </ScreenFrame>
   );

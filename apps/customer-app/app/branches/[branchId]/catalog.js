@@ -3,7 +3,7 @@ import { BranchCatalogScreen } from '../../../src/screens/BranchCatalogScreen';
 import { SecondaryButton } from '../../../src/ui';
 
 export default function BranchCatalogRoute() {
-  const { branchId } = useLocalSearchParams();
+  const { branchId, item, offerId } = useLocalSearchParams();
 
   return (
     <BranchCatalogScreen
@@ -13,6 +13,8 @@ export default function BranchCatalogRoute() {
         </Link>
       }
       branchId={String(branchId ?? '')}
+      highlightCatalogItemUuid={item ? String(item) : null}
+      highlightOfferId={offerId ? String(offerId) : null}
     />
   );
 }

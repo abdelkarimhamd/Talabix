@@ -11,14 +11,18 @@ import {
   screenStyles,
 } from '../ui';
 
-function applyReadState(currentInbox, notification) {
+function applyReadState(
+  currentInbox,
+  notification,
+  { unreadOnly = false } = {}
+) {
   if (!currentInbox) {
     return currentInbox;
   }
 
-  const nextData = currentInbox.data.map((entry) =>
-    entry.id === notification.id ? notification : entry
-  );
+  const nextData = currentInbox.data
+    .map((entry) => (entry.id === notification.id ? notification : entry))
+    .filter((entry) => !unreadOnly || !entry.read_at);
 
   return {
     data: nextData,
@@ -37,12 +41,18 @@ export function RiderNotificationsScreen() {
   const [unreadOnly, setUnreadOnly] = useState(false);
   const { data: inbox } = useQuery({
     queryKey: ['rider-notifications', unreadOnly],
-    queryFn: () => getRiderNotifications({ unread_only: unreadOnly || undefined }),
+    queryFn: () =>
+      getRiderNotifications({ unread_only: unreadOnly || undefined }),
   });
   const markReadMutation = useMutation({
     mutationFn: markRiderNotificationRead,
     onSuccess: (notification) => {
-      queryClient.setQueryData(['rider-notifications', unreadOnly], (currentInbox) =>
+      queryClient.setQueryData(
+        ['rider-notifications', unreadOnly],
+        (currentInbox) =>
+          applyReadState(currentInbox, notification, { unreadOnly })
+      );
+      queryClient.setQueryData(['rider-notifications', false], (currentInbox) =>
         applyReadState(currentInbox, notification)
       );
       queryClient.setQueryData(['rider-notifications'], (currentInbox) =>
@@ -54,6 +64,9 @@ export function RiderNotificationsScreen() {
       setFeedback(error.message ?? 'Notification could not be updated.');
     },
   });
+  const pendingNotificationId = markReadMutation.isPending
+    ? markReadMutation.variables
+    : null;
 
   return (
     <ScreenFrame
@@ -78,7 +91,9 @@ export function RiderNotificationsScreen() {
             testID="toggle-rider-unread-only"
           />
         </View>
-        {feedback ? <Text style={screenStyles.helperText}>{feedback}</Text> : null}
+        {feedback ? (
+          <Text style={screenStyles.helperText}>{feedback}</Text>
+        ) : null}
       </InfoCard>
 
       <View style={screenStyles.stacked}>
@@ -92,9 +107,18 @@ export function RiderNotificationsScreen() {
               title={notification.title}
             >
               <View style={screenStyles.row}>
-                <ActionPill label={labelForEnum('notificationType', notification.notification_type)} />
                 <ActionPill
-                  label={notification.order_uuid ? notification.order_uuid.slice(0, 8).toUpperCase() : 'General'}
+                  label={labelForEnum(
+                    'notificationType',
+                    notification.notification_type
+                  )}
+                />
+                <ActionPill
+                  label={
+                    notification.order_uuid
+                      ? notification.order_uuid.slice(0, 8).toUpperCase()
+                      : 'General'
+                  }
                 />
                 <ActionPill label={notification.read_at ? 'read' : 'unread'} />
               </View>
@@ -106,7 +130,12 @@ export function RiderNotificationsScreen() {
               {!notification.read_at ? (
                 <View style={screenStyles.buttonRow}>
                   <SecondaryButton
-                    label="Mark read"
+                    disabled={pendingNotificationId === notification.id}
+                    label={
+                      pendingNotificationId === notification.id
+                        ? 'Marking...'
+                        : 'Mark read'
+                    }
                     onPress={() => markReadMutation.mutate(notification.id)}
                     testID={`mark-rider-notification-${notification.id}`}
                   />
@@ -122,7 +151,8 @@ export function RiderNotificationsScreen() {
             title="No rider notifications match the current filter."
           >
             <Text style={screenStyles.emptyState}>
-              Notification delivery state is still stored per order, but this view only surfaces in-app rows relevant to the current rider.
+              Notification delivery state is still stored per order, but this
+              view only surfaces in-app rows relevant to the current rider.
             </Text>
           </InfoCard>
         )}

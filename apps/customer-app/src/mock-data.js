@@ -69,13 +69,48 @@ export const discoveryMerchants = [
         longitude: 46.6753,
         accepts_orders: true,
         hours_schedule: [
-          { day_of_week: 0, opens_at: '09:00:00', closes_at: '23:00:00', is_closed: false },
-          { day_of_week: 1, opens_at: '09:00:00', closes_at: '23:00:00', is_closed: false },
-          { day_of_week: 2, opens_at: '09:00:00', closes_at: '23:00:00', is_closed: false },
-          { day_of_week: 3, opens_at: '09:00:00', closes_at: '23:00:00', is_closed: false },
-          { day_of_week: 4, opens_at: '09:00:00', closes_at: '23:00:00', is_closed: false },
-          { day_of_week: 5, opens_at: '09:00:00', closes_at: '23:00:00', is_closed: false },
-          { day_of_week: 6, opens_at: '09:00:00', closes_at: '23:00:00', is_closed: false },
+          {
+            day_of_week: 0,
+            opens_at: '09:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 1,
+            opens_at: '09:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 2,
+            opens_at: '09:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 3,
+            opens_at: '09:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 4,
+            opens_at: '09:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 5,
+            opens_at: '09:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 6,
+            opens_at: '09:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
         ],
         service_zones: [
           {
@@ -86,7 +121,11 @@ export const discoveryMerchants = [
           },
         ],
         fee_bands: [
-          { min_distance_meters: 0, max_distance_meters: 15000, fee_minor: 1200 },
+          {
+            min_distance_meters: 0,
+            max_distance_meters: 15000,
+            fee_minor: 1200,
+          },
         ],
       },
       {
@@ -95,28 +134,67 @@ export const discoveryMerchants = [
         status: 'active',
         city: 'Riyadh',
         address_line: 'Northern Ring Road',
-        latitude: 24.9500,
-        longitude: 46.5000,
+        latitude: 24.95,
+        longitude: 46.5,
         accepts_orders: true,
         hours_schedule: [
-          { day_of_week: 0, opens_at: '10:00:00', closes_at: '22:00:00', is_closed: false },
-          { day_of_week: 1, opens_at: '10:00:00', closes_at: '22:00:00', is_closed: false },
-          { day_of_week: 2, opens_at: '10:00:00', closes_at: '22:00:00', is_closed: false },
-          { day_of_week: 3, opens_at: '10:00:00', closes_at: '22:00:00', is_closed: false },
-          { day_of_week: 4, opens_at: '10:00:00', closes_at: '22:00:00', is_closed: false },
-          { day_of_week: 5, opens_at: '10:00:00', closes_at: '22:00:00', is_closed: false },
-          { day_of_week: 6, opens_at: '10:00:00', closes_at: '22:00:00', is_closed: false },
+          {
+            day_of_week: 0,
+            opens_at: '10:00:00',
+            closes_at: '22:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 1,
+            opens_at: '10:00:00',
+            closes_at: '22:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 2,
+            opens_at: '10:00:00',
+            closes_at: '22:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 3,
+            opens_at: '10:00:00',
+            closes_at: '22:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 4,
+            opens_at: '10:00:00',
+            closes_at: '22:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 5,
+            opens_at: '10:00:00',
+            closes_at: '22:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 6,
+            opens_at: '10:00:00',
+            closes_at: '22:00:00',
+            is_closed: false,
+          },
         ],
         service_zones: [
           {
             city: 'Riyadh',
-            center_latitude: 24.9500,
-            center_longitude: 46.5000,
+            center_latitude: 24.95,
+            center_longitude: 46.5,
             radius_meters: 3000,
           },
         ],
         fee_bands: [
-          { min_distance_meters: 0, max_distance_meters: 3000, fee_minor: 1800 },
+          {
+            min_distance_meters: 0,
+            max_distance_meters: 3000,
+            fee_minor: 1800,
+          },
         ],
       },
     ],
@@ -137,13 +215,48 @@ export const discoveryMerchants = [
         longitude: 46.6748,
         accepts_orders: true,
         hours_schedule: [
-          { day_of_week: 0, opens_at: '06:00:00', closes_at: '08:00:00', is_closed: false },
-          { day_of_week: 1, opens_at: '06:00:00', closes_at: '08:00:00', is_closed: false },
-          { day_of_week: 2, opens_at: '06:00:00', closes_at: '08:00:00', is_closed: false },
-          { day_of_week: 3, opens_at: '06:00:00', closes_at: '08:00:00', is_closed: false },
-          { day_of_week: 4, opens_at: '06:00:00', closes_at: '08:00:00', is_closed: false },
-          { day_of_week: 5, opens_at: '06:00:00', closes_at: '08:00:00', is_closed: false },
-          { day_of_week: 6, opens_at: '06:00:00', closes_at: '08:00:00', is_closed: false },
+          {
+            day_of_week: 0,
+            opens_at: '06:00:00',
+            closes_at: '08:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 1,
+            opens_at: '06:00:00',
+            closes_at: '08:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 2,
+            opens_at: '06:00:00',
+            closes_at: '08:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 3,
+            opens_at: '06:00:00',
+            closes_at: '08:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 4,
+            opens_at: '06:00:00',
+            closes_at: '08:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 5,
+            opens_at: '06:00:00',
+            closes_at: '08:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 6,
+            opens_at: '06:00:00',
+            closes_at: '08:00:00',
+            is_closed: false,
+          },
         ],
         service_zones: [
           {
@@ -154,7 +267,242 @@ export const discoveryMerchants = [
           },
         ],
         fee_bands: [
-          { min_distance_meters: 0, max_distance_meters: 12000, fee_minor: 900 },
+          {
+            min_distance_meters: 0,
+            max_distance_meters: 12000,
+            fee_minor: 900,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    uuid: '5efc2744-0aca-4ec6-bf1b-f4fc56ac8201',
+    name: 'Talabix Market',
+    slug: 'talabix-market',
+    status: 'active',
+    branches: [
+      {
+        uuid: 'f3950349-28d9-48e7-89a4-a18c54c88211',
+        name: 'Express Market',
+        status: 'active',
+        city: 'Riyadh',
+        address_line: 'King Abdullah Road',
+        latitude: 24.7391,
+        longitude: 46.6821,
+        accepts_orders: true,
+        hours_schedule: [
+          {
+            day_of_week: 0,
+            opens_at: '00:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 1,
+            opens_at: '00:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 2,
+            opens_at: '00:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 3,
+            opens_at: '00:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 4,
+            opens_at: '00:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 5,
+            opens_at: '00:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 6,
+            opens_at: '00:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+        ],
+        service_zones: [
+          {
+            city: 'Riyadh',
+            center_latitude: 24.7391,
+            center_longitude: 46.6821,
+            radius_meters: 18000,
+          },
+        ],
+        fee_bands: [
+          {
+            min_distance_meters: 0,
+            max_distance_meters: 18000,
+            fee_minor: 700,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    uuid: '1e1d4c02-a31b-49ab-a45e-8ec3c417b7f2',
+    name: 'Noura Pharmacy',
+    slug: 'noura-pharmacy',
+    status: 'active',
+    branches: [
+      {
+        uuid: 'ce5afbb8-e13c-46e8-9ca1-b3ff0c62c922',
+        name: 'Wellness Branch',
+        status: 'active',
+        city: 'Riyadh',
+        address_line: 'Prince Mohammed Bin Abdulaziz Road',
+        latitude: 24.6965,
+        longitude: 46.6832,
+        accepts_orders: true,
+        hours_schedule: [
+          {
+            day_of_week: 0,
+            opens_at: '08:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 1,
+            opens_at: '08:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 2,
+            opens_at: '08:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 3,
+            opens_at: '08:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 4,
+            opens_at: '08:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 5,
+            opens_at: '08:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 6,
+            opens_at: '08:00:00',
+            closes_at: '23:59:00',
+            is_closed: false,
+          },
+        ],
+        service_zones: [
+          {
+            city: 'Riyadh',
+            center_latitude: 24.6965,
+            center_longitude: 46.6832,
+            radius_meters: 14000,
+          },
+        ],
+        fee_bands: [
+          {
+            min_distance_meters: 0,
+            max_distance_meters: 14000,
+            fee_minor: 1000,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    uuid: 'c8f5fd8b-3f1a-44e5-8759-c9185b5569b2',
+    name: 'Bloom & Gifts',
+    slug: 'bloom-gifts',
+    status: 'active',
+    branches: [
+      {
+        uuid: '0429cfd5-8c70-4267-b039-c345665ea0c6',
+        name: 'Olaya Florist',
+        status: 'active',
+        city: 'Riyadh',
+        address_line: 'Al Takhassusi Street',
+        latitude: 24.7006,
+        longitude: 46.6674,
+        accepts_orders: true,
+        hours_schedule: [
+          {
+            day_of_week: 0,
+            opens_at: '10:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 1,
+            opens_at: '10:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 2,
+            opens_at: '10:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 3,
+            opens_at: '10:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 4,
+            opens_at: '10:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 5,
+            opens_at: '10:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+          {
+            day_of_week: 6,
+            opens_at: '10:00:00',
+            closes_at: '23:00:00',
+            is_closed: false,
+          },
+        ],
+        service_zones: [
+          {
+            city: 'Riyadh',
+            center_latitude: 24.7006,
+            center_longitude: 46.6674,
+            radius_meters: 11000,
+          },
+        ],
+        fee_bands: [
+          {
+            min_distance_meters: 0,
+            max_distance_meters: 11000,
+            fee_minor: 1500,
+          },
         ],
       },
     ],
@@ -168,8 +516,9 @@ export const branchCatalogById = {
       uuid: '11111111-1111-4111-8111-111111111111',
       name: 'Chicken Shawarma',
       categoryName: 'Wraps',
-      description: 'Branch-ready favorite with branch-specific stock and pricing.',
-      imageUrl: 'https://images.talabix.test/catalog/chicken-shawarma.jpg',
+      description:
+        'Branch-ready favorite with branch-specific stock and pricing.',
+      imageUrl: null,
       priceMinor: 2500,
       modifierGroups: [
         {
@@ -210,7 +559,7 @@ export const branchCatalogById = {
       name: 'Fries',
       categoryName: 'Sides',
       description: 'Crisp side item mirrored from the merchant-owned catalog.',
-      imageUrl: 'https://images.talabix.test/catalog/fries.jpg',
+      imageUrl: null,
       priceMinor: 1000,
       modifierGroups: [
         {
@@ -253,7 +602,7 @@ export const branchCatalogById = {
       name: 'Signature Burger',
       categoryName: 'Burgers',
       description: 'Available only when the North Branch override is active.',
-      imageUrl: 'https://images.talabix.test/catalog/signature-burger.jpg',
+      imageUrl: null,
       priceMinor: 3200,
       modifierGroups: [],
     },
@@ -265,9 +614,121 @@ export const branchCatalogById = {
       name: 'Breakfast Foul',
       categoryName: 'Breakfast',
       description: 'Morning-only menu item from the breakfast branch.',
-      imageUrl: 'https://images.talabix.test/catalog/foul.jpg',
+      imageUrl: null,
       priceMinor: 1800,
       modifierGroups: [],
+    },
+  ],
+  'f3950349-28d9-48e7-89a4-a18c54c88211': [
+    {
+      id: 'market-basket',
+      uuid: '55555555-5555-4555-8555-555555555555',
+      name: 'Fresh Market Basket',
+      categoryName: 'Market',
+      description:
+        'Fruit, water, bread, and pantry basics packed for a quick delivery run.',
+      imageUrl: null,
+      priceMinor: 4200,
+      modifierGroups: [
+        {
+          uuid: 'c679db65-72d0-480d-9eaf-876a24520555',
+          name: 'Produce swap',
+          description: 'Choose the fruit mix.',
+          selectionType: 'single',
+          minSelected: 1,
+          maxSelected: 1,
+          isActive: true,
+          sortOrder: 1,
+          options: [
+            {
+              uuid: 'e8c5d1a8-a4a8-4473-8df7-305998510555',
+              name: 'Banana and apple',
+              description: null,
+              priceDeltaMinor: 0,
+              isDefault: true,
+              isActive: true,
+              sortOrder: 1,
+            },
+            {
+              uuid: 'a9798a32-b49b-418c-bc78-6a9528a20555',
+              name: 'Berries and citrus',
+              description: null,
+              priceDeltaMinor: 600,
+              isDefault: false,
+              isActive: true,
+              sortOrder: 2,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'coffee-pack',
+      uuid: '66666666-6666-4666-8666-666666666666',
+      name: 'Cold Coffee Pack',
+      categoryName: 'Drinks',
+      description:
+        'Four ready-to-drink coffees from the express market fridge.',
+      imageUrl: null,
+      priceMinor: 3600,
+      modifierGroups: [],
+    },
+  ],
+  'ce5afbb8-e13c-46e8-9ca1-b3ff0c62c922': [
+    {
+      id: 'wellness-kit',
+      uuid: '77777777-7777-4777-8777-777777777777',
+      name: 'Daily Wellness Kit',
+      categoryName: 'Pharmacy',
+      description:
+        'Sanitizer, tissues, electrolyte sachets, and daily care basics.',
+      imageUrl: null,
+      priceMinor: 2900,
+      modifierGroups: [],
+    },
+  ],
+  '0429cfd5-8c70-4267-b039-c345665ea0c6': [
+    {
+      id: 'rose-box',
+      uuid: '88888888-8888-4888-8888-888888888888',
+      name: 'Rose Gift Box',
+      categoryName: 'Flowers & Gifts',
+      description:
+        'A compact flower box with a greeting note for same-day delivery.',
+      imageUrl: null,
+      priceMinor: 12500,
+      modifierGroups: [
+        {
+          uuid: 'aa4e32c3-7c51-4a86-b328-796a83f90888',
+          name: 'Greeting card',
+          description: 'Choose a card tone.',
+          selectionType: 'single',
+          minSelected: 1,
+          maxSelected: 1,
+          isActive: true,
+          sortOrder: 1,
+          options: [
+            {
+              uuid: 'b82a9519-136e-43da-b596-49d6a1920888',
+              name: 'Celebration',
+              description: null,
+              priceDeltaMinor: 0,
+              isDefault: true,
+              isActive: true,
+              sortOrder: 1,
+            },
+            {
+              uuid: 'b5b01436-234d-458e-8ccf-b1996dd90888',
+              name: 'Thank you',
+              description: null,
+              priceDeltaMinor: 0,
+              isDefault: false,
+              isActive: true,
+              sortOrder: 2,
+            },
+          ],
+        },
+      ],
     },
   ],
 };
@@ -275,6 +736,7 @@ export const branchCatalogById = {
 export const cartState = {
   branchUuid: '2ea03ee8-f346-42c2-968d-ab4aeae7040d',
   notes: 'Ring the bell',
+  redeemedPromoCodes: [],
   items: [
     {
       id: 'shawarma-saj',
@@ -327,9 +789,165 @@ export const activeOrder = {
   ],
   merchantName: 'Talabix Demo Kitchen',
   branchName: 'Olaya Branch',
+  branchUuid: '2ea03ee8-f346-42c2-968d-ab4aeae7040d',
+  itemCount: 2,
+  artworkLabel: 'Chicken Shawarma',
   riderName: 'Reem Al-Shehri',
   etaMinutes: 13,
 };
+
+export const customerOrderHistory = [
+  {
+    uuid: '7f3ef1a5-f69c-4f77-9b47-6f5abdbd6321',
+    status: 'delivered',
+    payment_status: 'collected_cod',
+    currency: 'SAR',
+    total_minor: 7400,
+    timeline: [
+      { event_type: 'order_placed', created_at: '2026-04-12T18:22:00Z' },
+      { event_type: 'merchant_accepted', created_at: '2026-04-12T18:24:00Z' },
+      { event_type: 'dispatch_started', created_at: '2026-04-12T18:28:00Z' },
+      { event_type: 'rider_assigned', created_at: '2026-04-12T18:31:00Z' },
+      { event_type: 'picked_up', created_at: '2026-04-12T18:45:00Z' },
+      { event_type: 'delivered', created_at: '2026-04-12T19:02:00Z' },
+    ],
+    merchantName: 'Talabix Market',
+    branchName: 'Express Market',
+    branchUuid: 'f3950349-28d9-48e7-89a4-a18c54c88211',
+    itemCount: 3,
+    artworkLabel: 'Fresh Market Basket',
+    reorderItems: [
+      {
+        catalogItemUuid: '55555555-5555-4555-8555-555555555555',
+        quantity: 2,
+        modifierOptionUuids: ['e8c5d1a8-a4a8-4473-8df7-305998510555'],
+      },
+      {
+        catalogItemUuid: '66666666-6666-4666-8666-666666666666',
+        quantity: 1,
+        modifierOptionUuids: [],
+      },
+    ],
+  },
+  {
+    uuid: 'b8fe8c5c-cdf1-44f2-a152-62986db99896',
+    status: 'delivered',
+    payment_status: 'collected_cod',
+    currency: 'SAR',
+    total_minor: 4800,
+    timeline: [
+      { event_type: 'order_placed', created_at: '2026-04-10T05:44:00Z' },
+      { event_type: 'merchant_accepted', created_at: '2026-04-10T05:46:00Z' },
+      { event_type: 'dispatch_started', created_at: '2026-04-10T05:52:00Z' },
+      { event_type: 'rider_assigned', created_at: '2026-04-10T05:55:00Z' },
+      { event_type: 'picked_up', created_at: '2026-04-10T06:08:00Z' },
+      { event_type: 'delivered', created_at: '2026-04-10T06:21:00Z' },
+    ],
+    merchantName: 'Breakfast Bazaar',
+    branchName: 'Morning District',
+    branchUuid: '34cbfc8f-ef4c-4d0d-b642-4759e5d4e031',
+    itemCount: 2,
+    artworkLabel: 'Breakfast Foul',
+    reorderItems: [
+      {
+        catalogItemUuid: '44444444-4444-4444-8444-444444444444',
+        quantity: 2,
+        modifierOptionUuids: [],
+      },
+    ],
+  },
+  {
+    uuid: '3ba6af38-1ba5-4587-a47d-8ea916386b06',
+    status: 'cancelled',
+    payment_status: 'waived',
+    currency: 'SAR',
+    total_minor: 12500,
+    timeline: [
+      { event_type: 'order_placed', created_at: '2026-04-08T20:10:00Z' },
+      { event_type: 'merchant_accepted', created_at: '2026-04-08T20:12:00Z' },
+      { event_type: 'cancelled', created_at: '2026-04-08T20:18:00Z' },
+    ],
+    merchantName: 'Bloom & Gifts',
+    branchName: 'Olaya Florist',
+    branchUuid: '0429cfd5-8c70-4267-b039-c345665ea0c6',
+    itemCount: 1,
+    artworkLabel: 'Rose Gift Box',
+    reorderItems: [
+      {
+        catalogItemUuid: '88888888-8888-4888-8888-888888888888',
+        quantity: 1,
+        modifierOptionUuids: ['b82a9519-136e-43da-b596-49d6a1920888'],
+      },
+    ],
+  },
+];
+
+export const customerOffers = [
+  {
+    id: 'free-delivery-shawarma',
+    title: 'Free delivery',
+    description:
+      'No delivery fee on selected wraps from Olaya Branch during dinner hours.',
+    discountLabel: '0 SAR delivery',
+    merchantName: 'Talabix Demo Kitchen',
+    branchName: 'Olaya Branch',
+    branchUuid: '2ea03ee8-f346-42c2-968d-ab4aeae7040d',
+    catalogItemUuid: '11111111-1111-4111-8111-111111111111',
+    itemName: 'Chicken Shawarma',
+    minSpendMinor: 2500,
+    deliveryFeeMinor: 0,
+    discount: {
+      type: 'delivery',
+    },
+    expiresAt: '2026-04-30T20:59:00Z',
+    artworkLabel: 'Chicken Shawarma',
+    artworkFileName: 'shawarma.png',
+  },
+  {
+    id: 'market-basket-save',
+    title: 'Save on market baskets',
+    description:
+      'Bundle pantry basics from Talabix Market and unlock an instant basket discount.',
+    discountLabel: '20% off',
+    merchantName: 'Talabix Market',
+    branchName: 'Express Market',
+    branchUuid: 'f3950349-28d9-48e7-89a4-a18c54c88211',
+    catalogItemUuid: '55555555-5555-4555-8555-555555555555',
+    itemName: 'Fresh Market Basket',
+    minSpendMinor: 4200,
+    deliveryFeeMinor: 700,
+    discount: {
+      percent: 20,
+      type: 'item_percent',
+    },
+    expiresAt: '2026-05-02T20:59:00Z',
+    artworkLabel: 'Fresh Market Basket',
+    artworkFileName: 'market.png',
+  },
+  {
+    id: 'morning-coffee-pack',
+    title: 'Coffee pack deal',
+    description:
+      'Add chilled coffee to a breakfast or market order with member-style pricing.',
+    discountLabel: 'SAR 8 off',
+    merchantName: 'Talabix Market',
+    branchName: 'Express Market',
+    branchUuid: 'f3950349-28d9-48e7-89a4-a18c54c88211',
+    catalogItemUuid: '66666666-6666-4666-8666-666666666666',
+    itemName: 'Cold Coffee Pack',
+    minSpendMinor: 3000,
+    deliveryFeeMinor: 700,
+    discount: {
+      amountMinor: 800,
+      type: 'item_fixed',
+    },
+    promoCode: 'COFFEE8',
+    requiresPromoCode: true,
+    expiresAt: '2026-05-05T20:59:00Z',
+    artworkLabel: 'Cold Coffee Pack',
+    artworkFileName: 'coffee.png',
+  },
+];
 
 export const customerNotifications = [
   {
@@ -343,7 +961,8 @@ export const customerNotifications = [
     notification_type: 'order_status_updated',
     channel: 'in_app',
     provider: 'internal',
-    provider_reference: 'internal:4aa0f507-77b6-459c-adbe-ef8658cbdc51:assigned',
+    provider_reference:
+      'internal:4aa0f507-77b6-459c-adbe-ef8658cbdc51:assigned',
     status: 'sent',
     attempt_count: 1,
     title: 'Rider assigned',
@@ -399,7 +1018,8 @@ export const customerNotifications = [
     notification_type: 'order_status_updated',
     channel: 'in_app',
     provider: 'internal',
-    provider_reference: 'internal:4aa0f507-77b6-459c-adbe-ef8658cbdc51:accepted',
+    provider_reference:
+      'internal:4aa0f507-77b6-459c-adbe-ef8658cbdc51:accepted',
     status: 'sent',
     attempt_count: 1,
     title: 'Order accepted',

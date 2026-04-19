@@ -66,7 +66,12 @@ class OrderController extends Controller
             ];
         });
 
-        $quote = $this->orderPricingService->quote($branch, $address, $items);
+        $quote = $this->orderPricingService->quote(
+            $branch,
+            $address,
+            $items,
+            $request->validated('promo_code')
+        );
 
         $order = DB::transaction(function () use ($request, $profile, $address, $merchant, $branch, $quote) {
             $order = Order::query()->create([
@@ -84,6 +89,7 @@ class OrderController extends Controller
                 'rider_earning_minor' => $quote['pricing']['rider_earning_minor'],
                 'total_minor' => $quote['pricing']['total_minor'],
                 'pricing_snapshot' => $quote['pricing'],
+                'applied_offer_ids' => $quote['pricing']['applied_offer_ids'],
                 'delivery_address_snapshot' => [
                     'uuid' => $address->uuid,
                     'label' => $address->label,

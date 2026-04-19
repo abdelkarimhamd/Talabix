@@ -66,6 +66,7 @@ export function CustomerRegistrationScreen({ footer = null }) {
 
   return (
     <ScreenFrame
+      activeTab="profile"
       description="Customer registration issues the same token-and-user envelope as login, so the mobile shell can move straight into discovery and profile editing."
       eyebrow="Customer registration"
       title="Create or replace the current customer session"

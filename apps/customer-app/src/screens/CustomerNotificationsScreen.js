@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
-import { getCustomerNotifications, markCustomerNotificationRead } from '../customer-api';
+import {
+  getCustomerNotifications,
+  markCustomerNotificationRead,
+} from '../customer-api';
 import { useI18n } from '../i18n';
 import {
   ActionPill,
@@ -11,14 +14,18 @@ import {
   screenStyles,
 } from '../ui';
 
-function applyReadState(currentInbox, notification) {
+function applyReadState(
+  currentInbox,
+  notification,
+  { unreadOnly = false } = {}
+) {
   if (!currentInbox) {
     return currentInbox;
   }
 
-  const nextData = currentInbox.data.map((entry) =>
-    entry.id === notification.id ? notification : entry
-  );
+  const nextData = currentInbox.data
+    .map((entry) => (entry.id === notification.id ? notification : entry))
+    .filter((entry) => !unreadOnly || !entry.read_at);
 
   return {
     data: nextData,
@@ -37,13 +44,20 @@ export function CustomerNotificationsScreen() {
   const [unreadOnly, setUnreadOnly] = useState(false);
   const { data: inbox } = useQuery({
     queryKey: ['customer-notifications', unreadOnly],
-    queryFn: () => getCustomerNotifications({ unread_only: unreadOnly || undefined }),
+    queryFn: () =>
+      getCustomerNotifications({ unread_only: unreadOnly || undefined }),
   });
   const markReadMutation = useMutation({
     mutationFn: markCustomerNotificationRead,
     onSuccess: (notification) => {
-      queryClient.setQueryData(['customer-notifications', unreadOnly], (currentInbox) =>
-        applyReadState(currentInbox, notification)
+      queryClient.setQueryData(
+        ['customer-notifications', unreadOnly],
+        (currentInbox) =>
+          applyReadState(currentInbox, notification, { unreadOnly })
+      );
+      queryClient.setQueryData(
+        ['customer-notifications', false],
+        (currentInbox) => applyReadState(currentInbox, notification)
       );
       queryClient.setQueryData(['customer-notifications'], (currentInbox) =>
         applyReadState(currentInbox, notification)
@@ -54,9 +68,13 @@ export function CustomerNotificationsScreen() {
       setFeedback(error.message ?? 'Notification could not be updated.');
     },
   });
+  const pendingNotificationId = markReadMutation.isPending
+    ? markReadMutation.variables
+    : null;
 
   return (
     <ScreenFrame
+      activeTab="orders"
       description="The customer inbox is backed by in-app delivery records only, so read-state stays separate from email or push delivery attempts."
       eyebrow="Customer inbox"
       title="Notification history stays attached to real order updates."
@@ -78,7 +96,9 @@ export function CustomerNotificationsScreen() {
             testID="toggle-customer-unread-only"
           />
         </View>
-        {feedback ? <Text style={screenStyles.helperText}>{feedback}</Text> : null}
+        {feedback ? (
+          <Text style={screenStyles.helperText}>{feedback}</Text>
+        ) : null}
       </InfoCard>
 
       <View style={screenStyles.stacked}>
@@ -92,13 +112,20 @@ export function CustomerNotificationsScreen() {
               title={notification.title}
             >
               <View style={screenStyles.row}>
-                <ActionPill label={labelForEnum('notificationType', notification.notification_type)} />
                 <ActionPill
-                  label={notification.order_uuid ? notification.order_uuid.slice(0, 8).toUpperCase() : 'General'}
+                  label={labelForEnum(
+                    'notificationType',
+                    notification.notification_type
+                  )}
                 />
                 <ActionPill
-                  label={notification.read_at ? 'read' : 'unread'}
+                  label={
+                    notification.order_uuid
+                      ? notification.order_uuid.slice(0, 8).toUpperCase()
+                      : 'General'
+                  }
                 />
+                <ActionPill label={notification.read_at ? 'read' : 'unread'} />
               </View>
               <Text style={screenStyles.muted}>
                 {notification.created_at
@@ -108,7 +135,12 @@ export function CustomerNotificationsScreen() {
               {!notification.read_at ? (
                 <View style={screenStyles.buttonRow}>
                   <SecondaryButton
-                    label="Mark read"
+                    disabled={pendingNotificationId === notification.id}
+                    label={
+                      pendingNotificationId === notification.id
+                        ? 'Marking...'
+                        : 'Mark read'
+                    }
                     onPress={() => markReadMutation.mutate(notification.id)}
                     testID={`mark-customer-notification-${notification.id}`}
                   />
@@ -124,7 +156,8 @@ export function CustomerNotificationsScreen() {
             title="No notifications match the current filter."
           >
             <Text style={screenStyles.emptyState}>
-              Customer inbox state is driven from the same order-linked notification records used by the backend actor routes.
+              Customer inbox state is driven from the same order-linked
+              notification records used by the backend actor routes.
             </Text>
           </InfoCard>
         )}

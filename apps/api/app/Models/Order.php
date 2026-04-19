@@ -24,6 +24,7 @@ class Order extends Model
             'status' => OrderStatus::class,
             'payment_status' => PaymentStatus::class,
             'pricing_snapshot' => 'array',
+            'applied_offer_ids' => 'array',
             'delivery_address_snapshot' => 'array',
             'placed_at' => 'datetime',
             'accepted_at' => 'datetime',

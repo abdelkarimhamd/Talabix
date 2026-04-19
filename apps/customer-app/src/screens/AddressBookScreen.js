@@ -76,7 +76,9 @@ export function AddressBookScreen() {
 
   const saveMutation = useMutation({
     mutationFn: () =>
-      editingUuid ? updateCustomerAddress(editingUuid, form) : createCustomerAddress(form),
+      editingUuid
+        ? updateCustomerAddress(editingUuid, form)
+        : createCustomerAddress(form),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customer-addresses'] });
       queryClient.invalidateQueries({ queryKey: ['customer-merchants'] });
@@ -102,6 +104,9 @@ export function AddressBookScreen() {
       setFeedback('Default address updated.');
     },
   });
+  const defaultPendingAddressUuid = defaultMutation.isPending
+    ? defaultMutation.variables?.uuid
+    : null;
 
   function updateField(field, value) {
     setForm((current) => ({
@@ -127,6 +132,7 @@ export function AddressBookScreen() {
 
   return (
     <ScreenFrame
+      activeTab="profile"
       description="Addresses now capture richer branch-serviceability context, keep one default address in play, and support map-driven place search before manual edits."
       eyebrow="Address book"
       title="Saved drop-off points with richer delivery detail"
@@ -135,7 +141,11 @@ export function AddressBookScreen() {
         accent="#112134"
         description="The same structured payload is used by the backend form request, the shared zod schema, and this mobile shell."
         eyebrow="Map place picker"
-        title={editingUuid ? 'Update saved address' : 'Pick a place, then save the address'}
+        title={
+          editingUuid
+            ? 'Update saved address'
+            : 'Pick a place, then save the address'
+        }
       >
         <View style={screenStyles.form}>
           <TextField
@@ -150,10 +160,14 @@ export function AddressBookScreen() {
               {suggestions.length > 0 ? (
                 suggestions.map((suggestion) => (
                   <View key={suggestion.id} style={screenStyles.inlinePanel}>
-                    <Text style={screenStyles.inlineTitle}>{suggestion.title}</Text>
+                    <Text style={screenStyles.inlineTitle}>
+                      {suggestion.title}
+                    </Text>
                     <Text style={screenStyles.muted}>
                       {suggestion.line_1}
-                      {suggestion.building ? ` - ${suggestion.building}` : ''}, {suggestion.city}
+                      {suggestion.building
+                        ? ` - ${suggestion.building}`
+                        : ''}, {suggestion.city}
                     </Text>
                     <SecondaryButton
                       label={`Use ${suggestion.label}`}
@@ -245,16 +259,25 @@ export function AddressBookScreen() {
 
           <View style={screenStyles.buttonRow}>
             <SecondaryButton
+              disabled={saveMutation.isPending}
               label={form.is_default ? 'Default on' : 'Mark as default'}
               onPress={() => updateField('is_default', !form.is_default)}
               testID="toggle-default-address"
             />
             <AccentButton
-              label={editingUuid ? 'Save address changes' : 'Create saved address'}
+              disabled={saveMutation.isPending}
+              label={
+                saveMutation.isPending
+                  ? 'Saving address'
+                  : editingUuid
+                    ? 'Save address changes'
+                    : 'Create saved address'
+              }
               onPress={() => saveMutation.mutate()}
             />
             {editingUuid ? (
               <SecondaryButton
+                disabled={saveMutation.isPending}
                 label="Cancel edit"
                 onPress={() => {
                   setEditingUuid(null);
@@ -263,7 +286,9 @@ export function AddressBookScreen() {
               />
             ) : null}
           </View>
-          {feedback ? <Text style={screenStyles.helperText}>{feedback}</Text> : null}
+          {feedback ? (
+            <Text style={screenStyles.helperText}>{feedback}</Text>
+          ) : null}
         </View>
       </InfoCard>
 
@@ -286,13 +311,18 @@ export function AddressBookScreen() {
                 .join(' - ')}
             </Text>
             <Text style={screenStyles.muted}>
-              {address.landmark ? `Landmark: ${address.landmark}` : 'No landmark saved yet.'}
+              {address.landmark
+                ? `Landmark: ${address.landmark}`
+                : 'No landmark saved yet.'}
             </Text>
             <Text style={screenStyles.muted}>
-              {address.delivery_notes ? `Notes: ${address.delivery_notes}` : 'No delivery notes saved.'}
+              {address.delivery_notes
+                ? `Notes: ${address.delivery_notes}`
+                : 'No delivery notes saved.'}
             </Text>
             <View style={screenStyles.buttonRow}>
               <SecondaryButton
+                disabled={saveMutation.isPending || defaultMutation.isPending}
                 label="Edit"
                 onPress={() => {
                   setEditingUuid(address.uuid);
@@ -302,7 +332,12 @@ export function AddressBookScreen() {
               />
               {!address.is_default ? (
                 <SecondaryButton
-                  label="Make default"
+                  disabled={defaultMutation.isPending}
+                  label={
+                    defaultPendingAddressUuid === address.uuid
+                      ? 'Making default'
+                      : 'Make default'
+                  }
                   onPress={() => defaultMutation.mutate(address)}
                   testID={`make-default-${address.uuid}`}
                 />
@@ -314,4 +349,3 @@ export function AddressBookScreen() {
     </ScreenFrame>
   );
 }
-

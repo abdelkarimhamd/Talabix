@@ -19,6 +19,7 @@ import { MerchantSalesReportBoard } from './features/merchant/MerchantSalesRepor
 import { DispatchBoard } from './features/ops/DispatchBoard.jsx';
 import { OpsDashboardBoard } from './features/ops/OpsDashboardBoard.jsx';
 import { OpsConfigurationBoard } from './features/ops/OpsConfigurationBoard.jsx';
+import { PromotionOffersBoard } from './features/ops/PromotionOffersBoard.jsx';
 import { SettlementBoard } from './features/ops/SettlementBoard.jsx';
 import { SupportConsole } from './features/ops/SupportConsole.jsx';
 import { createPortalApi } from './portal-api.js';
@@ -40,6 +41,12 @@ const navItems = [
     path: '/merchant/catalog',
     actors: ['merchant'],
     badgeKey: 'navigation.badges.scoped',
+  },
+  {
+    labelKey: 'navigation.merchantPromotions',
+    path: '/merchant/promotions',
+    actors: ['merchant'],
+    badgeKey: 'navigation.badges.offers',
   },
   {
     labelKey: 'navigation.merchantReports',
@@ -64,6 +71,12 @@ const navItems = [
     path: '/ops/configuration',
     actors: ['ops'],
     badgeKey: 'navigation.badges.config',
+  },
+  {
+    labelKey: 'navigation.opsPromotions',
+    path: '/ops/promotions',
+    actors: ['ops'],
+    badgeKey: 'navigation.badges.offers',
   },
   {
     labelKey: 'navigation.dispatchBoard',
@@ -144,6 +157,17 @@ export function App({
                   }
                 />
                 <Route
+                  path="/merchant/promotions"
+                  element={
+                    <RequireAccess
+                      allowedActors={['merchant']}
+                      requiredPermissions={['merchant:catalog.write']}
+                    >
+                      <PromotionOffersBoard scope="merchant" />
+                    </RequireAccess>
+                  }
+                />
+                <Route
                   path="/merchant/reports"
                   element={
                     <RequireAccess
@@ -184,6 +208,17 @@ export function App({
                       requiredPermissions={['ops:dispatch.manage']}
                     >
                       <DispatchBoard />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/ops/promotions"
+                  element={
+                    <RequireAccess
+                      allowedActors={['ops']}
+                      requiredPermissions={['ops:merchants.manage']}
+                    >
+                      <PromotionOffersBoard scope="ops" />
                     </RequireAccess>
                   }
                 />

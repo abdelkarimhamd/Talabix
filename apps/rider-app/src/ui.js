@@ -1,22 +1,30 @@
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useI18n } from './i18n';
 
-export function ScreenFrame({
-  eyebrow,
-  title,
-  description,
-  children,
-}) {
+export function ScreenFrame({ eyebrow, title, description, children }) {
   const { textAlign, writingDirection } = useI18n();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={[styles.eyebrow, { textAlign, writingDirection }]}>{eyebrow}</Text>
-          <Text style={[styles.title, { textAlign, writingDirection }]}>{title}</Text>
-          <Text style={[styles.description, { textAlign, writingDirection }]}>{description}</Text>
+          <Text style={[styles.eyebrow, { textAlign, writingDirection }]}>
+            {eyebrow}
+          </Text>
+          <Text style={[styles.title, { textAlign, writingDirection }]}>
+            {title}
+          </Text>
+          <Text style={[styles.description, { textAlign, writingDirection }]}>
+            {description}
+          </Text>
         </View>
         {children}
       </ScrollView>
@@ -35,10 +43,16 @@ export function InfoCard({
 
   return (
     <View style={[styles.card, { borderColor: accent }]}>
-      <Text style={[styles.cardEyebrow, { textAlign, writingDirection }]}>{eyebrow}</Text>
-      <Text style={[styles.cardTitle, { textAlign, writingDirection }]}>{title}</Text>
+      <Text style={[styles.cardEyebrow, { textAlign, writingDirection }]}>
+        {eyebrow}
+      </Text>
+      <Text style={[styles.cardTitle, { textAlign, writingDirection }]}>
+        {title}
+      </Text>
       {description ? (
-        <Text style={[styles.cardDescription, { textAlign, writingDirection }]}>{description}</Text>
+        <Text style={[styles.cardDescription, { textAlign, writingDirection }]}>
+          {description}
+        </Text>
       ) : null}
       {children}
     </View>
@@ -50,27 +64,45 @@ export function ActionPill({ label }) {
 
   return (
     <View style={styles.pill}>
-      <Text style={[styles.pillText, { textAlign, writingDirection }]}>{label}</Text>
+      <Text style={[styles.pillText, { textAlign, writingDirection }]}>
+        {label}
+      </Text>
     </View>
   );
 }
 
-export function AccentButton({ label, onPress, testID }) {
+export function AccentButton({ disabled = false, label, onPress, testID }) {
   const { textAlign, writingDirection } = useI18n();
 
   return (
-    <Pressable onPress={onPress} style={styles.button} testID={testID}>
-      <Text style={[styles.buttonText, { textAlign, writingDirection }]}>{label}</Text>
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      style={[styles.button, disabled ? styles.disabledButton : null]}
+      testID={testID}
+    >
+      <Text style={[styles.buttonText, { textAlign, writingDirection }]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
-export function SecondaryButton({ label, onPress, testID }) {
+export function SecondaryButton({ disabled = false, label, onPress, testID }) {
   const { textAlign, writingDirection } = useI18n();
 
   return (
-    <Pressable onPress={onPress} style={styles.secondaryButton} testID={testID}>
-      <Text style={[styles.secondaryButtonText, { textAlign, writingDirection }]}>{label}</Text>
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      style={[styles.secondaryButton, disabled ? styles.disabledButton : null]}
+      testID={testID}
+    >
+      <Text
+        style={[styles.secondaryButtonText, { textAlign, writingDirection }]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -88,7 +120,9 @@ export function TextField({
 
   return (
     <View style={styles.fieldGroup}>
-      <Text style={[styles.fieldLabel, { textAlign, writingDirection }]}>{label}</Text>
+      <Text style={[styles.fieldLabel, { textAlign, writingDirection }]}>
+        {label}
+      </Text>
       <TextInput
         keyboardType={keyboardType}
         multiline={multiline}
@@ -237,6 +271,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
   secondaryButtonText: {
     color: '#102033',

@@ -22,6 +22,8 @@ import {
   branchCatalogById,
   cartState,
   customerAddresses,
+  customerOffers,
+  customerOrderHistory,
   customerNotifications,
   customerSession,
   discoveryMerchants,
@@ -33,6 +35,12 @@ function clone(value) {
 
 function normalizeOptional(value) {
   return value ? value : null;
+}
+
+function normalizePromoCode(value) {
+  const normalized = String(value ?? '').trim().toUpperCase();
+
+  return normalized.length ? normalized : null;
 }
 
 function normalizeAddressPayload(payload) {
@@ -61,6 +69,8 @@ function createInitialState() {
     cart: clone(cartState),
     notifications: clone(customerNotifications),
     activeOrder: clone(activeOrder),
+    orderHistory: clone(customerOrderHistory),
+    offers: clone(customerOffers),
     orders: [clone(activeOrder)],
   };
 }
@@ -134,7 +144,12 @@ async function branchServiceability(branch, address) {
     return null;
   }
 
-  const distance = distanceMeters(branch.latitude, branch.longitude, address.latitude, address.longitude);
+  const distance = distanceMeters(
+    branch.latitude,
+    branch.longitude,
+    address.latitude,
+    address.longitude
+  );
   const zone = branch.service_zones.find(
     (candidate) =>
       candidate.city === address.city &&
@@ -147,7 +162,8 @@ async function branchServiceability(branch, address) {
   );
   const feeBand = branch.fee_bands.find(
     (candidate) =>
-      distance >= candidate.min_distance_meters && distance <= candidate.max_distance_meters
+      distance >= candidate.min_distance_meters &&
+      distance <= candidate.max_distance_meters
   );
   const isServiceable = Boolean(zone && feeBand);
   const routeEstimate = await mapsProvider.distanceEstimate(
@@ -166,7 +182,9 @@ async function branchServiceability(branch, address) {
     is_serviceable: isServiceable,
     distance_meters: distance,
     delivery_fee_minor: isServiceable ? feeBand.fee_minor : null,
-    estimated_duration_minutes: isServiceable ? routeEstimate.duration_minutes : null,
+    estimated_duration_minutes: isServiceable
+      ? routeEstimate.duration_minutes
+      : null,
     maps_provider: routeEstimate.provider,
   };
 }
@@ -189,7 +207,11 @@ async function projectBranch(branch, address) {
   return projected;
 }
 
-async function projectMerchant(merchant, address, onlyServiceableBranches = false) {
+async function projectMerchant(
+  merchant,
+  address,
+  onlyServiceableBranches = false
+) {
   const projectedBranches = (
     await Promise.all(
       merchant.branches
@@ -197,9 +219,15 @@ async function projectMerchant(merchant, address, onlyServiceableBranches = fals
         .map((branch) => projectBranch(branch, address))
     )
   )
-    .filter((branch) => !onlyServiceableBranches || branch.serviceability?.is_serviceable)
+    .filter(
+      (branch) =>
+        !onlyServiceableBranches || branch.serviceability?.is_serviceable
+    )
     .sort((left, right) => {
-      if ((left.serviceability?.is_serviceable ?? false) === (right.serviceability?.is_serviceable ?? false)) {
+      if (
+        (left.serviceability?.is_serviceable ?? false) ===
+        (right.serviceability?.is_serviceable ?? false)
+      ) {
         return left.name.localeCompare(right.name);
       }
 
@@ -212,31 +240,205 @@ async function projectMerchant(merchant, address, onlyServiceableBranches = fals
     slug: merchant.slug,
     status: merchant.status,
     is_open_now: projectedBranches.some((branch) => branch.is_open_now),
-    is_serviceable: address ? projectedBranches.some((branch) => branch.serviceability?.is_serviceable) : null,
+    is_serviceable: address
+      ? projectedBranches.some(
+          (branch) => branch.serviceability?.is_serviceable
+        )
+      : null,
     serviceable_branch_count: address
-      ? projectedBranches.filter((branch) => branch.serviceability?.is_serviceable).length
+      ? projectedBranches.filter(
+          (branch) => branch.serviceability?.is_serviceable
+        ).length
       : null,
     branches: projectedBranches,
   };
 }
 
 function defaultAddress() {
-  return state.addresses.find((address) => address.is_default) ?? state.addresses[0] ?? null;
+  return (
+    state.addresses.find((address) => address.is_default) ??
+    state.addresses[0] ??
+    null
+  );
+}
+
+function orderPlacedAt(order) {
+  return (
+    order.placed_at ??
+    order.timeline?.find((event) => event.event_type === 'order_placed')
+      ?.created_at ??
+    order.timeline?.[0]?.created_at ??
+    null
+  );
+}
+
+function orderDeliveredAt(order) {
+  return (
+    order.delivered_at ??
+    order.timeline?.find((event) => event.event_type === 'delivered')
+      ?.created_at ??
+    null
+  );
+}
+
+function summarizeOrderForHistory(order) {
+  const itemCount =
+    order.itemCount ??
+    order.items?.reduce((sum, item) => sum + (item.quantity ?? 0), 0) ??
+    0;
+
+  return {
+    uuid: order.uuid,
+    orderCode: order.uuid.slice(0, 8).toUpperCase(),
+    status: order.status,
+    paymentStatus: order.payment_status,
+    currency: order.currency,
+    totalMinor: order.total_minor,
+    placedAt: orderPlacedAt(order),
+    deliveredAt: orderDeliveredAt(order),
+    merchantName: order.merchantName ?? 'Talabix merchant',
+    branchName: order.branchName ?? 'Talabix branch',
+    branchUuid: order.branchUuid ?? null,
+    itemCount,
+    etaMinutes: order.etaMinutes ?? null,
+    artworkLabel:
+      order.artworkLabel ??
+      order.items?.[0]?.name ??
+      order.merchantName ??
+      'Talabix order',
+  };
+}
+
+function eligibleCartOffers(subtotalMinor) {
+  if (!state.cart.branchUuid || subtotalMinor <= 0) {
+    return [];
+  }
+
+  const cartItemUuidSet = new Set(
+    state.cart.items.map((item) => item.catalog_item_uuid)
+  );
+  const redeemedPromoCodeSet = new Set(
+    (state.cart.redeemedPromoCodes ?? []).map(normalizePromoCode).filter(Boolean)
+  );
+
+  return state.offers.filter(
+    (offer) => {
+      if (
+        offer.branchUuid !== state.cart.branchUuid ||
+        !cartItemUuidSet.has(offer.catalogItemUuid) ||
+        subtotalMinor < (offer.minSpendMinor ?? 0)
+      ) {
+        return false;
+      }
+
+      if (!offer.requiresPromoCode) {
+        return true;
+      }
+
+      return redeemedPromoCodeSet.has(normalizePromoCode(offer.promoCode));
+    }
+  );
+}
+
+function lineTotalForCatalogItem(catalogItemUuid) {
+  return state.cart.items
+    .filter((item) => item.catalog_item_uuid === catalogItemUuid)
+    .reduce((sum, item) => sum + item.lineTotalMinor, 0);
+}
+
+function calculateCartDiscounts(subtotalMinor, deliveryFeeMinor) {
+  const appliedOffers = [];
+  const appliedOfferIds = [];
+  let itemDiscountMinor = 0;
+  let deliveryDiscountMinor = 0;
+
+  for (const offer of eligibleCartOffers(subtotalMinor)) {
+    const discountType = offer.discount?.type;
+    let discountMinor = 0;
+
+    if (discountType === 'delivery') {
+      discountMinor = Math.max(0, deliveryFeeMinor - deliveryDiscountMinor);
+      deliveryDiscountMinor += discountMinor;
+    }
+
+    if (discountType === 'item_percent') {
+      const eligibleLineTotalMinor = lineTotalForCatalogItem(
+        offer.catalogItemUuid
+      );
+
+      discountMinor = Math.floor(
+        (eligibleLineTotalMinor * (offer.discount.percent ?? 0)) / 100
+      );
+      discountMinor = Math.min(
+        discountMinor,
+        Math.max(0, subtotalMinor - itemDiscountMinor)
+      );
+      itemDiscountMinor += discountMinor;
+    }
+
+    if (discountType === 'item_fixed') {
+      const eligibleLineTotalMinor = lineTotalForCatalogItem(
+        offer.catalogItemUuid
+      );
+
+      discountMinor = Math.min(
+        eligibleLineTotalMinor,
+        offer.discount.amountMinor ?? 0
+      );
+      discountMinor = Math.min(
+        discountMinor,
+        Math.max(0, subtotalMinor - itemDiscountMinor)
+      );
+      itemDiscountMinor += discountMinor;
+    }
+
+    if (discountMinor > 0) {
+      appliedOfferIds.push(offer.id);
+      appliedOffers.push({
+        id: offer.id,
+        title: offer.title,
+        discountLabel: offer.discountLabel,
+        discountMinor,
+        discountType,
+        promoCode: offer.requiresPromoCode
+          ? normalizePromoCode(offer.promoCode)
+          : null,
+        requiresPromoCode: Boolean(offer.requiresPromoCode),
+      });
+    }
+  }
+
+  return {
+    appliedOfferIds,
+    appliedOffers,
+    deliveryDiscountMinor,
+    discountMinor: itemDiscountMinor + deliveryDiscountMinor,
+    itemDiscountMinor,
+  };
 }
 
 function catalogSelectionDefaults(catalogItem) {
   return (catalogItem.modifierGroups ?? []).flatMap((group) => {
-    const activeOptions = (group.options ?? []).filter((option) => option.isActive);
+    const activeOptions = (group.options ?? []).filter(
+      (option) => option.isActive
+    );
     const defaults = activeOptions.filter((option) => option.isDefault);
     const maxSelected =
-      group.maxSelected ?? (group.selectionType === 'single' ? 1 : activeOptions.length);
-    const minimumCount = Math.min(group.minSelected ?? 0, maxSelected ?? activeOptions.length);
+      group.maxSelected ??
+      (group.selectionType === 'single' ? 1 : activeOptions.length);
+    const minimumCount = Math.min(
+      group.minSelected ?? 0,
+      maxSelected ?? activeOptions.length
+    );
 
     if (minimumCount <= 0) {
       return defaults.slice(0, maxSelected ?? defaults.length);
     }
 
-    return (defaults.length > 0 ? defaults : activeOptions).slice(0, minimumCount);
+    return (defaults.length > 0 ? defaults : activeOptions).slice(
+      0,
+      minimumCount
+    );
   });
 }
 
@@ -245,17 +447,26 @@ function resolveSelectedModifierOptions(catalogItem, modifierOptionUuids = []) {
   const selectedOptions = [];
 
   for (const group of catalogItem.modifierGroups ?? []) {
-    const activeOptions = (group.options ?? []).filter((option) => option.isActive);
-    const groupSelections = activeOptions.filter((option) => selectedOptionUuidSet.has(option.uuid));
+    const activeOptions = (group.options ?? []).filter(
+      (option) => option.isActive
+    );
+    const groupSelections = activeOptions.filter((option) =>
+      selectedOptionUuidSet.has(option.uuid)
+    );
     const maxSelected =
-      group.maxSelected ?? (group.selectionType === 'single' ? 1 : activeOptions.length);
+      group.maxSelected ??
+      (group.selectionType === 'single' ? 1 : activeOptions.length);
 
     if (groupSelections.length < (group.minSelected ?? 0)) {
-      throw new Error(`${group.name} requires at least ${group.minSelected} selection(s).`);
+      throw new Error(
+        `${group.name} requires at least ${group.minSelected} selection(s).`
+      );
     }
 
     if (maxSelected !== null && groupSelections.length > maxSelected) {
-      throw new Error(`${group.name} allows at most ${maxSelected} selection(s).`);
+      throw new Error(
+        `${group.name} allows at most ${maxSelected} selection(s).`
+      );
     }
 
     for (const option of groupSelections) {
@@ -270,7 +481,9 @@ function resolveSelectedModifierOptions(catalogItem, modifierOptionUuids = []) {
   }
 
   if (selectedOptions.length !== selectedOptionUuidSet.size) {
-    throw new Error('One or more selected modifiers are invalid for this catalog item.');
+    throw new Error(
+      'One or more selected modifiers are invalid for this catalog item.'
+    );
   }
 
   return selectedOptions;
@@ -285,17 +498,32 @@ function findMerchantByBranchUuid(branchUuid) {
 function findBranchByUuid(branchUuid) {
   const merchant = findMerchantByBranchUuid(branchUuid);
 
-  return merchant?.branches.find((branch) => branch.uuid === branchUuid) ?? null;
+  return (
+    merchant?.branches.find((branch) => branch.uuid === branchUuid) ?? null
+  );
 }
 
-function summarizeCart() {
+async function summarizeCart() {
   const address = defaultAddress();
-  const branch = state.cart.branchUuid ? findBranchByUuid(state.cart.branchUuid) : null;
-  const merchant = state.cart.branchUuid ? findMerchantByBranchUuid(state.cart.branchUuid) : null;
-  const projectedBranch = branch && address ? projectBranch(branch, address) : null;
-  const itemCount = state.cart.items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotalMinor = state.cart.items.reduce((sum, item) => sum + item.lineTotalMinor, 0);
-  const deliveryFeeMinor = projectedBranch?.serviceability?.delivery_fee_minor ?? 0;
+  const branch = state.cart.branchUuid
+    ? findBranchByUuid(state.cart.branchUuid)
+    : null;
+  const merchant = state.cart.branchUuid
+    ? findMerchantByBranchUuid(state.cart.branchUuid)
+    : null;
+  const projectedBranch =
+    branch && address ? await projectBranch(branch, address) : null;
+  const itemCount = state.cart.items.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
+  const subtotalMinor = state.cart.items.reduce(
+    (sum, item) => sum + item.lineTotalMinor,
+    0
+  );
+  const deliveryFeeMinor =
+    projectedBranch?.serviceability?.delivery_fee_minor ?? 0;
+  const discounts = calculateCartDiscounts(subtotalMinor, deliveryFeeMinor);
 
   return cartSummarySchema.parse({
     branchUuid: state.cart.branchUuid ?? null,
@@ -305,9 +533,21 @@ function summarizeCart() {
     itemCount,
     subtotalMinor,
     deliveryFeeMinor,
-    totalMinor: subtotalMinor + deliveryFeeMinor,
+    itemDiscountMinor: discounts.itemDiscountMinor,
+    deliveryDiscountMinor: discounts.deliveryDiscountMinor,
+    discountMinor: discounts.discountMinor,
+    totalMinor: Math.max(
+      0,
+      subtotalMinor +
+        deliveryFeeMinor -
+        discounts.itemDiscountMinor -
+        discounts.deliveryDiscountMinor
+    ),
     currency: 'SAR',
     notes: state.cart.notes ?? null,
+    appliedOfferIds: discounts.appliedOfferIds,
+    appliedOffers: discounts.appliedOffers,
+    redeemedPromoCodes: state.cart.redeemedPromoCodes ?? [],
     items: state.cart.items,
   });
 }
@@ -357,7 +597,10 @@ export async function createCustomerAddress(payload) {
     .parse(normalizeAddressPayload(payload));
 
   if (parsedPayload.is_default || state.addresses.length === 0) {
-    state.addresses = state.addresses.map((address) => ({ ...address, is_default: false }));
+    state.addresses = state.addresses.map((address) => ({
+      ...address,
+      is_default: false,
+    }));
   }
 
   const nextAddress = addressSchema.parse({
@@ -377,7 +620,10 @@ export async function updateCustomerAddress(addressUuid, payload) {
     .parse(normalizeAddressPayload(payload));
 
   if (parsedPayload.is_default) {
-    state.addresses = state.addresses.map((address) => ({ ...address, is_default: false }));
+    state.addresses = state.addresses.map((address) => ({
+      ...address,
+      is_default: false,
+    }));
   }
 
   state.addresses = state.addresses.map((address) =>
@@ -389,14 +635,19 @@ export async function updateCustomerAddress(addressUuid, payload) {
       : address
   );
 
-  if (!state.addresses.some((address) => address.is_default) && state.addresses.length > 0) {
+  if (
+    !state.addresses.some((address) => address.is_default) &&
+    state.addresses.length > 0
+  ) {
     state.addresses[0] = {
       ...state.addresses[0],
       is_default: true,
     };
   }
 
-  return addressSchema.parse(state.addresses.find((address) => address.uuid === addressUuid));
+  return addressSchema.parse(
+    state.addresses.find((address) => address.uuid === addressUuid)
+  );
 }
 
 export async function getFeaturedMerchant() {
@@ -408,15 +659,23 @@ export async function getFeaturedMerchant() {
 export async function searchCustomerPlaces(query) {
   const suggestions = await mapsProvider.searchPlaces(query);
 
-  return suggestions.map((suggestion) => placeSuggestionSchema.parse(suggestion));
+  return suggestions.map((suggestion) =>
+    placeSuggestionSchema.parse(suggestion)
+  );
 }
 
 export async function listMerchants(query = {}) {
   const parsedQuery = merchantListQuerySchema.parse(
-    Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''))
+    Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== ''
+      )
+    )
   );
   const address = parsedQuery.address_uuid
-    ? state.addresses.find((candidate) => candidate.uuid === parsedQuery.address_uuid)
+    ? state.addresses.find(
+        (candidate) => candidate.uuid === parsedQuery.address_uuid
+      )
     : defaultAddress();
 
   const merchants = state.merchants
@@ -427,12 +686,16 @@ export async function listMerchants(query = {}) {
         : true
     );
   const projectedMerchants = await Promise.all(
-    merchants.map((merchant) => projectMerchant(merchant, address, Boolean(parsedQuery.address_uuid)))
+    merchants.map((merchant) =>
+      projectMerchant(merchant, address, Boolean(parsedQuery.address_uuid))
+    )
   );
 
   return projectedMerchants
     .filter((merchant) => merchant.branches.length > 0)
-    .filter((merchant) => (parsedQuery.address_uuid ? merchant.is_serviceable : true))
+    .filter((merchant) =>
+      parsedQuery.address_uuid ? merchant.is_serviceable : true
+    )
     .filter((merchant) => (parsedQuery.open_now ? merchant.is_open_now : true))
     .map((merchant) => merchantSummarySchema.parse(merchant));
 }
@@ -441,33 +704,94 @@ export async function getMerchantDetail(merchantUuid, query = {}) {
   const parsedQuery = merchantListQuerySchema
     .pick({ address_uuid: true })
     .parse(
-      Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''))
+      Object.fromEntries(
+        Object.entries(query).filter(
+          ([, value]) => value !== undefined && value !== ''
+        )
+      )
     );
-  const merchant = state.merchants.find((candidate) => candidate.uuid === merchantUuid);
+  const merchant = state.merchants.find(
+    (candidate) => candidate.uuid === merchantUuid
+  );
   const address = parsedQuery.address_uuid
-    ? state.addresses.find((candidate) => candidate.uuid === parsedQuery.address_uuid)
+    ? state.addresses.find(
+        (candidate) => candidate.uuid === parsedQuery.address_uuid
+      )
     : defaultAddress();
 
   if (!merchant) {
     throw new Error('Merchant not found.');
   }
 
-  return merchantDetailSchema.parse(await projectMerchant(merchant, address, false));
+  return merchantDetailSchema.parse(
+    await projectMerchant(merchant, address, false)
+  );
 }
 
 export async function getBranchCatalog(branchUuid) {
-  return (state.branchCatalogById[branchUuid] ?? []).map((item) => catalogItemSchema.parse(item));
+  return (state.branchCatalogById[branchUuid] ?? []).map((item) =>
+    catalogItemSchema.parse(item)
+  );
+}
+
+export async function getCustomerOrderHistory() {
+  const uniqueOrdersByUuid = new Map();
+
+  [state.activeOrder, ...state.orders, ...state.orderHistory]
+    .filter(Boolean)
+    .forEach((order) => {
+      uniqueOrdersByUuid.set(order.uuid, order);
+    });
+
+  return [...uniqueOrdersByUuid.values()]
+    .map((order) => summarizeOrderForHistory(order))
+    .sort(
+      (left, right) =>
+        new Date(right.placedAt ?? 0) - new Date(left.placedAt ?? 0)
+    );
+}
+
+export async function getCustomerOffers() {
+  return state.offers
+    .map((offer) => {
+      const catalogItem = (
+        state.branchCatalogById[offer.branchUuid] ?? []
+      ).find((item) => item.uuid === offer.catalogItemUuid);
+
+      return {
+        ...offer,
+        itemName: offer.itemName ?? catalogItem?.name ?? offer.title,
+        priceMinor: catalogItem?.priceMinor ?? null,
+        artworkLabel:
+          offer.artworkLabel ?? catalogItem?.name ?? offer.itemName ?? offer.title,
+      };
+    })
+    .sort(
+      (left, right) =>
+        new Date(left.expiresAt ?? 0) - new Date(right.expiresAt ?? 0)
+    );
 }
 
 export async function getCustomerNotifications(query = {}) {
   const parsedQuery = actorNotificationQuerySchema.parse(
-    Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''))
+    Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== ''
+      )
+    )
   );
 
   const data = state.notifications
-    .filter((entry) => (parsedQuery.order_uuid ? entry.order_uuid === parsedQuery.order_uuid : true))
+    .filter((entry) =>
+      parsedQuery.order_uuid
+        ? entry.order_uuid === parsedQuery.order_uuid
+        : true
+    )
     .filter((entry) => (parsedQuery.unread_only ? !entry.read_at : true))
-    .sort((left, right) => new Date(right.created_at ?? 0) - new Date(left.created_at ?? 0))
+    .sort(
+      (left, right) =>
+        new Date(right.created_at ?? 0) - new Date(left.created_at ?? 0)
+    )
     .map((entry) => notificationDeliverySchema.parse(entry));
 
   return {
@@ -489,7 +813,9 @@ export async function markCustomerNotificationRead(notificationId) {
       : entry
   );
 
-  const notification = state.notifications.find((entry) => entry.id === notificationId);
+  const notification = state.notifications.find(
+    (entry) => entry.id === notificationId
+  );
 
   if (!notification) {
     throw new Error('Notification not found.');
@@ -499,6 +825,36 @@ export async function markCustomerNotificationRead(notificationId) {
 }
 
 export async function getCartSummary() {
+  return summarizeCart();
+}
+
+export async function reorderCustomerOrder(orderUuid) {
+  const order = [...state.orderHistory, ...state.orders].find(
+    (entry) => entry.uuid === orderUuid
+  );
+
+  if (!order?.branchUuid || !order.reorderItems?.length) {
+    throw new Error('Order cannot be reordered from the current catalog.');
+  }
+
+  state.cart = {
+    branchUuid: order.branchUuid,
+    notes: '',
+    redeemedPromoCodes: [],
+    items: [],
+  };
+
+  for (const reorderItem of order.reorderItems) {
+    const quantity = Math.max(1, Number(reorderItem.quantity ?? 1));
+
+    for (let count = 0; count < quantity; count += 1) {
+      await addBranchCatalogItemToCart(order.branchUuid, {
+        catalog_item_uuid: reorderItem.catalogItemUuid,
+        modifier_option_uuids: reorderItem.modifierOptionUuids ?? [],
+      });
+    }
+  }
+
   return summarizeCart();
 }
 
@@ -518,21 +874,25 @@ export async function addBranchCatalogItemToCart(branchUuid, payload) {
     catalogItem,
     typeof payload === 'string'
       ? catalogSelectionDefaults(catalogItem).map((option) => option.uuid)
-      : payload?.modifier_option_uuids ?? catalogSelectionDefaults(catalogItem).map((option) => option.uuid)
+      : (payload?.modifier_option_uuids ??
+          catalogSelectionDefaults(catalogItem).map((option) => option.uuid))
   );
   const modifierTotalMinor = selectedModifierOptions.reduce(
     (sum, option) => sum + option.priceDeltaMinor,
     0
   );
-  const lineId = `${catalogItem.uuid}:${selectedModifierOptions
-    .map((option) => option.uuid)
-    .sort()
-    .join('.') || 'base'}`;
+  const lineId = `${catalogItem.uuid}:${
+    selectedModifierOptions
+      .map((option) => option.uuid)
+      .sort()
+      .join('.') || 'base'
+  }`;
 
   if (state.cart.branchUuid !== branchUuid) {
     state.cart = {
       branchUuid,
       notes: state.cart.notes ?? '',
+      redeemedPromoCodes: [],
       items: [],
     };
   }
@@ -541,7 +901,8 @@ export async function addBranchCatalogItemToCart(branchUuid, payload) {
 
   if (existingItem) {
     existingItem.quantity += 1;
-    existingItem.lineTotalMinor = existingItem.quantity * existingItem.unitPriceMinor;
+    existingItem.lineTotalMinor =
+      existingItem.quantity * existingItem.unitPriceMinor;
   } else {
     state.cart.items.push({
       id: lineId,
@@ -581,8 +942,42 @@ export async function updateCartNotes(notes) {
   return summarizeCart();
 }
 
+export async function redeemCartPromoCode(code) {
+  const promoCode = normalizePromoCode(code);
+
+  if (!promoCode) {
+    throw new Error('Enter a promo code to apply.');
+  }
+
+  const subtotalMinor = state.cart.items.reduce(
+    (sum, item) => sum + item.lineTotalMinor,
+    0
+  );
+  const cartItemUuidSet = new Set(
+    state.cart.items.map((item) => item.catalog_item_uuid)
+  );
+  const matchingOffer = state.offers.find(
+    (offer) =>
+      offer.requiresPromoCode &&
+      normalizePromoCode(offer.promoCode) === promoCode &&
+      offer.branchUuid === state.cart.branchUuid &&
+      cartItemUuidSet.has(offer.catalogItemUuid) &&
+      subtotalMinor >= (offer.minSpendMinor ?? 0)
+  );
+
+  if (!matchingOffer) {
+    throw new Error('Promo code is not valid for this cart.');
+  }
+
+  state.cart.redeemedPromoCodes = Array.from(
+    new Set([...(state.cart.redeemedPromoCodes ?? []), promoCode])
+  );
+
+  return summarizeCart();
+}
+
 export async function checkoutCart() {
-  const summary = summarizeCart();
+  const summary = await summarizeCart();
   const address = defaultAddress();
 
   if (!summary.branchUuid || !address || summary.items.length === 0) {
@@ -596,7 +991,9 @@ export async function checkoutCart() {
     items: summary.items.map((item) => ({
       catalog_item_uuid: item.catalog_item_uuid,
       quantity: item.quantity,
-      modifier_option_uuids: item.selectedModifierOptions.map((option) => option.uuid),
+      modifier_option_uuids: item.selectedModifierOptions.map(
+        (option) => option.uuid
+      ),
     })),
   });
 
@@ -621,11 +1018,30 @@ export async function checkoutCart() {
     ...order,
     subtotal_minor: summary.subtotalMinor,
     delivery_fee_minor: summary.deliveryFeeMinor,
+    discount_minor: summary.discountMinor,
+    applied_offer_ids: summary.appliedOfferIds,
+    pricing_snapshot: {
+      applied_offer_ids: summary.appliedOfferIds,
+      applied_offers: summary.appliedOffers,
+      delivery_discount_minor: summary.deliveryDiscountMinor,
+      discount_minor: summary.discountMinor,
+      item_discount_minor: summary.itemDiscountMinor,
+      redeemed_promo_codes: summary.redeemedPromoCodes,
+      subtotal_minor: summary.subtotalMinor,
+      total_minor: summary.totalMinor,
+    },
     merchantName: merchant?.name,
     branchName: branch?.name,
     notes: summary.notes ?? null,
   };
-  state.orders = [state.activeOrder, ...state.orders.filter((entry) => entry.uuid !== order.uuid)];
+  state.orders = [
+    state.activeOrder,
+    ...state.orders.filter((entry) => entry.uuid !== order.uuid),
+  ];
+  state.orderHistory = [
+    state.activeOrder,
+    ...state.orderHistory.filter((entry) => entry.uuid !== order.uuid),
+  ];
   state.notifications = [
     notificationDeliverySchema.parse({
       id: Math.max(0, ...state.notifications.map((entry) => entry.id)) + 1,
@@ -660,6 +1076,7 @@ export async function checkoutCart() {
   state.cart = {
     branchUuid: payload.branch_uuid,
     notes: '',
+    redeemedPromoCodes: [],
     items: [],
   };
 

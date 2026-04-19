@@ -2,7 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { getCurrentCustomer, updateCustomerProfile } from '../customer-api';
-import { AccentButton, InfoCard, ScreenFrame, TextField, screenStyles } from '../ui';
+import {
+  AccentButton,
+  InfoCard,
+  ScreenFrame,
+  TextField,
+  screenStyles,
+} from '../ui';
 
 function getErrorMessage(error, fallback) {
   if (error?.issues?.length) {
@@ -51,6 +57,7 @@ export function CustomerProfileScreen() {
 
   return (
     <ScreenFrame
+      activeTab="profile"
       description="Customer profile editing stays intentionally small in this slice: name and phone are writable, and the same payload shape is used by the backend patch endpoint."
       eyebrow="Customer profile"
       title="Update profile basics"
@@ -62,7 +69,9 @@ export function CustomerProfileScreen() {
         title={customer ? customer.email : 'Loading profile'}
       >
         <Text style={screenStyles.muted}>
-          {customer ? `Roles: ${customer.roles.join(', ')}` : 'Waiting for the current customer.'}
+          {customer
+            ? `Roles: ${customer.roles.join(', ')}`
+            : 'Waiting for the current customer.'}
         </Text>
       </InfoCard>
 
@@ -86,11 +95,14 @@ export function CustomerProfileScreen() {
             value={form.phone}
           />
           <AccentButton
-            label="Save profile"
+            disabled={mutation.isPending}
+            label={mutation.isPending ? 'Saving profile' : 'Save profile'}
             onPress={() => mutation.mutate(form)}
             testID="submit-profile"
           />
-          {feedback ? <Text style={screenStyles.helperText}>{feedback}</Text> : null}
+          {feedback ? (
+            <Text style={screenStyles.helperText}>{feedback}</Text>
+          ) : null}
         </View>
       </InfoCard>
     </ScreenFrame>

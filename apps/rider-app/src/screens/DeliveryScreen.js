@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Linking, Text, View } from 'react-native';
 import {
   acceptRiderAssignment,
@@ -29,6 +29,8 @@ export function DeliveryScreen({
   const [recipientName, setRecipientName] = useState('');
   const [proofNotes, setProofNotes] = useState('');
   const [proofReference, setProofReference] = useState('');
+  const [pendingNavigationKey, setPendingNavigationKey] = useState(null);
+  const pendingNavigationRef = useRef(null);
   const { data: order } = useQuery({
     queryKey: ['rider-current-order'],
     queryFn: getCurrentRiderOrder,
@@ -47,12 +49,24 @@ export function DeliveryScreen({
     queryClient.invalidateQueries({ queryKey: ['rider-earnings'] });
   }
 
-  async function handleNavigation(handoff) {
+  async function handleNavigation(handoff, handoffKey) {
+    if (pendingNavigationRef.current) {
+      return;
+    }
+
+    pendingNavigationRef.current = handoffKey;
+    setPendingNavigationKey(handoffKey);
+
     try {
       await openExternalUrl(handoff.url);
-      setFeedback(`Navigation handoff ready for ${handoff.label.toLowerCase()}.`);
+      setFeedback(
+        `Navigation handoff ready for ${handoff.label.toLowerCase()}.`
+      );
     } catch (error) {
       setFeedback(error?.message ?? 'Navigation could not be opened.');
+    } finally {
+      pendingNavigationRef.current = null;
+      setPendingNavigationKey(null);
     }
   }
 
@@ -71,7 +85,9 @@ export function DeliveryScreen({
     mutationFn: (orderUuid) => confirmRiderPickup(orderUuid),
     onSuccess: () => {
       refreshQueries();
-      setFeedback('Pickup confirmed. Capture proof before completing delivery.');
+      setFeedback(
+        'Pickup confirmed. Capture proof before completing delivery.'
+      );
     },
     onError: (error) => {
       setFeedback(error.message ?? 'Pickup could not be confirmed.');
@@ -97,6 +113,9 @@ export function DeliveryScreen({
 
   const proofMetadata = order?.delivery_assignment?.proof_metadata;
   const selectedProofTypeLabel = labelForEnum('proofType', proofType);
+  const acceptDisabled = acceptMutation.isPending;
+  const pickupDisabled = pickupMutation.isPending;
+  const deliveryDisabled = deliveryMutation.isPending;
 
   return (
     <ScreenFrame
@@ -132,14 +151,16 @@ export function DeliveryScreen({
           <View style={screenStyles.buttonRow}>
             {order?.rider_actions?.includes('accept_assignment') ? (
               <AccentButton
-                label="Accept assignment"
+                disabled={acceptDisabled}
+                label={acceptDisabled ? 'Accepting' : 'Accept assignment'}
                 onPress={() => acceptMutation.mutate(order.uuid)}
                 testID="delivery-accept-assignment"
               />
             ) : null}
             {order?.rider_actions?.includes('confirm_pickup') ? (
               <AccentButton
-                label="Confirm pickup"
+                disabled={pickupDisabled}
+                label={pickupDisabled ? 'Confirming pickup' : 'Confirm pickup'}
                 onPress={() => pickupMutation.mutate(order.uuid)}
                 testID="confirm-pickup"
               />
@@ -151,7 +172,9 @@ export function DeliveryScreen({
           accent="#112134"
           description="Proof metadata is kept structured so the same fields can later back real file uploads and support review tools."
           eyebrow="Proof capture"
-          title={proofMetadata ? 'Proof already captured' : 'Capture delivery proof'}
+          title={
+            proofMetadata ? 'Proof already captured' : 'Capture delivery proof'
+          }
         >
           <View style={screenStyles.form}>
             <View style={screenStyles.buttonRow}>
@@ -171,7 +194,9 @@ export function DeliveryScreen({
                 testID="proof-type-handoff"
               />
             </View>
-            <Text style={screenStyles.muted}>Selected proof mode: {selectedProofTypeLabel}</Text>
+            <Text style={screenStyles.muted}>
+              Selected proof mode: {selectedProofTypeLabel}
+            </Text>
             <TextField
               label="Recipient name"
               onChangeText={setRecipientName}
@@ -196,16 +221,22 @@ export function DeliveryScreen({
             />
             {order?.rider_actions?.includes('complete_delivery') ? (
               <AccentButton
-                label="Complete delivery"
+                disabled={deliveryDisabled}
+                label={
+                  deliveryDisabled ? 'Completing delivery' : 'Complete delivery'
+                }
                 onPress={() => deliveryMutation.mutate(order.uuid)}
                 testID="complete-delivery"
               />
             ) : null}
           </View>
-          {feedback ? <Text style={screenStyles.helperText}>{feedback}</Text> : null}
+          {feedback ? (
+            <Text style={screenStyles.helperText}>{feedback}</Text>
+          ) : null}
           {proofMetadata ? (
             <Text style={screenStyles.muted}>
-              Delivered to {proofMetadata.recipient_name || 'recipient not specified'} using{' '}
+              Delivered to{' '}
+              {proofMetadata.recipient_name || 'recipient not specified'} using{' '}
               {labelForEnum('proofType', proofMetadata.proof_type)}.
             </Text>
           ) : null}
@@ -223,7 +254,8 @@ export function DeliveryScreen({
                 {navigationPlan?.pickup.label ?? 'Pickup branch'}
               </Text>
               <Text style={screenStyles.muted}>
-                {navigationPlan?.pickup.address ?? 'Waiting for pickup coordinates.'}
+                {navigationPlan?.pickup.address ??
+                  'Waiting for pickup coordinates.'}
               </Text>
               <Text style={screenStyles.muted}>
                 {navigationPlan?.pickup.estimate
@@ -232,8 +264,15 @@ export function DeliveryScreen({
               </Text>
               {navigationPlan?.pickup.handoff ? (
                 <SecondaryButton
-                  label={navigationPlan.pickup.handoff.label}
-                  onPress={() => handleNavigation(navigationPlan.pickup.handoff)}
+                  disabled={Boolean(pendingNavigationKey)}
+                  label={
+                    pendingNavigationKey === 'pickup'
+                      ? 'Opening navigation'
+                      : navigationPlan.pickup.handoff.label
+                  }
+                  onPress={() =>
+                    handleNavigation(navigationPlan.pickup.handoff, 'pickup')
+                  }
                   testID="open-pickup-navigation"
                 />
               ) : null}
@@ -244,7 +283,8 @@ export function DeliveryScreen({
                 {navigationPlan?.dropoff.label ?? 'Drop-off address'}
               </Text>
               <Text style={screenStyles.muted}>
-                {navigationPlan?.dropoff.address ?? 'Waiting for drop-off coordinates.'}
+                {navigationPlan?.dropoff.address ??
+                  'Waiting for drop-off coordinates.'}
               </Text>
               <Text style={screenStyles.muted}>
                 {navigationPlan?.dropoff.estimate
@@ -253,8 +293,15 @@ export function DeliveryScreen({
               </Text>
               {navigationPlan?.dropoff.handoff ? (
                 <SecondaryButton
-                  label={navigationPlan.dropoff.handoff.label}
-                  onPress={() => handleNavigation(navigationPlan.dropoff.handoff)}
+                  disabled={Boolean(pendingNavigationKey)}
+                  label={
+                    pendingNavigationKey === 'dropoff'
+                      ? 'Opening navigation'
+                      : navigationPlan.dropoff.handoff.label
+                  }
+                  onPress={() =>
+                    handleNavigation(navigationPlan.dropoff.handoff, 'dropoff')
+                  }
                   testID="open-dropoff-navigation"
                 />
               ) : null}
@@ -270,7 +317,7 @@ export function DeliveryScreen({
                 ? `Recipient: ${step.metadata.recipient_name}`
                 : step.metadata?.proof_type
                   ? `Proof type: ${labelForEnum('proofType', step.metadata.proof_type)}`
-                  : step.actor_role ?? 'System event'
+                  : (step.actor_role ?? 'System event')
             }
             eyebrow="Timeline event"
             key={`${step.event_type}-${step.created_at}`}

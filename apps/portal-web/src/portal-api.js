@@ -25,6 +25,8 @@ import {
   opsDashboardQuerySchema,
   opsMerchantConfigurationSchema,
   opsNotificationQuerySchema,
+  promotionOfferInputSchema,
+  promotionOfferSchema,
   settlementAdjustmentSchema,
   settlementLedgerQuerySchema,
   cancelSupportOrderInputSchema,
@@ -46,6 +48,7 @@ import {
   notificationDeliveries as seedNotificationDeliveries,
   opsMerchantConfigurations as seedOpsMerchantConfigurations,
   opsRiders as seedOpsRiders,
+  promotionOffers as seedPromotionOffers,
   reportOrders as seedReportOrders,
   settlementEntries as seedSettlementEntries,
 } from './sample-data.js';
@@ -77,6 +80,9 @@ function createInitialState() {
     ),
     merchantCatalogItems: clone(seedMerchantCatalogItems).map((item) =>
       merchantCatalogItemSchema.parse(item)
+    ),
+    promotionOffers: clone(seedPromotionOffers).map((offer) =>
+      promotionOfferSchema.parse(offer)
     ),
     reportOrders: clone(seedReportOrders),
     merchantOrders: clone(seedMerchantOrders).map((order) =>
@@ -700,6 +706,80 @@ function findMerchantConfiguration(merchantUuid) {
   return state.merchantConfigurations.find((merchant) => merchant.uuid === merchantUuid);
 }
 
+function findBranchConfiguration(branchUuid) {
+  for (const merchant of state.merchantConfigurations) {
+    const branch = merchant.branches.find((entry) => entry.uuid === branchUuid);
+
+    if (branch) {
+      return { merchant, branch };
+    }
+  }
+
+  return null;
+}
+
+function findCatalogItem(catalogItemUuid) {
+  return state.merchantCatalogItems.find((entry) => entry.uuid === catalogItemUuid) ?? null;
+}
+
+function buildPromotionOffer(payload, existingOffer = {}) {
+  const parsedPayload = promotionOfferInputSchema.parse(payload);
+  const branchScope = findBranchConfiguration(parsedPayload.branch_uuid);
+
+  if (!branchScope) {
+    throw new Error('Branch configuration not found.');
+  }
+
+  const catalogItem = parsedPayload.catalog_item_uuid
+    ? findCatalogItem(parsedPayload.catalog_item_uuid)
+    : null;
+
+  if (parsedPayload.catalog_item_uuid && !catalogItem) {
+    throw new Error('Catalog item not found.');
+  }
+
+  if (catalogItem && catalogItem.merchant_uuid !== branchScope.merchant.uuid) {
+    throw new Error('Catalog item does not belong to the selected branch merchant.');
+  }
+
+  const promoCode = String(parsedPayload.code ?? '').trim().toUpperCase();
+
+  if (parsedPayload.requires_promo_code && promoCode.length === 0) {
+    throw new Error('Promo-code offers need a code.');
+  }
+
+  if (parsedPayload.discount_type === 'item_percent' && !parsedPayload.percent) {
+    throw new Error('Percent discounts need a percent value.');
+  }
+
+  if (parsedPayload.discount_type === 'item_fixed' && !parsedPayload.amount_minor) {
+    throw new Error('Fixed discounts need an amount.');
+  }
+
+  return promotionOfferSchema.parse({
+    uuid: existingOffer.uuid ?? createUuid(),
+    merchant_uuid: branchScope.merchant.uuid,
+    merchant_name: branchScope.merchant.name,
+    branch_uuid: branchScope.branch.uuid,
+    branch_name: branchScope.branch.name,
+    catalog_item_uuid: catalogItem?.uuid ?? null,
+    catalog_item_name: catalogItem?.name ?? null,
+    code: parsedPayload.requires_promo_code ? promoCode : null,
+    title: parsedPayload.title.trim(),
+    discount_label: parsedPayload.discount_label.trim(),
+    discount_type: parsedPayload.discount_type,
+    percent:
+      parsedPayload.discount_type === 'item_percent' ? parsedPayload.percent ?? null : null,
+    amount_minor:
+      parsedPayload.discount_type === 'item_fixed' ? parsedPayload.amount_minor ?? null : null,
+    min_spend_minor: parsedPayload.min_spend_minor ?? 0,
+    requires_promo_code: parsedPayload.requires_promo_code,
+    is_active: parsedPayload.is_active,
+    starts_at: parsedPayload.starts_at ?? null,
+    expires_at: parsedPayload.expires_at ?? null,
+  });
+}
+
 function updateMerchantConfigurationState(nextMerchant) {
   state.merchantConfigurations = state.merchantConfigurations.map((merchant) =>
     merchant.uuid === nextMerchant.uuid ? nextMerchant : merchant
@@ -1057,6 +1137,50 @@ export function createPortalApi(session) {
       );
 
       return updatedFeeBand;
+    },
+    async listPromotionOffers() {
+      return state.promotionOffers
+        .slice()
+        .sort((left, right) => left.title.localeCompare(right.title))
+        .map((offer) => promotionOfferSchema.parse(offer));
+    },
+    async createPromotionOffer(payload) {
+      const nextOffer = buildPromotionOffer(payload);
+
+      state.promotionOffers = [nextOffer, ...state.promotionOffers];
+
+      return nextOffer;
+    },
+    async updatePromotionOffer(promotionOfferUuid, payload) {
+      const existingOffer = state.promotionOffers.find(
+        (entry) => entry.uuid === promotionOfferUuid
+      );
+
+      if (!existingOffer) {
+        throw new Error('Promotion offer not found.');
+      }
+
+      const nextOffer = buildPromotionOffer(payload, existingOffer);
+      state.promotionOffers = state.promotionOffers.map((entry) =>
+        entry.uuid === promotionOfferUuid ? nextOffer : entry
+      );
+
+      return nextOffer;
+    },
+    async deletePromotionOffer(promotionOfferUuid) {
+      const existingOffer = state.promotionOffers.find(
+        (entry) => entry.uuid === promotionOfferUuid
+      );
+
+      if (!existingOffer) {
+        throw new Error('Promotion offer not found.');
+      }
+
+      state.promotionOffers = state.promotionOffers.filter(
+        (entry) => entry.uuid !== promotionOfferUuid
+      );
+
+      return { uuid: promotionOfferUuid };
     },
     async listCatalogItems(query = {}) {
       return listMerchantCatalogItems(state.merchantCatalogItems, query).map((item) =>

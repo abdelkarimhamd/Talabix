@@ -5,6 +5,7 @@ use App\Modules\Identity\Controllers\AuthController;
 use App\Modules\Merchants\Controllers\MerchantConfigurationController;
 use App\Modules\Merchants\Controllers\MerchantController;
 use App\Modules\Notifications\Controllers\NotificationController;
+use App\Modules\Offers\Controllers\PromotionOfferController;
 use App\Modules\Orders\Controllers\OrderController;
 use App\Modules\Settlements\Controllers\SettlementController;
 use App\Modules\Shared\Controllers\ReportingController;
@@ -29,6 +30,11 @@ Route::prefix('ops')->name('ops.')->group(function () {
         Route::patch('configuration/service-zones/{serviceZone}', [MerchantConfigurationController::class, 'updateServiceZone']);
         Route::post('configuration/branches/{branch}/fee-bands', [MerchantConfigurationController::class, 'storeFeeBand']);
         Route::patch('configuration/fee-bands/{feeBand}', [MerchantConfigurationController::class, 'updateFeeBand']);
+
+        Route::get('promotion-offers', [PromotionOfferController::class, 'opsIndex']);
+        Route::post('promotion-offers', [PromotionOfferController::class, 'opsStore']);
+        Route::patch('promotion-offers/{promotionOffer}', [PromotionOfferController::class, 'update']);
+        Route::delete('promotion-offers/{promotionOffer}', [PromotionOfferController::class, 'destroy']);
 
         Route::get('dispatch/orders', [DispatchController::class, 'board']);
         Route::get('dispatch/assignments', [DispatchController::class, 'assignments']);
