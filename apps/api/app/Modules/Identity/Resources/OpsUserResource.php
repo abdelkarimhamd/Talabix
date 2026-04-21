@@ -3,6 +3,7 @@
 namespace App\Modules\Identity\Resources;
 
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,8 +24,17 @@ class OpsUserResource extends JsonResource
             'phone' => $this->phone,
             'account_status' => $this->account_status->value,
             'roles' => $this->getRoleNames()->values()->all(),
-            'created_at' => $this->created_at?->toISOString(),
-            'last_login_at' => $this->last_login_at?->toISOString(),
+            'created_at' => $this->formatTimestamp($this->created_at),
+            'last_login_at' => $this->formatTimestamp($this->last_login_at),
         ];
+    }
+
+    private function formatTimestamp(mixed $value): ?string
+    {
+        if ($value instanceof CarbonInterface) {
+            return $value->toISOString();
+        }
+
+        return is_string($value) ? $value : null;
     }
 }

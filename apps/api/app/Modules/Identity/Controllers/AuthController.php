@@ -128,7 +128,7 @@ class AuthController extends Controller
         ])->save();
 
         $user->tokens()
-            ->where('id', '!=', $user->currentAccessToken()?->id)
+            ->where('id', '!=', $user->currentAccessToken()->id)
             ->delete();
 
         return response()->json([
