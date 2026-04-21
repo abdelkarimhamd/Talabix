@@ -70,6 +70,7 @@ class CatalogController extends Controller
             ->orderBy('name')
             ->get()
             ->each(function (CatalogItem $catalogItem) use ($branch) {
+                /** @var BranchCatalogOverride|null $override */
                 $override = $catalogItem->branchOverrides->first();
 
                 $catalogItem->setAttribute('effective_branch_uuid', $branch->uuid);

@@ -12,6 +12,9 @@ class StoreModifierGroupRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [
@@ -39,7 +42,10 @@ class StoreModifierGroupRequest extends FormRequest
             $selectionType = $this->input('selection_type');
             $minSelected = (int) ($this->input('min_selected') ?? 0);
             $maxSelected = $this->input('max_selected');
-            $defaultCount = collect($this->input('options', []))
+            /** @var array<int, array<string, mixed>> $options */
+            $options = $this->input('options', []);
+
+            $defaultCount = collect($options)
                 ->filter(fn (array $option) => (bool) ($option['is_default'] ?? false))
                 ->count();
 
