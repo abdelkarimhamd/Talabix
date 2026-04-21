@@ -2,50 +2,70 @@ import { Text, View } from 'react-native';
 import {
   ActionPill,
   InfoCard,
+  PageIntro,
   PriceSummaryRow,
   PromoBanner,
   ScreenFrame,
   colors,
   screenStyles,
 } from '../ui';
+import { useI18n } from '../i18n';
 
 export function CustomerPointsScreen() {
+  const { rowDirection, t, textAlign, writingDirection } = useI18n();
+
   return (
     <ScreenFrame
       activeTab="points"
-      description="Track HPlus rewards, free delivery progress, and voucher-style benefits in the same dock destination."
-      eyebrow="HPlus rewards"
-      title="9000 points"
+      description={t('customer.points.screenDescription')}
+      eyebrow={t('customer.points.screenEyebrow')}
+      preserveHeaderText={false}
+      showHeader={false}
+      title={t('customer.points.screenTitle')}
     >
+      <PageIntro
+        kicker={t('customer.points.pageKicker')}
+        title={t('customer.points.pageTitle')}
+      />
+
       <PromoBanner
-        description="Spend SAR 30 with eligible stores to unlock the next free-delivery reward."
-        eyebrow="HPlus rewards"
-        title="9000 points"
+        description={t('customer.points.promoDescription')}
+        eyebrow={t('customer.points.pageKicker')}
+        title={t('customer.points.pageTitle')}
       />
 
       <InfoCard
         accent={colors.primaryDeep}
-        description="This mirrors the reference loyalty surface until the backend exposes a dedicated rewards ledger."
-        eyebrow="Free delivery progress"
-        title="Add SAR 15 more"
+        description={t('customer.points.previewDescription')}
+        eyebrow={t('customer.points.freeDeliveryProgress')}
+        title={t('customer.points.addMore')}
       >
-        <PriceSummaryRow label="Current spend" value="SAR 15" />
-        <PriceSummaryRow label="Reward threshold" strong value="SAR 30" />
-        <View style={screenStyles.row}>
+        <View style={screenStyles.progressTrack}>
+          <View style={screenStyles.progressFill} />
+        </View>
+        <PriceSummaryRow
+          label={t('customer.points.currentSpend')}
+          value="SAR 15"
+        />
+        <PriceSummaryRow
+          label={t('customer.points.rewardThreshold')}
+          strong
+          value="SAR 30"
+        />
+        <View style={[screenStyles.row, { flexDirection: rowDirection }]}>
           <ActionPill label="HPlus" tone="warning" />
-          <ActionPill label="Auto apply" />
+          <ActionPill label={t('customer.points.autoApply')} />
         </View>
       </InfoCard>
 
       <InfoCard
         accent={colors.rose}
-        description="Vouchers and points use local preview data here so the dock target feels complete while rewards APIs are pending."
-        eyebrow="Vouchers"
-        title="2 rewards ready soon"
+        description={t('customer.points.vouchersDescription')}
+        eyebrow={t('customer.points.vouchers')}
+        title={t('customer.points.rewardsSoon')}
       >
-        <Text style={screenStyles.muted}>
-          Free delivery, selected item discounts, and member perks will land in
-          this screen.
+        <Text style={[screenStyles.muted, { textAlign, writingDirection }]}>
+          {t('customer.points.voucherBody')}
         </Text>
       </InfoCard>
     </ScreenFrame>

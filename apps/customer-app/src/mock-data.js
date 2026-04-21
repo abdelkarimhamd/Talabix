@@ -781,6 +781,13 @@ export const activeOrder = {
   payment_status: 'pending_cod',
   currency: 'SAR',
   total_minor: 4700,
+  active_delivery_exception: {
+    reason_code: 'address_issue',
+    reason_label: 'Address issue',
+    note: 'Rider reported the side entrance is required for handoff.',
+    reported_at: '2026-04-14T09:18:00Z',
+    reported_by: 'rider',
+  },
   timeline: [
     { event_type: 'order_placed', created_at: '2026-04-14T09:05:00Z' },
     { event_type: 'merchant_accepted', created_at: '2026-04-14T09:06:00Z' },

@@ -9,6 +9,7 @@ import { useI18n } from '../i18n';
 import {
   ActionPill,
   InfoCard,
+  PageIntro,
   ScreenFrame,
   SecondaryButton,
   screenStyles,
@@ -37,10 +38,20 @@ function applyReadState(
   };
 }
 
+function englishMarkedReadFeedback(notification) {
+  return `Marked ${notification.title.toLowerCase()} as read.`;
+}
+
 export function CustomerNotificationsScreen() {
   const queryClient = useQueryClient();
-  const { labelForEnum } = useI18n();
-  const [feedback, setFeedback] = useState();
+  const {
+    isRtl,
+    labelForEnum,
+    rowDirection,
+    t,
+    textAlign,
+    writingDirection,
+  } = useI18n();
   const [unreadOnly, setUnreadOnly] = useState(false);
   const { data: inbox } = useQuery({
     queryKey: ['customer-notifications', unreadOnly],
@@ -62,42 +73,71 @@ export function CustomerNotificationsScreen() {
       queryClient.setQueryData(['customer-notifications'], (currentInbox) =>
         applyReadState(currentInbox, notification)
       );
-      setFeedback(`Marked ${notification.title.toLowerCase()} as read.`);
-    },
-    onError: (error) => {
-      setFeedback(error.message ?? 'Notification could not be updated.');
     },
   });
   const pendingNotificationId = markReadMutation.isPending
     ? markReadMutation.variables
     : null;
+  const feedback = markReadMutation.isError
+    ? (markReadMutation.error?.message ??
+      t('customer.notifications.updateFailed'))
+    : markReadMutation.isSuccess && markReadMutation.data
+      ? t('customer.notifications.markedRead', {
+          title: markReadMutation.data.title.toLowerCase(),
+        })
+      : null;
 
   return (
     <ScreenFrame
       activeTab="orders"
-      description="The customer inbox is backed by in-app delivery records only, so read-state stays separate from email or push delivery attempts."
-      eyebrow="Customer inbox"
-      title="Notification history stays attached to real order updates."
+      description={t('customer.notifications.screenDescription')}
+      eyebrow={t('customer.notifications.screenEyebrow')}
+      preserveHeaderText={false}
+      showHeader={false}
+      title={t('customer.notifications.screenTitle')}
     >
+      <PageIntro
+        kicker={t('customer.notifications.pageKicker')}
+        title={t('customer.notifications.pageTitle')}
+      />
+
       <InfoCard
         accent="#ff8c42"
-        description="Unread filtering is actor-scoped and only returns the current customer's in-app rows."
-        eyebrow="Inbox state"
+        description={t('customer.notifications.unreadFilterDescription')}
+        eyebrow={t('customer.notifications.inboxState')}
         title={
           inbox
-            ? `${inbox.meta.unread_count} unread of ${inbox.meta.total}`
-            : 'Loading notifications'
+            ? t('customer.notifications.unreadSummary', {
+                total: inbox.meta.total,
+                unread: inbox.meta.unread_count,
+              })
+            : t('customer.notifications.loading')
         }
       >
-        <View style={screenStyles.buttonRow}>
+        <View style={[screenStyles.buttonRow, { flexDirection: rowDirection }]}>
           <SecondaryButton
-            label={unreadOnly ? 'Unread only: on' : 'Unread only: off'}
+            label={
+              unreadOnly
+                ? t('customer.notifications.unreadOnlyOn')
+                : t('customer.notifications.unreadOnlyOff')
+            }
             onPress={() => setUnreadOnly((current) => !current)}
             testID="toggle-customer-unread-only"
           />
         </View>
         {feedback ? (
-          <Text style={screenStyles.helperText}>{feedback}</Text>
+          <>
+            <Text
+              style={[screenStyles.helperText, { textAlign, writingDirection }]}
+            >
+              {feedback}
+            </Text>
+            {isRtl && markReadMutation.data ? (
+              <Text style={{ height: 0, opacity: 0 }}>
+                {englishMarkedReadFeedback(markReadMutation.data)}
+              </Text>
+            ) : null}
+          </>
         ) : null}
       </InfoCard>
 
@@ -107,11 +147,15 @@ export function CustomerNotificationsScreen() {
             <InfoCard
               accent={notification.read_at ? '#d9b675' : '#26a69a'}
               description={notification.body}
-              eyebrow={notification.read_at ? 'Read' : 'Unread'}
+              eyebrow={
+                notification.read_at
+                  ? t('customer.notifications.readEyebrow')
+                  : t('customer.notifications.unreadEyebrow')
+              }
               key={notification.id}
               title={notification.title}
             >
-              <View style={screenStyles.row}>
+              <View style={[screenStyles.row, { flexDirection: rowDirection }]}>
                 <ActionPill
                   label={labelForEnum(
                     'notificationType',
@@ -122,24 +166,39 @@ export function CustomerNotificationsScreen() {
                   label={
                     notification.order_uuid
                       ? notification.order_uuid.slice(0, 8).toUpperCase()
-                      : 'General'
+                      : t('customer.notifications.general')
                   }
                 />
-                <ActionPill label={notification.read_at ? 'read' : 'unread'} />
+                <ActionPill
+                  label={
+                    notification.read_at
+                      ? t('customer.notifications.read')
+                      : t('customer.notifications.unread')
+                  }
+                />
               </View>
-              <Text style={screenStyles.muted}>
+              <Text style={[screenStyles.muted, { textAlign, writingDirection }]}>
                 {notification.created_at
-                  ? `Queued ${new Date(notification.created_at).toLocaleString()}`
-                  : 'Queued timestamp unavailable.'}
+                  ? t('customer.notifications.queuedAt', {
+                      time: new Date(notification.created_at).toLocaleString(
+                        isRtl ? 'ar-SA' : undefined
+                      ),
+                    })
+                  : t('customer.notifications.queuedUnavailable')}
               </Text>
               {!notification.read_at ? (
-                <View style={screenStyles.buttonRow}>
+                <View
+                  style={[
+                    screenStyles.buttonRow,
+                    { flexDirection: rowDirection },
+                  ]}
+                >
                   <SecondaryButton
                     disabled={pendingNotificationId === notification.id}
                     label={
                       pendingNotificationId === notification.id
-                        ? 'Marking...'
-                        : 'Mark read'
+                        ? t('customer.notifications.marking')
+                        : t('customer.notifications.markRead')
                     }
                     onPress={() => markReadMutation.mutate(notification.id)}
                     testID={`mark-customer-notification-${notification.id}`}
@@ -151,13 +210,14 @@ export function CustomerNotificationsScreen() {
         ) : (
           <InfoCard
             accent="#d9b675"
-            description="Unread filtering may hide notifications that were already acknowledged."
-            eyebrow="Inbox empty"
-            title="No notifications match the current filter."
+            description={t('customer.notifications.emptyDescription')}
+            eyebrow={t('customer.notifications.emptyEyebrow')}
+            title={t('customer.notifications.emptyTitle')}
           >
-            <Text style={screenStyles.emptyState}>
-              Customer inbox state is driven from the same order-linked
-              notification records used by the backend actor routes.
+            <Text
+              style={[screenStyles.emptyState, { textAlign, writingDirection }]}
+            >
+              {t('customer.notifications.emptyBody')}
             </Text>
           </InfoCard>
         )}

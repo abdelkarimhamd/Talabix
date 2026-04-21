@@ -7,14 +7,20 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { notifyManager } from '@tanstack/react-query';
 
 const mockRouterPush = jest.fn();
+const mockRequestCurrentLocation = jest.fn();
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({
     push: mockRouterPush,
   }),
+}));
+
+jest.mock('../src/location', () => ({
+  requestCurrentLocation: (...args) => mockRequestCurrentLocation(...args),
 }));
 
 import { AddressBookScreen } from '../src/screens/AddressBookScreen';
@@ -31,8 +37,14 @@ import { MerchantDetailScreen } from '../src/screens/MerchantDetailScreen';
 import { OrderTrackingScreen } from '../src/screens/OrderTrackingScreen';
 import { AppProviders } from '../src/providers/AppProviders';
 import * as customerApi from '../src/customer-api';
-import { customerDockTabs, getArtworkAssetForLabel } from '../src/ui';
-import { labelForEnum } from '@talabix/shared/i18n';
+import {
+  AccentButton,
+  FoodArtwork,
+  colors,
+  customerDockTabs,
+  getArtworkAssetForLabel,
+} from '../src/ui';
+import { labelForEnum, t as translate } from '@talabix/shared/i18n';
 
 function renderWithProviders(ui, options = {}) {
   return render(
@@ -40,8 +52,22 @@ function renderWithProviders(ui, options = {}) {
   );
 }
 
+function expectNoReactActWarnings(consoleErrorSpy) {
+  const actWarnings = consoleErrorSpy.mock.calls.filter(([message]) =>
+    String(message).includes('not wrapped in act')
+  );
+
+  expect(actWarnings).toHaveLength(0);
+}
+
 beforeEach(() => {
   customerApi.resetCustomerApiState();
+  mockRequestCurrentLocation.mockReset();
+  mockRequestCurrentLocation.mockResolvedValue({
+    ok: true,
+    latitude: 24.774265,
+    longitude: 46.738586,
+  });
   // Route TanStack Query's internal batch notifications through act() so
   // query-triggered state updates never fire outside an act boundary.
   notifyManager.setScheduler((cb) => {
@@ -61,11 +87,21 @@ describe('customer identity and discovery slice', () => {
     renderWithProviders(<CustomerHomeScreen />, { locale: 'ar' });
 
     expect(
-      await screen.findByText('هوية العميل والاكتشاف يعملان الآن كشريحة واحدة.')
+      await screen.findByText(translate('customer.home.title', {}, 'ar'))
     ).toBeTruthy();
-    expect(await screen.findByText('تصفية المتاجر حسب العنوان')).toBeTruthy();
-    expect(await screen.findByText('تم الإسناد')).toBeTruthy();
-    expect(await screen.findByText(/talabix demo kitchen/i)).toBeTruthy();
+    expect(
+      (
+        await screen.findAllByText(
+          translate('customer.home.categoryPickerTitle', {}, 'ar')
+        )
+      ).length
+    ).toBeGreaterThan(0);
+    expect(
+      await screen.findByText(labelForEnum('orderStatus', 'assigned', 'ar'))
+    ).toBeTruthy();
+    expect(
+      (await screen.findAllByText(/talabix demo kitchen/i)).length
+    ).toBeGreaterThan(0);
     expect(screen.queryByText(/^assigned$/i)).toBeNull();
     expect(
       await screen.findByTestId('customer-locale-direction')
@@ -104,7 +140,9 @@ describe('customer identity and discovery slice', () => {
   it('updates the customer profile form', async () => {
     renderWithProviders(<CustomerProfileScreen />);
 
-    expect(await screen.findByText(/sahar@talabix\.test/i)).toBeTruthy();
+    expect(
+      (await screen.findAllByText(/sahar@talabix\.test/i)).length
+    ).toBeGreaterThan(0);
     fireEvent.changeText(screen.getByTestId('profile-name'), 'Layal Updated');
     fireEvent.changeText(screen.getByTestId('profile-phone'), '+966500000099');
     fireEvent.press(screen.getByTestId('submit-profile'));
@@ -129,7 +167,9 @@ describe('customer identity and discovery slice', () => {
 
     renderWithProviders(<CustomerProfileScreen />);
 
-    expect(await screen.findByText(/sahar@talabix\.test/i)).toBeTruthy();
+    expect(
+      (await screen.findAllByText(/sahar@talabix\.test/i)).length
+    ).toBeGreaterThan(0);
     fireEvent.changeText(screen.getByTestId('profile-name'), 'Layal Updated');
     fireEvent.press(screen.getByTestId('submit-profile'));
 
@@ -181,7 +221,7 @@ describe('customer identity and discovery slice', () => {
     fireEvent.press(screen.getByText(/create saved address/i));
 
     expect(await screen.findByText(/address created/i)).toBeTruthy();
-    expect(await screen.findByText(/parents/i)).toBeTruthy();
+    expect((await screen.findAllByText(/parents/i)).length).toBeGreaterThan(0);
     expect((await screen.findAllByText(/tower a/i)).length).toBeGreaterThan(0);
     expect(await screen.findByText(/notes: use side entrance/i)).toBeTruthy();
   });
@@ -197,6 +237,71 @@ describe('customer identity and discovery slice', () => {
     expect(
       await screen.findByText(/enter the address and coordinates manually/i)
     ).toBeTruthy();
+  });
+
+  it('fills current GPS coordinates without replacing manual address fields', async () => {
+    renderWithProviders(<AddressBookScreen />);
+
+    fireEvent.changeText(
+      screen.getByTestId('address-line-1'),
+      'Manual Street 11'
+    );
+    fireEvent.changeText(screen.getByTestId('address-latitude'), '24.1000');
+    fireEvent.changeText(screen.getByTestId('address-longitude'), '46.1000');
+    fireEvent.press(screen.getByTestId('use-current-location'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('address-latitude').props.value).toBe(
+        '24.774265'
+      );
+    });
+    expect(screen.getByTestId('address-longitude').props.value).toBe(
+      '46.738586'
+    );
+    expect(screen.getByTestId('address-line-1').props.value).toBe(
+      'Manual Street 11'
+    );
+    expect(mockRequestCurrentLocation).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByText(/current GPS coordinates added/i)
+    ).toBeTruthy();
+  });
+
+  it('shows localized Arabic copy when current-location permission is denied', async () => {
+    mockRequestCurrentLocation.mockResolvedValueOnce({
+      ok: false,
+      reason: 'permission-denied',
+    });
+
+    renderWithProviders(<AddressBookScreen />, { locale: 'ar' });
+
+    fireEvent.press(screen.getByTestId('use-current-location'));
+
+    expect(
+      await screen.findByText(
+        translate('customer.addressBook.locationPermissionDenied', {}, 'ar')
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText(/location permission is turned off/i)).toBeNull();
+  });
+
+  it('keeps manual coordinates available when current location is unavailable', async () => {
+    mockRequestCurrentLocation.mockResolvedValueOnce({
+      ok: false,
+      reason: 'unavailable',
+    });
+
+    renderWithProviders(<AddressBookScreen />);
+
+    fireEvent.changeText(screen.getByTestId('address-latitude'), '24.1000');
+    fireEvent.changeText(screen.getByTestId('address-longitude'), '46.1000');
+    fireEvent.press(screen.getByTestId('use-current-location'));
+
+    expect(
+      await screen.findByText(/current location is unavailable right now/i)
+    ).toBeTruthy();
+    expect(screen.getByTestId('address-latitude').props.value).toBe('24.1000');
+    expect(screen.getByTestId('address-longitude').props.value).toBe('46.1000');
   });
 
   it('prevents duplicate address saves while pending', async () => {
@@ -279,7 +384,9 @@ describe('customer identity and discovery slice', () => {
   it('updates merchant discovery when search and open now filters change', async () => {
     renderWithProviders(<CustomerHomeScreen />);
 
-    expect(await screen.findByText(/talabix demo kitchen/i)).toBeTruthy();
+    expect(
+      (await screen.findAllByText(/talabix demo kitchen/i)).length
+    ).toBeGreaterThan(0);
     expect((await screen.findAllByText(/\d+ min eta/i)).length).toBeGreaterThan(
       0
     );
@@ -287,10 +394,12 @@ describe('customer identity and discovery slice', () => {
     fireEvent.changeText(screen.getByTestId('merchant-search'), 'Breakfast');
 
     await waitFor(() => {
-      expect(screen.queryByText(/talabix demo kitchen/i)).toBeNull();
+      expect(screen.queryAllByText(/talabix demo kitchen/i)).toHaveLength(0);
     });
 
-    expect(await screen.findByText(/breakfast bazaar/i)).toBeTruthy();
+    expect(
+      (await screen.findAllByText(/breakfast bazaar/i)).length
+    ).toBeGreaterThan(0);
 
     fireEvent.press(screen.getByTestId('toggle-open-now'));
 
@@ -323,6 +432,37 @@ describe('customer identity and discovery slice', () => {
 
     fireEvent.press(screen.getByTestId('dock-tab-profile'));
     expect(mockRouterPush).toHaveBeenLastCalledWith('/profile');
+  });
+
+  it('applies the customer design-system dimensions for core mobile chrome', async () => {
+    const view = renderWithProviders(<CustomerPointsScreen />);
+
+    expect(
+      StyleSheet.flatten(screen.getByTestId('dock-tab-points').props.style)
+        .backgroundColor
+    ).toBe(colors.primary);
+
+    await act(async () => {
+      view.unmount();
+    });
+
+    renderWithProviders(
+      <>
+        <AccentButton label="Primary action" testID="primary-design-button" />
+        <FoodArtwork compact label="Coffee Corner" />
+      </>
+    );
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId('primary-design-button').props.style
+      )
+    ).toEqual(expect.objectContaining({ borderRadius: 14, minHeight: 52 }));
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId('packaged-artwork-coffee').props.style
+      ).height
+    ).toBe(100);
   });
 
   it('uses local product artwork assets instead of temporary remote URLs', () => {
@@ -378,8 +518,12 @@ describe('customer identity and discovery slice', () => {
   it('renders customer offers from the offers API', async () => {
     renderWithProviders(<CustomerOffersScreen />);
 
-    expect(await screen.findByText(/offers near you/i)).toBeTruthy();
-    expect(await screen.findByText(/free delivery/i)).toBeTruthy();
+    expect(
+      (await screen.findAllByText(/offers near you/i)).length
+    ).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByText(/free delivery/i)).length
+    ).toBeGreaterThan(0);
     expect(await screen.findByText(/chicken shawarma/i)).toBeTruthy();
 
     const offers = await customerApi.getCustomerOffers();
@@ -535,6 +679,28 @@ describe('customer identity and discovery slice', () => {
     });
   });
 
+  it('updates customer notification feedback without React act warnings', async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    renderWithProviders(<CustomerNotificationsScreen />);
+
+    const markReadButton = await screen.findByTestId(
+      'mark-customer-notification-602'
+    );
+
+    // eslint-disable-next-line testing-library/no-unnecessary-act
+    await act(async () => {
+      fireEvent.press(markReadButton);
+    });
+
+    expect(
+      await screen.findByText(/marked support updated your order as read/i)
+    ).toBeTruthy();
+    expectNoReactActWarnings(consoleErrorSpy);
+  });
+
   it('prevents duplicate customer notification mark-read submissions while pending', async () => {
     let releaseMarkRead;
     const pendingMarkRead = new Promise((resolve) => {
@@ -643,6 +809,19 @@ describe('customer identity and discovery slice', () => {
     ).toBeTruthy();
     expect(screen.queryByText(/^placed$/i)).toBeNull();
     expect(screen.queryByText(/^order placed$/i)).toBeNull();
+  });
+
+  it('surfaces rider delivery exceptions in order tracking', async () => {
+    renderWithProviders(<OrderTrackingScreen />, { locale: 'ar' });
+
+    expect(await screen.findByText(/delivery issue reported/i)).toBeTruthy();
+    expect(
+      await screen.findByText(
+        labelForEnum('deliveryExceptionReason', 'address_issue', 'ar')
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText(/^Address issue$/i)).toBeNull();
+    expect(await screen.findByText(/side entrance/i)).toBeTruthy();
   });
 
   it('prevents duplicate checkout submissions while pending', async () => {

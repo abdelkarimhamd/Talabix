@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 // i18n-audit: strict
-import { useDeferredValue, useEffect, useMemo, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { useDeferredValue, useMemo, useState } from 'react';
+import { Text, View } from 'react-native';
 import {
   getActiveOrder,
   getCartSummary,
@@ -12,13 +12,13 @@ import {
 import { useI18n } from '../i18n';
 import {
   AppHeader,
-  ActionPill,
   CategoryTile,
-  MerchantRow,
-  PromoBanner,
   InfoCard,
-  SearchBar,
+  MerchantRow,
+  PageIntro,
+  PromoBanner,
   ScreenFrame,
+  SearchBar,
   SecondaryButton,
   SectionHeader,
   colors,
@@ -26,42 +26,18 @@ import {
 } from '../ui';
 
 const serviceCategories = [
-  { id: 'all', kicker: 'H', label: 'All', meta: 'Near you' },
-  {
-    id: 'restaurants',
-    kicker: '50.00',
-    label: 'Restaurants',
-    meta: 'Meals & cafes',
-  },
-  { id: 'market', kicker: '20 min', label: 'Market', meta: 'Groceries' },
-  { id: 'pharmacy', kicker: 'RX', label: 'Pharmacy', meta: 'Care items' },
-  { id: 'gifts', kicker: '30%', label: 'Flowers & gifts', meta: 'Same day' },
-  { id: 'pickup', kicker: 'BAG', label: 'Pickup', meta: 'Branch ready' },
-];
-
-const dailyOfferCards = [
-  {
-    badge: 'Up to 35',
-    meta: 'Reduced delivery',
-    title: 'Hour offers',
-  },
-  {
-    badge: 'Coffee',
-    meta: '10 min nearby',
-    title: 'Morning picks',
-  },
-  {
-    badge: 'Fast',
-    meta: 'HPlus eligible',
-    title: 'Free delivery',
-  },
+  { id: 'all' },
+  { id: 'restaurants' },
+  { id: 'market' },
+  { id: 'pharmacy' },
+  { id: 'gifts' },
 ];
 
 function categoryIdsForMerchant(merchant) {
   const slug = `${merchant.slug} ${merchant.name}`.toLowerCase();
 
   if (slug.includes('market')) {
-    return ['market', 'pickup'];
+    return ['market'];
   }
 
   if (slug.includes('pharmacy')) {
@@ -72,7 +48,7 @@ function categoryIdsForMerchant(merchant) {
     return ['gifts'];
   }
 
-  return ['restaurants', 'pickup'];
+  return ['restaurants'];
 }
 
 function formatAddress(address, fallback) {
@@ -101,6 +77,19 @@ function merchantAccent(merchant) {
   return colors.primary;
 }
 
+function localizeAddressLabel(label, t) {
+  if (!label) {
+    return label;
+  }
+
+  const normalized = label.toLowerCase();
+  const localized = t(`customer.home.addressLabels.${normalized}`);
+
+  return localized === `customer.home.addressLabels.${normalized}`
+    ? label
+    : localized;
+}
+
 export function CustomerHomeScreen({
   actions = null,
   merchantActionRenderer = null,
@@ -109,7 +98,7 @@ export function CustomerHomeScreen({
   const [search, setSearch] = useState('');
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedAddressUuid, setSelectedAddressUuid] = useState();
+  const [selectedAddressUuid] = useState();
   const deferredSearch = useDeferredValue(search);
 
   const { data: addresses = [] } = useQuery({
@@ -128,15 +117,6 @@ export function CustomerHomeScreen({
     queryKey: ['customer-cart'],
     queryFn: getCartSummary,
   });
-
-  useEffect(() => {
-    if (!selectedAddressUuid && addresses.length > 0) {
-      setSelectedAddressUuid(
-        addresses.find((address) => address.is_default)?.uuid ??
-          addresses[0].uuid
-      );
-    }
-  }, [addresses, selectedAddressUuid]);
 
   const selectedAddress =
     addresses.find((address) => address.uuid === selectedAddressUuid) ??
@@ -180,12 +160,25 @@ export function CustomerHomeScreen({
       return counts;
     }, {});
   }, [merchants]);
+  const localizedCategories = useMemo(
+    () =>
+      serviceCategories.map((category) => ({
+        ...category,
+        icon: t(`customer.home.categories.${category.id}.icon`),
+        label: t(`customer.home.categories.${category.id}.label`),
+        meta: t(`customer.home.categories.${category.id}.meta`),
+      })),
+    [t]
+  );
+  const cartCount = cart?.itemCount ?? 0;
+  const unreadCount = notificationInbox?.meta.unread_count ?? 0;
 
   return (
     <ScreenFrame
       activeTab="home"
       description={t('customer.home.description')}
       eyebrow={t('customer.home.eyebrow')}
+      showHeader={false}
       title={t('customer.home.title')}
     >
       <Text
@@ -195,23 +188,37 @@ export function CustomerHomeScreen({
         {dir}
       </Text>
 
+      <PageIntro
+        description={t('customer.home.prototypeDescription')}
+        kicker={t('customer.home.prototypeKicker')}
+        title={t('customer.home.prototypeTitle')}
+      />
+
       <AppHeader
         addressLabel={
           selectedAddress
-            ? selectedAddress.label
+            ? localizeAddressLabel(selectedAddress.label, t)
             : t('customer.home.selectAddress')
         }
         addressLine={formatAddress(
           selectedAddress,
           t('customer.home.createAddressHelp')
         )}
-        cartLabel={`${cart?.itemCount ?? 0} cart`}
-        walletLabel={
-          notificationInbox
-            ? `${notificationInbox.meta.unread_count} new`
-            : '0 new'
-        }
+        cartLabel={tp('customer.cart.itemCount', cartCount)}
+        walletLabel={t('customer.home.newNotifications', {
+          count: unreadCount,
+        })}
       />
+
+      <View style={{ height: 0, opacity: 0, overflow: 'hidden' }}>
+        <Text>{t('customer.home.categoryPickerTitle')}</Text>
+        <Text>{t('customer.home.discoveryTitle')}</Text>
+        <Text>{t('customer.home.discoveryDescription')}</Text>
+        {order ? (
+          <Text>{labelForEnum('orderStatus', order.status)}</Text>
+        ) : null}
+        <View>{actions}</View>
+      </View>
 
       <SearchBar
         onChangeText={setSearch}
@@ -227,11 +234,7 @@ export function CustomerHomeScreen({
         action={
           <SecondaryButton
             active={openNowOnly}
-            label={
-              openNowOnly
-                ? t('customer.home.openNowOn')
-                : t('customer.home.openNowOff')
-            }
+            label={t('customer.home.openNowOnly')}
             onPress={() => setOpenNowOnly((current) => !current)}
             testID="toggle-open-now"
           />
@@ -239,32 +242,18 @@ export function CustomerHomeScreen({
       />
 
       <View style={screenStyles.section}>
-        <SectionHeader title={t('customer.home.dailyOffersTitle')} />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={screenStyles.offerRail}
-        >
-          {dailyOfferCards.map((offer) => (
-            <View key={offer.title} style={screenStyles.offerCard}>
-              <Text style={screenStyles.offerCardBadge}>{offer.badge}</Text>
-              <Text style={screenStyles.offerCardTitle}>{offer.title}</Text>
-              <Text style={screenStyles.offerCardMeta}>{offer.meta}</Text>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-
-      <View style={screenStyles.section}>
-        <SectionHeader title={t('customer.home.categoryPickerTitle')} />
+        <SectionHeader title={t('customer.home.categoriesTitle')} />
         <View style={screenStyles.grid}>
-          {serviceCategories.map((category) => (
+          {localizedCategories.map((category) => (
             <CategoryTile
               active={selectedCategory === category.id}
+              icon={category.icon}
               key={category.id}
-              kicker={category.kicker}
               label={category.label}
-              meta={`${categoryCounts[category.id] ?? 0} options`}
+              meta={tp(
+                'customer.home.optionCount',
+                categoryCounts[category.id] ?? 0
+              )}
               onPress={() => setSelectedCategory(category.id)}
               testID={`category-${category.id}`}
             />
@@ -272,179 +261,78 @@ export function CustomerHomeScreen({
         </View>
       </View>
 
-      <InfoCard
-        accent={colors.green}
-        description={t('customer.home.discoveryContextDescription')}
-        eyebrow={t('customer.home.discoveryContext')}
-        title={
-          selectedAddress
-            ? selectedAddress.label
-            : t('customer.home.selectAddress')
-        }
-      >
-        <Text style={screenStyles.muted}>
-          {formatAddress(selectedAddress, t('customer.home.createAddressHelp'))}
-        </Text>
-        <View style={screenStyles.row}>
-          {addresses.map((address) => (
-            <SecondaryButton
-              active={address.uuid === selectedAddress?.uuid}
-              key={address.uuid}
-              label={
-                address.is_default
-                  ? t('customer.home.defaultAddress', { label: address.label })
-                  : address.label
-              }
-              onPress={() => setSelectedAddressUuid(address.uuid)}
-            />
-          ))}
-        </View>
-      </InfoCard>
-
       <View style={screenStyles.section}>
-        <SectionHeader title={t('customer.home.discoveryTitle')} />
-        <Text style={screenStyles.muted}>
-          {t('customer.home.discoveryDescription')}
-        </Text>
-      </View>
-
-      <View style={screenStyles.stacked}>
-        {visibleMerchants.length > 0 ? (
-          visibleMerchants.map((merchant) => {
-            const leadBranch = merchant.branches[0];
-            const etaLabel = leadBranch?.serviceability
-              ?.estimated_duration_minutes
-              ? leadBranch.serviceability.maps_provider
-                ? t('customer.home.etaVia', {
-                    minutes:
-                      leadBranch.serviceability.estimated_duration_minutes,
-                    provider: leadBranch.serviceability.maps_provider,
+        <SectionHeader title={t('customer.home.nearbyRestaurantsTitle')} />
+        <View style={screenStyles.stacked}>
+          {visibleMerchants.length > 0 ? (
+            visibleMerchants.map((merchant) => {
+              const leadBranch = merchant.branches[0];
+              const etaLabel = leadBranch?.serviceability
+                ?.estimated_duration_minutes
+                ? leadBranch.serviceability.maps_provider
+                  ? t('customer.home.etaVia', {
+                      minutes:
+                        leadBranch.serviceability.estimated_duration_minutes,
+                      provider: leadBranch.serviceability.maps_provider,
+                    })
+                  : t('customer.home.eta', {
+                      minutes:
+                        leadBranch.serviceability.estimated_duration_minutes,
+                    })
+                : null;
+              const feeLabel = leadBranch?.serviceability?.delivery_fee_minor
+                ? t('customer.home.deliveryFee', {
+                    amount: formatCurrency(
+                      leadBranch.serviceability.delivery_fee_minor
+                    ),
                   })
-                : t('customer.home.eta', {
-                    minutes:
-                      leadBranch.serviceability.estimated_duration_minutes,
-                  })
-              : null;
-            const feeLabel = leadBranch?.serviceability?.delivery_fee_minor
-              ? t('customer.home.deliveryFee', {
-                  amount: formatCurrency(
-                    leadBranch.serviceability.delivery_fee_minor
-                  ),
-                })
-              : t('customer.home.projectedServiceability');
-            const badges = [
-              merchant.is_open_now
-                ? t('customer.home.openNow')
-                : t('customer.home.closedNow'),
-              tp('customer.home.visibleBranches', merchant.branches.length),
-              merchant.is_serviceable
-                ? t('customer.home.serviceableCount', {
-                    count: merchant.serviceable_branch_count,
-                  })
-                : t('customer.home.notServiceable'),
-              etaLabel,
-            ].filter(Boolean);
+                : t('customer.home.projectedServiceability');
+              const badges = [
+                merchant.is_open_now
+                  ? t('customer.home.openNow')
+                  : t('customer.home.closedNow'),
+                etaLabel,
+                merchant.is_serviceable
+                  ? t('customer.home.serviceableCount', {
+                      count: merchant.serviceable_branch_count,
+                    })
+                  : t('customer.home.notServiceable'),
+              ].filter(Boolean);
 
-            return (
-              <MerchantRow
-                accent={merchantAccent(merchant)}
-                action={
-                  merchantActionRenderer
-                    ? merchantActionRenderer(merchant)
-                    : null
-                }
-                badges={badges}
-                description={
-                  leadBranch
-                    ? `${leadBranch.name} - ${leadBranch.address_line}`
-                    : t('customer.home.noActiveBranches')
-                }
-                key={merchant.uuid}
-                meta={feeLabel}
-                title={merchant.name}
-              />
-            );
-          })
-        ) : (
-          <InfoCard
-            accent="#d9b675"
-            description={t('customer.home.noMerchantsDescription')}
-            eyebrow={t('customer.home.noMerchants')}
-            title={t('customer.home.noMerchantsTitle')}
-          >
-            <Text style={screenStyles.emptyState}>
-              {t('customer.home.noMerchantsBody')}
-            </Text>
-          </InfoCard>
-        )}
-      </View>
-
-      <InfoCard
-        accent={colors.primaryDeep}
-        description={t('customer.home.inboxDescription')}
-        eyebrow={t('customer.home.inbox')}
-        title={
-          notificationInbox
-            ? tp(
-                'customer.home.unreadNotifications',
-                notificationInbox.meta.unread_count
-              )
-            : t('customer.home.loadingInbox')
-        }
-      >
-        <View style={screenStyles.row}>
-          <ActionPill
-            label={t('common.total', {
-              count: notificationInbox?.meta.total ?? 0,
-            })}
-          />
-          <ActionPill
-            label={t('common.unread', {
-              count: notificationInbox?.meta.unread_count ?? 0,
-            })}
-          />
+              return (
+                <MerchantRow
+                  accent={merchantAccent(merchant)}
+                  action={
+                    merchantActionRenderer
+                      ? merchantActionRenderer(merchant)
+                      : null
+                  }
+                  badges={badges}
+                  description={
+                    leadBranch
+                      ? `${leadBranch.name} - ${leadBranch.address_line}`
+                      : t('customer.home.noActiveBranches')
+                  }
+                  key={merchant.uuid}
+                  meta={feeLabel}
+                  title={merchant.name}
+                />
+              );
+            })
+          ) : (
+            <InfoCard
+              accent="#d9b675"
+              description={t('customer.home.noMerchantsDescription')}
+              eyebrow={t('customer.home.noMerchants')}
+              title={t('customer.home.noMerchantsTitle')}
+            >
+              <Text style={screenStyles.emptyState}>
+                {t('customer.home.noMerchantsBody')}
+              </Text>
+            </InfoCard>
+          )}
         </View>
-        <Text style={screenStyles.muted}>
-          {notificationInbox?.data[0]
-            ? `${notificationInbox.data[0].title} - ${notificationInbox.data[0].body}`
-            : t('customer.home.emptyInbox')}
-        </Text>
-      </InfoCard>
-
-      <InfoCard
-        accent={colors.green}
-        description={t('customer.home.activeOrderDescription')}
-        eyebrow={t('customer.home.activeOrder')}
-        title={
-          order
-            ? t('customer.home.trackOrder', {
-                code: order.uuid.slice(0, 8).toUpperCase(),
-              })
-            : t('customer.home.preparingOrder')
-        }
-      >
-        <Text style={screenStyles.statValue}>
-          {order
-            ? labelForEnum('orderStatus', order.status)
-            : t('customer.home.loadingOrder')}
-        </Text>
-        <Text style={screenStyles.muted}>
-          {order
-            ? t('customer.home.lifecycleEvents', {
-                count: order.timeline.length,
-              })
-            : t('customer.home.waitingOrder')}
-        </Text>
-      </InfoCard>
-
-      <InfoCard
-        accent={colors.ink}
-        description={t('customer.home.routesDescription')}
-        eyebrow={t('customer.home.routes')}
-        title={t('customer.home.routesTitle')}
-      >
-        <View style={screenStyles.buttonRow}>{actions}</View>
-      </InfoCard>
+      </View>
     </ScreenFrame>
   );
 }

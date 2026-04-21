@@ -2,11 +2,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { getCurrentCustomer, updateCustomerProfile } from '../customer-api';
+import { useI18n } from '../i18n';
 import {
   AccentButton,
   InfoCard,
+  MenuListItem,
+  PageIntro,
   ScreenFrame,
   TextField,
+  colors,
   screenStyles,
 } from '../ui';
 
@@ -20,6 +24,7 @@ function getErrorMessage(error, fallback) {
 
 export function CustomerProfileScreen() {
   const queryClient = useQueryClient();
+  const { rowDirection, t, textAlign, writingDirection } = useI18n();
   const [feedback, setFeedback] = useState();
   const [form, setForm] = useState({ name: '', phone: '' });
 
@@ -40,11 +45,13 @@ export function CustomerProfileScreen() {
   const mutation = useMutation({
     mutationFn: updateCustomerProfile,
     onSuccess: (user) => {
-      setFeedback(`Saved profile for ${user.name}.`);
+      setFeedback(t('customer.profile.saved', { name: user.name }));
       queryClient.invalidateQueries({ queryKey: ['customer-session'] });
     },
     onError: (error) => {
-      setFeedback(getErrorMessage(error, 'Please review the profile details.'));
+      setFeedback(
+        getErrorMessage(error, t('customer.profile.reviewDetails'))
+      );
     },
   });
 
@@ -58,50 +65,116 @@ export function CustomerProfileScreen() {
   return (
     <ScreenFrame
       activeTab="profile"
-      description="Customer profile editing stays intentionally small in this slice: name and phone are writable, and the same payload shape is used by the backend patch endpoint."
-      eyebrow="Customer profile"
-      title="Update profile basics"
+      description={t('customer.profile.screenDescription')}
+      eyebrow={t('customer.profile.screenEyebrow')}
+      preserveHeaderText={false}
+      showHeader={false}
+      title={t('customer.profile.screenTitle')}
     >
+      <PageIntro
+        description={
+          customer ? customer.email : t('customer.profile.waitingCustomer')
+        }
+        kicker={t('customer.profile.account')}
+        title={customer ? customer.name : t('customer.profile.loadingProfile')}
+      />
+
+      <View style={[screenStyles.walletRail, { flexDirection: rowDirection }]}>
+        {[
+          ['H+', t('customer.profile.walletHPlus')],
+          ['Pay', t('customer.profile.walletPay')],
+          ['9K', t('customer.profile.walletRewards')],
+          ['%', t('customer.profile.walletVouchers')],
+        ].map(([icon, label]) => (
+          <View key={label} style={screenStyles.walletTile}>
+            <View style={screenStyles.walletIcon}>
+              <Text style={screenStyles.walletIconText}>{icon}</Text>
+            </View>
+            <Text
+              style={[
+                screenStyles.walletLabel,
+                { textAlign, writingDirection },
+              ]}
+            >
+              {label}
+            </Text>
+          </View>
+        ))}
+      </View>
+
       <InfoCard
-        accent="#112134"
-        description="The signed-in customer surface stays separate from merchant, rider, and ops profile work."
-        eyebrow="Current account"
-        title={customer ? customer.email : 'Loading profile'}
+        accent={colors.primaryDeep}
+        description={t('customer.profile.accountDescription')}
+        eyebrow={t('customer.profile.currentAccount')}
+        title={t('customer.profile.signedInAccount')}
       >
-        <Text style={screenStyles.muted}>
+        <Text style={[screenStyles.muted, { textAlign, writingDirection }]}>
           {customer
-            ? `Roles: ${customer.roles.join(', ')}`
-            : 'Waiting for the current customer.'}
+            ? t('customer.profile.roles', { roles: customer.roles.join(', ') })
+            : t('customer.profile.waitingCustomer')}
         </Text>
       </InfoCard>
 
+      <View style={screenStyles.section}>
+        <MenuListItem
+          icon="account-outline"
+          label={t('customer.profile.myProfile')}
+          value={t('customer.profile.active')}
+        />
+        <MenuListItem
+          icon="heart-outline"
+          label={t('customer.profile.favorites')}
+        />
+        <MenuListItem
+          icon="receipt-text-outline"
+          label={t('customer.profile.invoices')}
+        />
+        <MenuListItem
+          icon="bell-outline"
+          label={t('customer.profile.notifications')}
+        />
+        <MenuListItem
+          icon="cog-outline"
+          label={t('customer.profile.settings')}
+        />
+        <MenuListItem icon="lifebuoy" label={t('customer.profile.help')} />
+      </View>
+
       <InfoCard
         accent="#26a69a"
-        description="This form hits the same contract exposed by PATCH /customer/auth/me."
-        eyebrow="Profile form"
-        title="Edit name and phone"
+        description={t('customer.profile.formDescription')}
+        eyebrow={t('customer.profile.profileForm')}
+        title={t('customer.profile.editNamePhone')}
       >
         <View style={screenStyles.form}>
           <TextField
-            label="Full name"
+            label={t('customer.profile.fullName')}
             onChangeText={(value) => updateField('name', value)}
             testID="profile-name"
             value={form.name}
           />
           <TextField
-            label="Phone"
+            label={t('customer.profile.phone')}
             onChangeText={(value) => updateField('phone', value)}
             testID="profile-phone"
             value={form.phone}
           />
           <AccentButton
             disabled={mutation.isPending}
-            label={mutation.isPending ? 'Saving profile' : 'Save profile'}
+            label={
+              mutation.isPending
+                ? t('customer.profile.saving')
+                : t('customer.profile.save')
+            }
             onPress={() => mutation.mutate(form)}
             testID="submit-profile"
           />
           {feedback ? (
-            <Text style={screenStyles.helperText}>{feedback}</Text>
+            <Text
+              style={[screenStyles.helperText, { textAlign, writingDirection }]}
+            >
+              {feedback}
+            </Text>
           ) : null}
         </View>
       </InfoCard>

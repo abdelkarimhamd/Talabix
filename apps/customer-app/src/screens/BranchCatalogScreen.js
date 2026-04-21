@@ -12,6 +12,7 @@ import {
   ActionPill,
   FoodArtwork,
   InfoCard,
+  PageIntro,
   PriceSummaryRow,
   PromoBanner,
   ScreenFrame,
@@ -71,13 +72,32 @@ function optionSelectionCount(item, selectedOptionsByGroup) {
   );
 }
 
+function groupSelectionHelp(group, t) {
+  if (group.selectionType === 'single') {
+    return t('customer.catalog.pickOne');
+  }
+
+  if (group.maxSelected) {
+    return t('customer.catalog.pickUpTo', { count: group.maxSelected });
+  }
+
+  return t('customer.catalog.pickUpToMany');
+}
+
 export function BranchCatalogScreen({
   actions = null,
   branchId,
   highlightCatalogItemUuid = null,
   highlightOfferId = null,
 }) {
-  const { formatCurrency } = useI18n();
+  const {
+    formatCurrency,
+    rowDirection,
+    t,
+    textAlign,
+    tp,
+    writingDirection,
+  } = useI18n();
   const queryClient = useQueryClient();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedOptionsByItem, setSelectedOptionsByItem] = useState({});
@@ -153,9 +173,7 @@ export function BranchCatalogScreen({
       return null;
     }
 
-    return (
-      items.find((item) => item.uuid === highlightCatalogItemUuid) ?? null
-    );
+    return items.find((item) => item.uuid === highlightCatalogItemUuid) ?? null;
   }, [highlightCatalogItemUuid, items]);
 
   useEffect(() => {
@@ -201,33 +219,51 @@ export function BranchCatalogScreen({
   return (
     <ScreenFrame
       activeTab="offers"
-      description="Browse menu sections, customize modifiers, and keep a cart summary visible before checkout."
-      eyebrow="Menu"
-      title="Branch menu"
+      description={t('customer.catalog.screenDescription')}
+      eyebrow={t('customer.catalog.screenEyebrow')}
+      preserveHeaderText={false}
+      showHeader={false}
+      title={t('customer.catalog.screenTitle')}
     >
+      <PageIntro
+        kicker={t('customer.catalog.pageKicker')}
+        title={t('customer.catalog.pageTitle')}
+      />
+
       <PromoBanner
         description={
           highlightedItem
-            ? `${highlightedItem.name} is selected from ${highlightOfferId ?? 'the current offer'}.`
-            : 'Modifiers are priced before checkout so every cart line keeps a clear order snapshot.'
+            ? t('customer.catalog.highlightedDescription', {
+                item: highlightedItem.name,
+                offer: highlightOfferId ?? t('customer.catalog.currentOffer'),
+              })
+            : t('customer.catalog.defaultDescription')
         }
-        eyebrow={highlightedItem ? 'Offer selected' : 'Fast add'}
+        eyebrow={
+          highlightedItem
+            ? t('customer.catalog.offerSelected')
+            : t('customer.catalog.fastAdd')
+        }
         title={
           highlightedItem
-            ? 'Add the offer item to your cart'
-            : 'Pick favorites, adjust options, then continue to cart'
+            ? t('customer.catalog.highlightedTitle')
+            : t('customer.catalog.defaultTitle')
         }
       />
 
       <View style={screenStyles.stacked}>
         <View style={screenStyles.section}>
-          <SectionHeader title="Categories" />
-          <View style={screenStyles.buttonRow}>
+          <SectionHeader title={t('customer.catalog.categories')} />
+          <View style={[screenStyles.buttonRow, { flexDirection: rowDirection }]}>
             {categoryNames.map((categoryName) => (
               <SecondaryButton
                 active={selectedCategory === categoryName}
                 key={categoryName}
-                label={categoryName === 'all' ? 'All items' : categoryName}
+                label={
+                  categoryName === 'all'
+                    ? t('customer.catalog.allItems')
+                    : categoryName
+                }
                 onPress={() => setSelectedCategory(categoryName)}
                 testID={`catalog-category-${categoryName}`}
               />
@@ -238,9 +274,8 @@ export function BranchCatalogScreen({
         {visibleCategoryEntries.map(([categoryName, categoryItems]) => (
           <View key={categoryName} style={screenStyles.section}>
             <SectionHeader title={categoryName} />
-            <Text style={screenStyles.muted}>
-              {categoryItems.length} item{categoryItems.length === 1 ? '' : 's'}{' '}
-              in this menu section.
+            <Text style={[screenStyles.muted, { textAlign, writingDirection }]}>
+              {tp('customer.catalog.itemInSection', categoryItems.length)}
             </Text>
             <View style={screenStyles.stacked}>
               {categoryItems.map((item) => {
@@ -252,6 +287,7 @@ export function BranchCatalogScreen({
                   selections
                 );
                 const isHighlighted = item.uuid === highlightCatalogItemUuid;
+                const selectionCount = optionSelectionCount(item, selections);
 
                 return (
                   <InfoCard
@@ -259,44 +295,57 @@ export function BranchCatalogScreen({
                     description={item.description}
                     eyebrow={
                       isHighlighted
-                        ? 'Selected offer item'
-                        : (item.categoryName ?? 'Catalog item')
+                        ? t('customer.catalog.selectedOfferItem')
+                        : (item.categoryName ?? t('customer.catalog.catalogItem'))
                     }
                     key={itemKey}
                     title={item.name}
                   >
                     <FoodArtwork
-                      badge={isHighlighted ? 'Offer' : '30% off'}
+                      badge={
+                        isHighlighted
+                          ? t('customer.catalog.offer')
+                          : t('customer.catalog.discountBadge')
+                      }
                       label={item.name}
                       style={{ height: 138 }}
                     />
                     <PriceSummaryRow
-                      label="Item price"
+                      label={t('customer.catalog.itemPrice')}
                       strong
                       value={formatCurrency(item.priceMinor)}
                     />
-                    <View style={screenStyles.row}>
+                    <View style={[screenStyles.row, { flexDirection: rowDirection }]}>
                       <ActionPill
-                        label={`${optionSelectionCount(item, selections)} modifier selection${
-                          optionSelectionCount(item, selections) === 1
-                            ? ''
-                            : 's'
-                        } active`}
+                        label={tp(
+                          'customer.catalog.modifierSelectionCount',
+                          selectionCount
+                        )}
                       />
                       {isHighlighted ? (
-                        <ActionPill label="Offer item" tone="warning" />
+                        <ActionPill
+                          label={t('customer.catalog.offerItem')}
+                          tone="warning"
+                        />
                       ) : null}
                     </View>
 
                     {(item.modifierGroups ?? []).map((group) => (
                       <View key={group.uuid} style={screenStyles.stacked}>
-                        <Text style={screenStyles.helperText}>
-                          {group.name} -{' '}
-                          {group.selectionType === 'single'
-                            ? 'pick one'
-                            : `pick up to ${group.maxSelected ?? 'many'}`}
+                        <Text
+                          style={[
+                            screenStyles.helperText,
+                            { textAlign, writingDirection },
+                          ]}
+                        >
+                          {group.name} - {groupSelectionHelp(group, t)}
                         </Text>
-                        <View style={screenStyles.buttonRow}>
+                        <View
+                          style={[
+                            screenStyles.buttonRow,
+                            { flexDirection: rowDirection },
+                          ]}
+                        >
                           {group.options.map((option) => {
                             const selected = (
                               selections[group.uuid] ?? []
@@ -322,14 +371,24 @@ export function BranchCatalogScreen({
                     ))}
 
                     {selectedSummary.length > 0 ? (
-                      <Text style={screenStyles.muted}>
+                      <Text
+                        style={[
+                          screenStyles.muted,
+                          { textAlign, writingDirection },
+                        ]}
+                      >
                         {selectedSummary.join(' - ')}
                       </Text>
                     ) : null}
 
-                    <View style={screenStyles.buttonRow}>
+                    <View
+                      style={[
+                        screenStyles.buttonRow,
+                        { flexDirection: rowDirection },
+                      ]}
+                    >
                       <AccentButton
-                        label="Add to cart"
+                        label={t('customer.catalog.addToCart')}
                         onPress={() =>
                           addToCartMutation.mutate({
                             catalogItemUuid: item.uuid,
@@ -350,35 +409,35 @@ export function BranchCatalogScreen({
         {items.length === 0 ? (
           <InfoCard
             accent={colors.primaryDeep}
-            description="This branch does not have seeded demo items yet."
-            eyebrow="No items"
-            title="Catalog preview unavailable"
+            description={t('customer.catalog.noItemsDescription')}
+            eyebrow={t('customer.catalog.noItemsEyebrow')}
+            title={t('customer.catalog.noItemsTitle')}
           />
         ) : null}
 
         {cart ? (
           <InfoCard
             accent={colors.green}
-            description="Modifier selections stay attached to each cart line."
-            eyebrow="Current cart"
-            title={`${cart.itemCount} cart item${cart.itemCount === 1 ? '' : 's'}`}
+            description={t('customer.catalog.cartDescription')}
+            eyebrow={t('customer.catalog.cartEyebrow')}
+            title={tp('customer.catalog.cartItemCount', cart.itemCount)}
           >
             <PriceSummaryRow
-              label="Subtotal"
+              label={t('customer.catalog.subtotal')}
               value={formatCurrency(cart.subtotalMinor)}
             />
             <PriceSummaryRow
-              label="Delivery"
+              label={t('customer.catalog.delivery')}
               value={formatCurrency(cart.deliveryFeeMinor)}
             />
             {cart.discountMinor ? (
               <PriceSummaryRow
-                label="Offer discounts"
+                label={t('customer.catalog.offerDiscounts')}
                 value={`-${formatCurrency(cart.discountMinor)}`}
               />
             ) : null}
             <PriceSummaryRow
-              label="Total"
+              label={t('customer.catalog.total')}
               strong
               value={formatCurrency(cart.totalMinor)}
             />
@@ -386,9 +445,11 @@ export function BranchCatalogScreen({
         ) : null}
 
         {actions ? (
-          <View style={screenStyles.buttonRow}>{actions}</View>
+          <View style={[screenStyles.buttonRow, { flexDirection: rowDirection }]}>
+            {actions}
+          </View>
         ) : (
-          <SecondaryButton label="Open cart" />
+          <SecondaryButton label={t('customer.catalog.openCart')} />
         )}
       </View>
     </ScreenFrame>

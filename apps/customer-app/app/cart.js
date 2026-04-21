@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { CartScreen } from '../src/screens/CartScreen';
+import { withDesignFrame } from '../src/ui';
 
 export default function CartRoute() {
   const router = useRouter();
@@ -7,7 +8,7 @@ export default function CartRoute() {
   return (
     <CartScreen
       onCheckoutComplete={(order) => {
-        router.push(`/orders/${order.uuid}`);
+        router.push(withDesignFrame(`/orders/${order.uuid}`));
       }}
     />
   );
