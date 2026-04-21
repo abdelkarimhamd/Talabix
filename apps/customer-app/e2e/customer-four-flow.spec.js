@@ -18,10 +18,9 @@ const visualDiffRatiosPath = path.join(
   'test-results',
   'visual-diff-ratios.jsonl'
 );
-// Keep these broad for the first two stable CI runs while OS/browser rendering
-// noise settles. Current local ratios are 0.07-0.16, so tighten to 0.2 after
-// CI confirms similar headroom. If one flow stays noisy, widen only that flow.
-const initialVisualMaxDiffRatio = 0.25;
+// Shared visual budget after two stable CI artifacts. If one flow becomes noisy,
+// widen only that flow with a per-screen maxDiffRatio override.
+const initialVisualMaxDiffRatio = 0.2;
 
 const designVisualFlows = [
   {
