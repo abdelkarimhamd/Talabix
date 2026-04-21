@@ -34,6 +34,8 @@ import {
 import { SessionProvider } from './session-context.jsx';
 import { useSession } from './use-session.js';
 
+const portalBasePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 const navItems = [
   {
     labelKey: 'navigation.merchantOrders',
@@ -103,11 +105,7 @@ const navItems = [
   },
 ];
 
-export function App({
-  initialSession,
-  initialEntries,
-  initialLocale,
-}) {
+export function App({ initialSession, initialEntries, initialLocale }) {
   const [activeSession, setActiveSession] = useState(() =>
     resolveInitialSession(initialSession)
   );
@@ -128,12 +126,17 @@ export function App({
 
     setActiveSession(nextSession);
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(portalSessionActorStorageKey, nextSession.actor);
+      window.localStorage.setItem(
+        portalSessionActorStorageKey,
+        nextSession.actor
+      );
     }
   }, []);
 
   const RouterComponent = initialEntries ? MemoryRouter : BrowserRouter;
-  const routerProps = initialEntries ? { initialEntries } : {};
+  const routerProps = initialEntries
+    ? { initialEntries }
+    : { basename: portalBasePath || undefined };
 
   return (
     <I18nProvider initialLocale={initialLocale}>
@@ -293,7 +296,9 @@ function PortalLayout() {
   const { session, switchActor } = useSession();
   const { locale, setLocale, t } = useI18n();
   const navigate = useNavigate();
-  const visibleNav = navItems.filter((item) => item.actors.includes(session.actor));
+  const visibleNav = navItems.filter((item) =>
+    item.actors.includes(session.actor)
+  );
   const activeAbilities = actorAbilities[session.actor] ?? [];
   const handleActorSwitch = (actor) => {
     switchActor(actor);
@@ -320,7 +325,9 @@ function PortalLayout() {
             {visibleNav.map((item) => (
               <NavLink
                 key={item.path}
-                className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                className={({ isActive }) =>
+                  `nav-link${isActive ? ' active' : ''}`
+                }
                 to={item.path}
               >
                 <span>{t(item.labelKey)}</span>
@@ -437,11 +444,7 @@ function HomeRedirect() {
   return <Navigate to="/ops/dashboard" replace />;
 }
 
-function RequireAccess({
-  allowedActors,
-  requiredPermissions = [],
-  children,
-}) {
+function RequireAccess({ allowedActors, requiredPermissions = [], children }) {
   const { session } = useSession();
   const { t } = useI18n();
   const hasActorAccess = allowedActors.includes(session.actor);
