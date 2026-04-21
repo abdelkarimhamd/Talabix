@@ -66,6 +66,7 @@ class CreateMerchantAction
 
             foreach ($payload['branch']['zones'] as $zone) {
                 BranchServiceZone::query()->create([
+                    'uuid' => (string) Str::uuid(),
                     'branch_id' => $branch->id,
                     'name' => $zone['name'],
                     'city' => $zone['city'],
@@ -79,6 +80,7 @@ class CreateMerchantAction
 
             foreach ($payload['branch']['fee_bands'] as $band) {
                 BranchFeeBand::query()->create([
+                    'uuid' => (string) Str::uuid(),
                     'branch_id' => $branch->id,
                     'min_distance_meters' => $band['min_distance_meters'],
                     'max_distance_meters' => $band['max_distance_meters'],
