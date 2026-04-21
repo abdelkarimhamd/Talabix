@@ -32,7 +32,7 @@ class SetLocale
         }
 
         foreach (explode(',', $accepted) as $localePart) {
-            $locale = trim(explode(';', $localePart)[0] ?? '');
+            $locale = trim(explode(';', $localePart)[0]);
 
             if ($locale !== '') {
                 $normalized = $this->normalize($locale);
@@ -49,7 +49,7 @@ class SetLocale
     private function normalize(string $locale): string
     {
         $baseLocale = strtolower(str_replace('_', '-', trim($locale)));
-        $language = explode('-', $baseLocale)[0] ?? '';
+        $language = explode('-', $baseLocale)[0];
 
         return in_array($language, self::SUPPORTED_LOCALES, true)
             ? $language
