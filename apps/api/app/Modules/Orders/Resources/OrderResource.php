@@ -4,10 +4,14 @@ namespace App\Modules\Orders\Resources;
 
 use App\Models\DeliveryAssignment;
 use App\Models\Order;
+use App\Models\OrderTimeline;
 use App\Modules\Orders\Enums\OrderStatus;
+use App\Modules\Orders\Enums\OrderTimelineEventType;
+use App\Modules\Orders\Support\DeliveryExceptionSla;
 use BackedEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 
 /**
  * @mixin Order
@@ -39,6 +43,7 @@ class OrderResource extends JsonResource
             'pricing_snapshot' => $this->pricing_snapshot,
             'applied_offer_ids' => $this->applied_offer_ids ?? [],
             'delivery_address_snapshot' => $this->delivery_address_snapshot,
+            'active_delivery_exception' => $this->activeDeliveryException($timeline),
             'notes' => $this->notes,
             'placed_at' => $this->placed_at,
             'accepted_at' => $this->accepted_at,
@@ -149,5 +154,38 @@ class OrderResource extends JsonResource
         }
 
         return is_string($value) ? $value : null;
+    }
+
+    /**
+     * @param  Collection<int, OrderTimeline>  $timeline
+     * @return array<string, mixed>|null
+     */
+    private function activeDeliveryException(Collection $timeline): ?array
+    {
+        $status = $this->status;
+
+        if (in_array($status, [OrderStatus::DELIVERED, OrderStatus::CANCELLED], true)) {
+            return null;
+        }
+
+        $event = $timeline
+            ->filter(fn (OrderTimeline $event) => $event->event_type->value === OrderTimelineEventType::DELIVERY_EXCEPTION_REPORTED->value)
+            ->sortByDesc('id')
+            ->first();
+
+        if (! $event) {
+            return null;
+        }
+
+        $metadata = $event->metadata ?? [];
+
+        return [
+            'reason_code' => $metadata['reason_code'] ?? 'other',
+            'reason_label' => $metadata['reason_label'] ?? 'Other',
+            'note' => $metadata['note'] ?? null,
+            'reported_at' => $event->created_at,
+            'reported_by' => $metadata['reported_by'] ?? 'rider',
+            'response_sla' => DeliveryExceptionSla::snapshot($event->created_at),
+        ];
     }
 }

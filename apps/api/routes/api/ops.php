@@ -8,6 +8,7 @@ use App\Modules\Notifications\Controllers\NotificationController;
 use App\Modules\Offers\Controllers\PromotionOfferController;
 use App\Modules\Orders\Controllers\OrderController;
 use App\Modules\Settlements\Controllers\SettlementController;
+use App\Modules\Shared\Controllers\MapsProviderConfigurationController;
 use App\Modules\Shared\Controllers\ReportingController;
 use App\Modules\Support\Controllers\SupportController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,8 @@ Route::prefix('ops')->name('ops.')->group(function () {
 
         Route::get('merchants', [MerchantController::class, 'indexForOps']);
         Route::post('merchants', [MerchantController::class, 'store']);
+        Route::get('configuration/maps-provider', [MapsProviderConfigurationController::class, 'show']);
+        Route::patch('configuration/maps-provider', [MapsProviderConfigurationController::class, 'update']);
         Route::get('configuration/merchants', [MerchantConfigurationController::class, 'index']);
         Route::get('configuration/merchants/{merchant}', [MerchantConfigurationController::class, 'show']);
         Route::patch('configuration/merchants/{merchant}', [MerchantConfigurationController::class, 'updateMerchant']);

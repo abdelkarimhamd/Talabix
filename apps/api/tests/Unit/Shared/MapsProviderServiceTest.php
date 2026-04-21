@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\MapsProviderSetting;
 use App\Modules\Shared\Services\MapsProviderService;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 it('uses Google Places when production maps credentials are configured', function () {
     config([
@@ -42,6 +44,35 @@ it('uses Google Places when production maps credentials are configured', functio
             'latitude' => 24.716,
             'longitude' => 46.681,
         ]);
+});
+
+it('uses the admin stored Google Maps key before environment fallback config', function () {
+    MapsProviderSetting::query()->create([
+        'provider' => 'google_maps',
+        'google_maps_api_key' => 'admin-google-key',
+        'google_maps_region' => 'sa',
+        'google_maps_location_bias' => 'circle:50000@24.7136,46.6753',
+        'google_maps_timeout_seconds' => 2.5,
+        'google_maps_fallback_to_demo' => true,
+    ]);
+    config([
+        'services.maps.provider' => 'demo',
+        'services.google_maps.key' => 'env-google-key',
+        'services.google_maps.places_endpoint' => 'https://maps.googleapis.test/maps/api/place/findplacefromtext/json',
+    ]);
+
+    Http::fake([
+        'maps.googleapis.test/maps/api/place/findplacefromtext/json*' => Http::response([
+            'status' => 'OK',
+            'candidates' => [],
+        ]),
+    ]);
+
+    app(MapsProviderService::class)->searchPlaces('King Fahd');
+
+    Http::assertSent(fn ($request) => $request['key'] === 'admin-google-key'
+        && $request['region'] === 'sa'
+        && $request['locationbias'] === 'circle:50000@24.7136,46.6753');
 });
 
 it('uses Google Distance Matrix when production maps credentials are configured', function () {
@@ -100,6 +131,7 @@ it('falls back to demo estimates when Google Distance Matrix fails', function ()
         'services.google_maps.distance_matrix_endpoint' => 'https://maps.googleapis.test/maps/api/distancematrix/json',
         'services.google_maps.fallback_to_demo' => true,
     ]);
+    Log::spy();
 
     Http::fake([
         'maps.googleapis.test/maps/api/distancematrix/json*' => Http::response([
@@ -118,4 +150,17 @@ it('falls back to demo estimates when Google Distance Matrix fails', function ()
     expect($estimate['provider'])->toBe('demo')
         ->and($estimate['distance_meters'])->toBeGreaterThan(0)
         ->and($estimate['duration_minutes'])->toBeGreaterThan(0);
+
+    Log::shouldHaveReceived('warning')
+        ->once()
+        ->with(
+            'Google Maps provider fallback activated.',
+            Mockery::on(
+                fn (array $context) => ($context['event'] ?? null) === 'google_maps_provider_fallback_activated'
+                    && ($context['provider'] ?? null) === 'google_maps'
+                    && ($context['fallback_provider'] ?? null) === 'demo'
+                    && ($context['operation'] ?? null) === 'distance_matrix'
+                    && str_contains((string) ($context['error'] ?? ''), 'Quota exceeded')
+            )
+        );
 });

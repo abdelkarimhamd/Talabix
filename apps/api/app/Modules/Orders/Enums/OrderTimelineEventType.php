@@ -11,6 +11,7 @@ enum OrderTimelineEventType: string
     case RIDER_ASSIGNED = 'rider_assigned';
     case RIDER_REASSIGNED = 'rider_reassigned';
     case PICKED_UP = 'picked_up';
+    case DELIVERY_EXCEPTION_REPORTED = 'delivery_exception_reported';
     case DELIVERED = 'delivered';
     case CANCELLED = 'cancelled';
     case SUPPORT_NOTE_ADDED = 'support_note_added';

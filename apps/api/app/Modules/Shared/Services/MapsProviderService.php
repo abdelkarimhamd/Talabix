@@ -47,11 +47,17 @@ class MapsProviderService
         ],
     ];
 
+    public function __construct(private readonly MapsProviderConfigurationService $configuration) {}
+
     public function provider(): string
     {
-        $provider = (string) config('services.maps.provider', 'demo');
+        $provider = $this->configuration->provider();
 
-        return in_array($provider, ['google', 'google_maps'], true) ? 'google_maps' : $provider;
+        if ($provider === 'google_maps' && $this->googleMapsKey() === '') {
+            return 'demo';
+        }
+
+        return $provider;
     }
 
     /**
@@ -176,11 +182,11 @@ class MapsProviderService
             'inputtype' => 'textquery',
             'fields' => 'formatted_address,name,geometry,place_id',
             'key' => $this->googleMapsKey(),
-            'region' => config('services.google_maps.region'),
+            'region' => $this->configuration->googleMapsRegion(),
         ];
 
-        if (filled(config('services.google_maps.location_bias'))) {
-            $params['locationbias'] = config('services.google_maps.location_bias');
+        if (filled($this->configuration->googleMapsLocationBias())) {
+            $params['locationbias'] = $this->configuration->googleMapsLocationBias();
         }
 
         $response = Http::timeout($this->googleMapsTimeoutSeconds())
@@ -317,22 +323,25 @@ class MapsProviderService
 
     private function googleMapsKey(): string
     {
-        return (string) config('services.google_maps.key', '');
+        return $this->configuration->googleMapsApiKey();
     }
 
     private function googleMapsTimeoutSeconds(): float
     {
-        return max(0.5, (float) config('services.google_maps.timeout_seconds', 2.5));
+        return $this->configuration->googleMapsTimeoutSeconds();
     }
 
     private function shouldFallbackToDemo(): bool
     {
-        return (bool) config('services.google_maps.fallback_to_demo', true);
+        return $this->configuration->googleMapsFallbackToDemo();
     }
 
     private function logGoogleMapsFallback(string $operation, Throwable $exception): void
     {
         Log::warning('Google Maps provider fallback activated.', [
+            'event' => 'google_maps_provider_fallback_activated',
+            'provider' => 'google_maps',
+            'fallback_provider' => 'demo',
             'operation' => $operation,
             'error' => $exception->getMessage(),
         ]);

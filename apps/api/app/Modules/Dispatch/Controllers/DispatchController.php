@@ -136,7 +136,7 @@ class DispatchController extends Controller
 
         DeliveryAssignment::query()
             ->where('order_id', $order->id)
-            ->where('status', 'active')
+            ->whereNotIn('status', ['reassigned', 'cancelled', 'completed'])
             ->update(['status' => 'reassigned']);
 
         $assignment = DeliveryAssignment::query()->create([

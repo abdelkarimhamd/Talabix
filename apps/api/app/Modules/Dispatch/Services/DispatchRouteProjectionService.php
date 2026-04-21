@@ -6,6 +6,8 @@ use App\Models\DeliveryAssignment;
 use App\Models\Order;
 use App\Models\RiderProfile;
 use App\Modules\Orders\Enums\OrderStatus;
+use App\Modules\Orders\Enums\OrderTimelineEventType;
+use App\Modules\Orders\Support\DeliveryExceptionSla;
 use App\Modules\Shared\Services\MapsProviderService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
@@ -34,6 +36,7 @@ class DispatchRouteProjectionService
         return DeliveryAssignment::query()
             ->with([
                 'order.assignments',
+                'order.timeline',
                 'order.branch.serviceZones',
                 'order.customerProfile.user',
                 'order.customerAddress',
@@ -119,6 +122,7 @@ class DispatchRouteProjectionService
                 'longitude' => (float) $address->longitude,
             ],
             'mapsProvider' => $pickupEstimate['provider'],
+            'exception' => $this->activeDeliveryException($order),
             'sla' => $this->slaSnapshot($assignmentAgeMinutes),
             'reassignment' => [
                 'canReassign' => $this->canReassign($order, $assignment),
@@ -208,8 +212,43 @@ class DispatchRouteProjectionService
     {
         $orderStatus = $order->status;
 
-        return $assignment->status === 'active'
+        return in_array($assignment->status, ['active', 'picked_up', 'exception_reported'], true)
             && ! in_array($orderStatus, [OrderStatus::DELIVERED, OrderStatus::CANCELLED], true);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function activeDeliveryException(Order $order): ?array
+    {
+        $orderStatus = $order->status;
+
+        if (in_array($orderStatus, [OrderStatus::DELIVERED, OrderStatus::CANCELLED], true)) {
+            return null;
+        }
+
+        $timeline = $order->relationLoaded('timeline')
+            ? $order->timeline
+            : $order->timeline()->latest('id')->get();
+        $event = $timeline
+            ->filter(fn ($event) => $event->event_type->value === OrderTimelineEventType::DELIVERY_EXCEPTION_REPORTED->value)
+            ->sortByDesc('id')
+            ->first();
+
+        if (! $event) {
+            return null;
+        }
+
+        $metadata = $event->metadata ?? [];
+
+        return [
+            'reason_code' => $metadata['reason_code'] ?? 'other',
+            'reason_label' => $metadata['reason_label'] ?? 'Other',
+            'note' => $metadata['note'] ?? null,
+            'reported_at' => $event->created_at,
+            'reported_by' => $metadata['reported_by'] ?? 'rider',
+            'response_sla' => DeliveryExceptionSla::snapshot($event->created_at),
+        ];
     }
 
     private function minutesSince(?CarbonInterface $timestamp): int

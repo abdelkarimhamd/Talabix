@@ -6,13 +6,16 @@ return [
     ],
 
     'maps' => [
-        'provider' => env('MAPS_PROVIDER', 'demo'),
+        'provider' => env('MAPS_PROVIDER', 'google_maps'),
         'average_driving_speed_kph' => (float) env('MAPS_AVERAGE_DRIVING_SPEED_KPH', 28),
     ],
 
     'dispatch' => [
         'pickup_sla_minutes' => (int) env('DISPATCH_PICKUP_SLA_MINUTES', 30),
         'pickup_sla_warning_minutes' => (int) env('DISPATCH_PICKUP_SLA_WARNING_MINUTES', 10),
+        'delivery_exception_response_sla_minutes' => (int) env('DELIVERY_EXCEPTION_RESPONSE_SLA_MINUTES', 10),
+        'delivery_exception_response_warning_minutes' => (int) env('DELIVERY_EXCEPTION_RESPONSE_WARNING_MINUTES', 3),
+        'sla_alert_threshold' => (int) env('DISPATCH_SLA_ALERT_THRESHOLD', 1),
     ],
 
     'google_maps' => [

@@ -8,11 +8,13 @@ use App\Models\CatalogItem;
 use App\Models\CustomerAddress;
 use App\Models\DeliveryAssignment;
 use App\Models\Order;
+use App\Modules\Dispatch\Events\OpsDispatchBoardUpdated;
 use App\Modules\Orders\Enums\OrderStatus;
 use App\Modules\Orders\Enums\OrderTimelineEventType;
 use App\Modules\Orders\Enums\PaymentStatus;
 use App\Modules\Orders\Requests\CheckoutRequest;
 use App\Modules\Orders\Requests\CompleteDeliveryRequest;
+use App\Modules\Orders\Requests\ReportDeliveryExceptionRequest;
 use App\Modules\Orders\Resources\OrderResource;
 use App\Modules\Orders\Services\OrderLifecycleService;
 use App\Modules\Orders\Services\OrderPricingService;
@@ -292,6 +294,56 @@ class OrderController extends Controller
         ]);
     }
 
+    public function riderReportDeliveryException(ReportDeliveryExceptionRequest $request, Order $order): JsonResponse
+    {
+        $this->ensureAbility($request, 'rider:delivery.update');
+        $this->authorize('riderUpdate', $order);
+
+        if (! in_array($order->status, [OrderStatus::ASSIGNED, OrderStatus::PICKED_UP], true)) {
+            throw ValidationException::withMessages([
+                'order' => 'Only active delivery orders can receive rider exceptions.',
+            ]);
+        }
+
+        $assignment = $this->activeAssignmentForRider($request, $order);
+
+        if (! $assignment->accepted_at) {
+            throw ValidationException::withMessages([
+                'assignment' => 'Accept the assignment before reporting a delivery exception.',
+            ]);
+        }
+
+        $metadata = [
+            'reason_code' => $request->validated('reason_code'),
+            'reason_label' => $this->deliveryExceptionReasonLabel($request->validated('reason_code')),
+            'note' => $request->validated('note'),
+            'reported_by' => 'rider',
+        ];
+
+        DB::transaction(function () use ($assignment, $order, $request, $metadata) {
+            $assignment->update([
+                'status' => 'exception_reported',
+            ]);
+
+            $this->orderLifecycleService->recordTimelineEvent(
+                $order,
+                OrderTimelineEventType::DELIVERY_EXCEPTION_REPORTED,
+                $request->user(),
+                $metadata
+            );
+        });
+
+        event(new OpsDispatchBoardUpdated(
+            order: $order->fresh(),
+            reason: 'delivery_exception_reported',
+            payload: $metadata,
+        ));
+
+        return response()->json([
+            'data' => new OrderResource($order->fresh()->load(['items', 'timeline', 'branch', 'customerProfile.user', 'assignments'])),
+        ]);
+    }
+
     public function riderDeliver(CompleteDeliveryRequest $request, Order $order): JsonResponse
     {
         $this->ensureAbility($request, 'rider:delivery.update');
@@ -349,5 +401,12 @@ class OrderController extends Controller
         }
 
         return $assignment;
+    }
+
+    private function deliveryExceptionReasonLabel(string $reasonCode): string
+    {
+        return collect(explode('_', $reasonCode))
+            ->map(fn (string $part, int $index) => $index === 0 ? ucfirst($part) : strtolower($part))
+            ->implode(' ');
     }
 }
