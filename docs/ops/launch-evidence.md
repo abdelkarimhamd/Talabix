@@ -4,14 +4,14 @@ This record is the source of truth for pre-launch operational proof. Keep raw se
 
 ## Required Before Production Traffic
 
-| Area                  | Required evidence                                           | Status  | Owner | Evidence link or note                                                                                                                                                                                                 |
-| --------------------- | ----------------------------------------------------------- | ------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Staging deployment    | Successful staging deploy, migrations, and smoke checks     | Blocked | Ops   | Latest branch CI passed: https://github.com/abdelkarimhamd/Talabix/actions/runs/24722098497. Blocked: staging VM/domain/secrets and deployment target access are not available in this workspace                      |
-| Baseline monitoring   | Uptime, error-rate, queue, failed-job, scheduler, DB, Redis | Blocked | Ops   | CI guardrails passed for lint, tests, PHPStan, Pint, and API migrations/tests. Blocked: monitoring provider, log drain, uptime/error/queue dashboard links, and alert destination are not available in this workspace |
-| Maps provider alerts  | Provider dashboard alerts and fallback log-drain drill      | Blocked | Ops   | Blocked: staging key, provider dashboard links, and log-drain monitor links are not available in this workspace                                                                                                       |
-| Dispatch SLA alerting | Log-drain monitor and successful alert drill                | Blocked | Ops   | Blocked: staging log-drain monitor, alert destination, and synthetic staging order access are not available in this workspace                                                                                         |
-| MySQL restore drill   | Backup archive restored into a disposable database          | Blocked | Ops   | Blocked: staging backup disk, backup archive, disposable restore database, and maintenance host access are not available in this workspace                                                                            |
-| Incident drill        | P0/P1 response walkthrough with roles and follow-up issue   | Blocked | Ops   | Blocked: staging incident channel/tool, participant roster, and follow-up issue tracker links are not available in this workspace                                                                                     |
+| Area                  | Required evidence                                           | Status  | Owner | Evidence link or note                                                                                                                                                                                                                                     |
+| --------------------- | ----------------------------------------------------------- | ------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Staging deployment    | Successful staging deploy, migrations, and smoke checks     | Blocked | Ops   | Current PR CI passed: https://github.com/abdelkarimhamd/Talabix/actions/runs/24722425385. Deploy workflow dispatch attempted on 2026-04-21T15:49:08+03:00 and GitHub returned `404`; staging environment/secrets are not configured on the default branch |
+| Baseline monitoring   | Uptime, error-rate, queue, failed-job, scheduler, DB, Redis | Blocked | Ops   | GitHub repository environments list is empty as of 2026-04-21T15:49:08+03:00. Blocked: monitoring provider, log drain, uptime/error/queue dashboard links, and alert destination are not available in this workspace                                      |
+| Maps provider alerts  | Provider dashboard alerts and fallback log-drain drill      | Blocked | Ops   | Blocked: staging key, provider dashboard links, and log-drain monitor links are not available in this workspace                                                                                                                                           |
+| Dispatch SLA alerting | Log-drain monitor and successful alert drill                | Blocked | Ops   | Blocked: staging log-drain monitor, alert destination, and synthetic staging order access are not available in this workspace                                                                                                                             |
+| MySQL restore drill   | Backup archive restored into a disposable database          | Blocked | Ops   | Local disposable restore passed on XAMPP MariaDB; see MySQL Restore Drill Evidence below. Blocked for launch: no staging backup disk/archive, disposable staging restore database, or maintenance host access is available in this workspace              |
+| Incident drill        | P0/P1 response walkthrough with roles and follow-up issue   | Blocked | Ops   | Blocked: staging incident channel/tool, participant roster, and follow-up issue tracker links are not available in this workspace                                                                                                                         |
 
 ## Latest CI Gate Evidence
 
@@ -19,13 +19,26 @@ This record is the source of truth for pre-launch operational proof. Keep raw se
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Gate date              | 2026-04-21T15:25:33+03:00                                                                                          |
 | Branch                 | `codex/design`                                                                                                     |
-| Commit                 | `157f76f`                                                                                                          |
-| GitHub Actions run     | https://github.com/abdelkarimhamd/Talabix/actions/runs/24722098497                                                 |
+| Commit                 | `d7ca0d7`                                                                                                          |
+| GitHub Actions run     | https://github.com/abdelkarimhamd/Talabix/actions/runs/24722425385                                                 |
 | API job result         | Pass: Composer install, env/key setup, MySQL migrations/seeds, Pint, PHPStan, and `php artisan test` on PHP 8.3    |
 | Clients job result     | Pass: npm install, Playwright browser setup, lint, i18n audit, workspace tests, customer e2e, and artifact uploads |
 | PHPStan baseline guard | Pass: `apps/api/phpstan-baseline.neon` absent; CI guard is active                                                  |
-| Staging deployment     | Not run from this workspace                                                                                        |
+| Staging deployment     | Attempted via GitHub workflow dispatch; blocked because `.github/workflows/deploy.yml` is not active on `main`     |
 | Result                 | Pass for CI gate; staging environment evidence still Blocked                                                       |
+
+## Staging Deployment Attempt Evidence
+
+| Field                    | Value                                                                                                                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Attempt date             | 2026-04-21T15:49:08+03:00                                                                                                                                                                |
+| Trigger                  | GitHub REST `workflow_dispatch` for `.github/workflows/deploy.yml`, ref `codex/design`, input `environment=staging`                                                                      |
+| API result               | Blocked: GitHub returned `404` for the workflow dispatch endpoint                                                                                                                        |
+| Repository environments  | Blocked: GitHub repository environments API returned no environments                                                                                                                     |
+| Active workflows visible | `ci` only; deploy workflow is present on `codex/design` but not active on the default branch                                                                                             |
+| Staging smoke checks     | Not run                                                                                                                                                                                  |
+| Result                   | Blocked                                                                                                                                                                                  |
+| Notes                    | Open PR https://github.com/abdelkarimhamd/Talabix/pull/1 carries the deploy workflow. After the workflow exists on `main`, configure staging environment secrets and rerun the dispatch. |
 
 ## Maps Provider Alert Evidence
 
@@ -84,47 +97,47 @@ Run [dispatch-sla-alert-drill.md](./dispatch-sla-alert-drill.md) in staging afte
 
 Run [mysql-backup-restore-drill.md](./mysql-backup-restore-drill.md) in staging or an isolated maintenance VM.
 
-| Field                    | Value                                                                                                                                  |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Drill date               | 2026-04-21T15:25:33+03:00                                                                                                              |
-| Environment              | GitHub Actions CI with MySQL service; disposable staging restore host unavailable from workspace                                       |
-| Backup disk              | Configured in CI through `BACKUP_DISKS` defaults; production/staging disk not recorded                                                 |
-| Backup archive timestamp | Blocked: no staging backup archive available                                                                                           |
-| Backup archive size      | Blocked: no staging backup archive available                                                                                           |
-| Backup archive checksum  | Blocked: no staging backup archive available                                                                                           |
-| Restore database         | Blocked: disposable staging restore database unavailable                                                                               |
-| Extract result           | Blocked: no staging backup archive available                                                                                           |
-| Import result            | Blocked: disposable staging restore database unavailable                                                                               |
-| Migration status result  | CI migrations and seeds passed in https://github.com/abdelkarimhamd/Talabix/actions/runs/24722098497                                   |
-| Readiness test result    | API test suite passed in CI; restore-specific readiness test against a disposable restored database was not run                        |
-| Cleanup verification     | CI database is ephemeral; staging restore database cleanup not run                                                                     |
-| Operator                 | Codex automation                                                                                                                       |
-| Result                   | Blocked                                                                                                                                |
-| Notes                    | CI validates backup schedule/config tests. Full launch pass still requires restoring a real backup archive into a disposable database. |
+| Field                    | Value                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Drill date               | 2026-04-21T15:47:03+03:00                                                                                                                                                                                                                                                                                                             |
+| Environment              | Local XAMPP MariaDB 10.4.32 maintenance shell; staging backup host unavailable from workspace                                                                                                                                                                                                                                         |
+| Backup disk              | Local Laravel backup disk (`BACKUP_DISKS=local`)                                                                                                                                                                                                                                                                                      |
+| Backup archive timestamp | 2026-04-21T15:47:10+03:00                                                                                                                                                                                                                                                                                                             |
+| Backup archive size      | 7,342 bytes                                                                                                                                                                                                                                                                                                                           |
+| Backup archive checksum  | SHA-256 `C2D747B5070FA7AD6CD215C5F46C42E482C1278D7BCE6D59CF09A222D3F888DC`                                                                                                                                                                                                                                                            |
+| Restore database         | `talabix_restore_20260421_154703`, then validation probe `talabix_restore_probe_20260421_154833`                                                                                                                                                                                                                                      |
+| Extract result           | Pass: backup zip expanded and SQL dump extracted in local ignored artifact directory `tmp/launch-drills/20260421_154703`                                                                                                                                                                                                              |
+| Import result            | Pass: SQL dump imported into disposable restore databases without MySQL client errors                                                                                                                                                                                                                                                 |
+| Migration status result  | Pass: `php artisan migrate:status` reported all 22 migrations as `Ran`; schema check found 22 migration rows in restored DB                                                                                                                                                                                                           |
+| Readiness test result    | Pass for direct readiness service probe: restored DB reported `status=ready` with database/cache/queue ok and Reverb skipped because local probe used `BROADCAST_CONNECTION=log`. `php artisan test tests/Feature/Ops/ReadinessTest.php` remains blocked locally by PHP 8.2 parsing a PHP 8.3 typed constant in PHPUnit dependencies. |
+| Cleanup verification     | Pass: disposable source and restore databases were dropped after the drill                                                                                                                                                                                                                                                            |
+| Operator                 | Codex automation                                                                                                                                                                                                                                                                                                                      |
+| Result                   | Blocked                                                                                                                                                                                                                                                                                                                               |
+| Notes                    | Local restore mechanics passed with an ignored local backup artifact. Full launch pass still requires restoring a real staging backup archive from the staging backup disk on a staging or isolated maintenance host.                                                                                                                 |
 
 ## Incident Drill Evidence
 
 Run the incident drill after the staging incident channel/tool, participant roster, and follow-up issue tracker are available.
 
-| Field                           | Value |
-| ------------------------------- | ----- |
-| Drill date                      |       |
-| Environment                     |       |
-| Incident tool or channel        |       |
-| Scenario                        |       |
-| Incident lead                   |       |
-| Investigator                    |       |
-| Communicator                    |       |
-| Fix owner                       |       |
-| P0/P1 classification            |       |
-| First status update timestamp   |       |
-| Customer/merchant/rider impact  |       |
-| Mitigation or rollback decision |       |
-| Smoke-check result after action |       |
-| Follow-up issue ID or URL       |       |
-| Participant acknowledgment      |       |
-| Result                          |       |
-| Notes                           |       |
+| Field                           | Value                                                                                                                                                  |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Drill date                      | 2026-04-21T15:49:08+03:00                                                                                                                              |
+| Environment                     | Local workspace only; staging incident channel/tool unavailable                                                                                        |
+| Incident tool or channel        | Blocked: not configured or provided                                                                                                                    |
+| Scenario                        | Planned P1 dispatch or maps-provider degradation tabletop                                                                                              |
+| Incident lead                   | Blocked: participant roster not provided                                                                                                               |
+| Investigator                    | Blocked: participant roster not provided                                                                                                               |
+| Communicator                    | Blocked: participant roster not provided                                                                                                               |
+| Fix owner                       | Blocked: participant roster not provided                                                                                                               |
+| P0/P1 classification            | Not executed                                                                                                                                           |
+| First status update timestamp   | Not executed                                                                                                                                           |
+| Customer/merchant/rider impact  | Not executed                                                                                                                                           |
+| Mitigation or rollback decision | Not executed                                                                                                                                           |
+| Smoke-check result after action | Not executed                                                                                                                                           |
+| Follow-up issue ID or URL       | Blocked: incident/follow-up issue workflow not provided                                                                                                |
+| Participant acknowledgment      | Blocked: participant roster not provided                                                                                                               |
+| Result                          | Blocked                                                                                                                                                |
+| Notes                           | A real incident drill needs an agreed channel/tool, named responders, and a follow-up issue link. Do not mark this ready from a solo local simulation. |
 
 ## Evidence Rules
 
