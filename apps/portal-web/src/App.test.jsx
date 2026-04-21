@@ -321,6 +321,41 @@ describe('portal routing', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('lets ops users manage catalog items from the ops catalog route', async () => {
+    render(
+      <App
+        initialEntries={['/ops/catalog']}
+        initialSession={defaultOpsSession}
+      />
+    );
+
+    expect(
+      await screen.findByText(/merchant-owned menu with branch overrides/i)
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/new catalog item name/i), {
+      target: { value: 'Arabic Coffee' },
+    });
+    fireEvent.change(screen.getByLabelText(/new catalog category/i), {
+      target: { value: 'Drinks' },
+    });
+    fireEvent.change(screen.getByLabelText(/new catalog base price/i), {
+      target: { value: '1200' },
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /create catalog item/i })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          /arabic coffee created in the shared merchant catalog/i
+        )
+      ).toBeInTheDocument();
+    });
+  });
+
   it('renders merchant promotion management for merchant users', async () => {
     render(
       <App

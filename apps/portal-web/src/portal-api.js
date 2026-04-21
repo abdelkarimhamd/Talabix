@@ -5,6 +5,7 @@ import {
   branchFeeBandSchema,
   branchServiceZoneInputSchema,
   branchServiceZoneSchema,
+  createMerchantInputSchema,
   createOpsUserInputSchema,
   dispatchAssignmentSchema,
   dispatchReassignmentInputSchema,
@@ -1013,6 +1014,66 @@ function updateMerchantConfigurationState(nextMerchant) {
   );
 }
 
+function createMerchantConfigurationState(payload) {
+  const parsedPayload = createMerchantInputSchema.parse(payload);
+  const branchUuid = createUuid();
+  const nextMerchant = opsMerchantConfigurationSchema.parse({
+    uuid: createUuid(),
+    name: parsedPayload.name,
+    slug: parsedPayload.slug,
+    status: 'active',
+    platform_commission_bps: parsedPayload.platform_commission_bps ?? 1200,
+    branches: [
+      {
+        uuid: branchUuid,
+        name: parsedPayload.branch.name,
+        status: 'active',
+        city: parsedPayload.branch.city,
+        address_line: parsedPayload.branch.address_line,
+        latitude: parsedPayload.branch.latitude,
+        longitude: parsedPayload.branch.longitude,
+        accepts_orders: true,
+        service_zones: parsedPayload.branch.zones.map((zone) => ({
+          uuid: createUuid(),
+          name: zone.name,
+          city: zone.city,
+          postal_code: zone.postal_code ?? null,
+          center_latitude: zone.center_latitude,
+          center_longitude: zone.center_longitude,
+          radius_meters: zone.radius_meters,
+          is_active: true,
+        })),
+        fee_bands: parsedPayload.branch.fee_bands.map((feeBand) => ({
+          uuid: createUuid(),
+          min_distance_meters: feeBand.min_distance_meters,
+          max_distance_meters: feeBand.max_distance_meters,
+          fee_minor: feeBand.fee_minor,
+        })),
+      },
+    ],
+  });
+
+  state.merchantConfigurations = [
+    ...state.merchantConfigurations,
+    nextMerchant,
+  ];
+  deriveManagedMerchants();
+
+  return managedMerchantSchema.parse({
+    uuid: nextMerchant.uuid,
+    name: nextMerchant.name,
+    slug: nextMerchant.slug,
+    status: nextMerchant.status,
+    branches: nextMerchant.branches.map((branch) => ({
+      uuid: branch.uuid,
+      name: branch.name,
+      status: branch.status,
+      city: branch.city,
+      address_line: branch.address_line,
+    })),
+  });
+}
+
 function deriveManagedMerchants() {
   state.managedMerchants = state.merchantConfigurations.map((merchant) =>
     managedMerchantSchema.parse({
@@ -1239,6 +1300,10 @@ export function createPortalApi(session) {
       return nextUser;
     },
     async listManagedMerchants() {
+      if (liveOpsApi) {
+        return liveOpsApi.listManagedMerchants();
+      }
+
       return state.managedMerchants.map((merchant) =>
         managedMerchantSchema.parse(merchant)
       );
@@ -1261,6 +1326,13 @@ export function createPortalApi(session) {
       return state.merchantConfigurations.map((merchant) =>
         opsMerchantConfigurationSchema.parse(merchant)
       );
+    },
+    async createMerchant(payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.createMerchant(payload);
+      }
+
+      return createMerchantConfigurationState(payload);
     },
     async getMapsProviderConfiguration() {
       if (liveOpsApi) {
@@ -1606,11 +1678,19 @@ export function createPortalApi(session) {
       return { uuid: promotionOfferUuid };
     },
     async listCatalogItems(query = {}) {
+      if (liveOpsApi) {
+        return liveOpsApi.listCatalogItems(query);
+      }
+
       return listMerchantCatalogItems(state.merchantCatalogItems, query).map(
         (item) => merchantCatalogItemSchema.parse(item)
       );
     },
     async createCatalogItem(payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.createCatalogItem(payload);
+      }
+
       const parsedPayload = merchantCatalogItemInputSchema.parse(payload);
       const nextItem = merchantCatalogItemSchema.parse({
         uuid: createUuid(),
@@ -1633,6 +1713,10 @@ export function createPortalApi(session) {
       return nextItem;
     },
     async updateCatalogItem(catalogItemUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.updateCatalogItem(catalogItemUuid, payload);
+      }
+
       const parsedPayload = merchantCatalogItemInputSchema.parse(payload);
       const existingItem = state.merchantCatalogItems.find(
         (entry) => entry.uuid === catalogItemUuid
@@ -1662,6 +1746,10 @@ export function createPortalApi(session) {
       return nextItem;
     },
     async createModifierGroup(catalogItemUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.createModifierGroup(catalogItemUuid, payload);
+      }
+
       const parsedPayload =
         merchantCatalogModifierGroupInputSchema.parse(payload);
       const existingItem = state.merchantCatalogItems.find(
@@ -1708,6 +1796,14 @@ export function createPortalApi(session) {
       return nextGroup;
     },
     async updateModifierGroup(catalogItemUuid, modifierGroupUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.updateModifierGroup(
+          catalogItemUuid,
+          modifierGroupUuid,
+          payload
+        );
+      }
+
       const parsedPayload =
         merchantCatalogModifierGroupInputSchema.parse(payload);
       const existingItem = state.merchantCatalogItems.find(
@@ -1766,6 +1862,14 @@ export function createPortalApi(session) {
       return nextGroup;
     },
     async upsertBranchOverride(branchUuid, catalogItemUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.upsertBranchOverride(
+          branchUuid,
+          catalogItemUuid,
+          payload
+        );
+      }
+
       const parsedPayload = merchantCatalogBranchOverrideSchema
         .pick({
           price_minor: true,

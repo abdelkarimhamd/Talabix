@@ -28,6 +28,70 @@ function feeBandFormFromValue(feeBand) {
   };
 }
 
+const emptyStoreSetupForm = {
+  name: '',
+  slug: '',
+  commission_percent: '12',
+  branch_name: 'Main branch',
+  city: 'Riyadh',
+  address_line: '',
+  latitude: '24.7136',
+  longitude: '46.6753',
+  zone_name: 'Primary delivery zone',
+  radius_meters: '5000',
+  fee_minor: '1500',
+  opens_at: '09:00',
+  closes_at: '23:00',
+};
+
+function slugFromName(value) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function createStorePayload(form) {
+  const opensAt = form.opens_at.trim() || null;
+  const closesAt = form.closes_at.trim() || null;
+
+  return {
+    name: form.name.trim(),
+    slug: (form.slug.trim() || slugFromName(form.name)).toLowerCase(),
+    platform_commission_bps: Math.round(Number(form.commission_percent) * 100),
+    branch: {
+      name: form.branch_name.trim(),
+      city: form.city.trim(),
+      address_line: form.address_line.trim(),
+      latitude: Number(form.latitude),
+      longitude: Number(form.longitude),
+      hours: Array.from({ length: 7 }, (_, dayOfWeek) => ({
+        day_of_week: dayOfWeek,
+        opens_at: opensAt,
+        closes_at: closesAt,
+      })),
+      zones: [
+        {
+          name: form.zone_name.trim(),
+          city: form.city.trim(),
+          postal_code: null,
+          center_latitude: Number(form.latitude),
+          center_longitude: Number(form.longitude),
+          radius_meters: Number(form.radius_meters),
+        },
+      ],
+      fee_bands: [
+        {
+          min_distance_meters: 0,
+          max_distance_meters: Number(form.radius_meters),
+          fee_minor: Number(form.fee_minor),
+        },
+      ],
+    },
+  };
+}
+
 export function OpsConfigurationBoard() {
   const { api } = useSession();
   const queryClient = useQueryClient();
@@ -48,6 +112,7 @@ export function OpsConfigurationBoard() {
     fallback_to_demo: true,
     clearApiKey: false,
   });
+  const [storeSetupForm, setStoreSetupForm] = useState(emptyStoreSetupForm);
   const [feedback, setFeedback] = useState('');
 
   const { data: merchants = [] } = useQuery({
@@ -59,6 +124,16 @@ export function OpsConfigurationBoard() {
     queryKey: ['ops-maps-provider-configuration'],
     queryFn: () => api.getMapsProviderConfiguration(),
   });
+
+  const updateStoreSetupField = (field, value) => {
+    setStoreSetupForm((current) => ({
+      ...current,
+      [field]: value,
+      ...(field === 'name' && !current.slug
+        ? { slug: slugFromName(value) }
+        : {}),
+    }));
+  };
 
   const selectedMerchant =
     merchants.find((merchant) => merchant.uuid === selectedMerchantUuid) ??
@@ -159,6 +234,20 @@ export function OpsConfigurationBoard() {
     },
   });
 
+  const createMerchantMutation = useMutation({
+    mutationFn: () => api.createMerchant(createStorePayload(storeSetupForm)),
+    onSuccess: async (merchant) => {
+      setSelectedMerchantUuid(merchant.uuid);
+      setStoreSetupForm(emptyStoreSetupForm);
+      await queryClient.invalidateQueries({ queryKey: ['ops-configuration'] });
+      await queryClient.invalidateQueries({ queryKey: ['managed-merchants'] });
+      setFeedback(`${merchant.name} store was created.`);
+    },
+    onError: (error) => {
+      setFeedback(error.message ?? 'Store could not be created.');
+    },
+  });
+
   const merchantMutation = useMutation({
     mutationFn: () =>
       api.updateMerchantConfiguration(selectedMerchant.uuid, {
@@ -249,13 +338,208 @@ export function OpsConfigurationBoard() {
 
   if (!selectedMerchant || !selectedBranch) {
     return (
-      <section className="board panel empty-state">
-        <span className="eyebrow">Ops configuration</span>
-        <h2>No merchant configuration loaded</h2>
+      <section className="board panel">
+        <div className="board-header">
+          <div>
+            <span className="eyebrow">Ops configuration</span>
+            <h2>Create your first store</h2>
+          </div>
+          <span className="status-pill" data-tone="warm">
+            No stores yet
+          </span>
+        </div>
+
         <p>
-          Create merchants and branches before configuring zones, fees, and
-          commission rules.
+          Add a store, its first branch, opening hours, service zone, and
+          delivery fee. After this, this page will show the normal configuration
+          controls.
         </p>
+
+        {feedback ? (
+          <div aria-live="polite" className="inline-feedback" role="status">
+            {feedback}
+          </div>
+        ) : null}
+
+        <form
+          className="catalog-panel panel first-store-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            createMerchantMutation.mutate();
+          }}
+        >
+          <div className="board-header">
+            <div>
+              <span className="eyebrow">Store setup</span>
+              <h3>Store and first branch</h3>
+            </div>
+          </div>
+
+          <div className="field-grid">
+            <label className="field-stack">
+              <span>Store name</span>
+              <input
+                onChange={(event) =>
+                  updateStoreSetupField('name', event.target.value)
+                }
+                required
+                value={storeSetupForm.name}
+              />
+            </label>
+            <label className="field-stack">
+              <span>Store URL slug</span>
+              <input
+                onChange={(event) =>
+                  updateStoreSetupField('slug', event.target.value)
+                }
+                required
+                value={storeSetupForm.slug}
+              />
+            </label>
+            <label className="field-stack">
+              <span>Commission percent</span>
+              <input
+                inputMode="decimal"
+                min="0"
+                max="100"
+                onChange={(event) =>
+                  updateStoreSetupField(
+                    'commission_percent',
+                    event.target.value
+                  )
+                }
+                required
+                type="number"
+                value={storeSetupForm.commission_percent}
+              />
+            </label>
+            <label className="field-stack">
+              <span>Branch name</span>
+              <input
+                onChange={(event) =>
+                  updateStoreSetupField('branch_name', event.target.value)
+                }
+                required
+                value={storeSetupForm.branch_name}
+              />
+            </label>
+            <label className="field-stack">
+              <span>City</span>
+              <input
+                onChange={(event) =>
+                  updateStoreSetupField('city', event.target.value)
+                }
+                required
+                value={storeSetupForm.city}
+              />
+            </label>
+            <label className="field-stack">
+              <span>Branch address</span>
+              <input
+                onChange={(event) =>
+                  updateStoreSetupField('address_line', event.target.value)
+                }
+                required
+                value={storeSetupForm.address_line}
+              />
+            </label>
+            <label className="field-stack">
+              <span>Latitude</span>
+              <input
+                inputMode="decimal"
+                onChange={(event) =>
+                  updateStoreSetupField('latitude', event.target.value)
+                }
+                required
+                type="number"
+                value={storeSetupForm.latitude}
+              />
+            </label>
+            <label className="field-stack">
+              <span>Longitude</span>
+              <input
+                inputMode="decimal"
+                onChange={(event) =>
+                  updateStoreSetupField('longitude', event.target.value)
+                }
+                required
+                type="number"
+                value={storeSetupForm.longitude}
+              />
+            </label>
+          </div>
+
+          <div className="field-grid">
+            <label className="field-stack">
+              <span>Opening time</span>
+              <input
+                onChange={(event) =>
+                  updateStoreSetupField('opens_at', event.target.value)
+                }
+                type="time"
+                value={storeSetupForm.opens_at}
+              />
+            </label>
+            <label className="field-stack">
+              <span>Closing time</span>
+              <input
+                onChange={(event) =>
+                  updateStoreSetupField('closes_at', event.target.value)
+                }
+                type="time"
+                value={storeSetupForm.closes_at}
+              />
+            </label>
+            <label className="field-stack">
+              <span>Service zone name</span>
+              <input
+                onChange={(event) =>
+                  updateStoreSetupField('zone_name', event.target.value)
+                }
+                required
+                value={storeSetupForm.zone_name}
+              />
+            </label>
+            <label className="field-stack">
+              <span>Delivery radius meters</span>
+              <input
+                inputMode="numeric"
+                min="100"
+                onChange={(event) =>
+                  updateStoreSetupField('radius_meters', event.target.value)
+                }
+                required
+                type="number"
+                value={storeSetupForm.radius_meters}
+              />
+            </label>
+            <label className="field-stack">
+              <span>Delivery fee minor units</span>
+              <input
+                inputMode="numeric"
+                min="0"
+                onChange={(event) =>
+                  updateStoreSetupField('fee_minor', event.target.value)
+                }
+                required
+                type="number"
+                value={storeSetupForm.fee_minor}
+              />
+            </label>
+          </div>
+
+          <div className="card-actions">
+            <button
+              className="action-button"
+              disabled={createMerchantMutation.isPending}
+              type="submit"
+            >
+              {createMerchantMutation.isPending
+                ? 'Creating store...'
+                : 'Create store'}
+            </button>
+          </div>
+        </form>
       </section>
     );
   }

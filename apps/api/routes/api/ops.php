@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Catalog\Controllers\CatalogController;
 use App\Modules\Dispatch\Controllers\DispatchController;
 use App\Modules\Identity\Controllers\AuthController;
 use App\Modules\Identity\Controllers\OpsUserController;
@@ -29,6 +30,15 @@ Route::prefix('ops')->name('ops.')->group(function () {
 
         Route::get('merchants', [MerchantController::class, 'indexForOps']);
         Route::post('merchants', [MerchantController::class, 'store']);
+        Route::get('catalog/items', [CatalogController::class, 'index']);
+        Route::post('catalog/items', [CatalogController::class, 'store']);
+        Route::patch('catalog/items/{catalogItem}', [CatalogController::class, 'update']);
+        Route::post('catalog/items/{catalogItem}/modifier-groups', [CatalogController::class, 'storeModifierGroup']);
+        Route::patch(
+            'catalog/items/{catalogItem}/modifier-groups/{modifierGroup}',
+            [CatalogController::class, 'updateModifierGroup']
+        );
+        Route::post('branches/{branch}/catalog-overrides/{catalogItem}', [CatalogController::class, 'upsertBranchOverride']);
         Route::get('configuration/maps-provider', [MapsProviderConfigurationController::class, 'show']);
         Route::patch('configuration/maps-provider', [MapsProviderConfigurationController::class, 'update']);
         Route::get('configuration/merchants', [MerchantConfigurationController::class, 'index']);

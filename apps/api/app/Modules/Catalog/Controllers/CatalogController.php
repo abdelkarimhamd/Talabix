@@ -17,6 +17,7 @@ use App\Modules\Catalog\Resources\CatalogModifierGroupResource;
 use App\Modules\Shared\Actions\RecordAuditLogAction;
 use App\Modules\Shared\Enums\AuditActionType;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -26,7 +27,7 @@ class CatalogController extends Controller
 
     public function index(MerchantCatalogIndexRequest $request): JsonResponse
     {
-        $this->ensureAbility($request, 'merchant:catalog.read');
+        $this->ensureCatalogAbility($request, 'merchant:catalog.read');
 
         $merchant = Merchant::query()
             ->with('branches')
@@ -94,7 +95,7 @@ class CatalogController extends Controller
 
     public function store(StoreCatalogItemRequest $request): JsonResponse
     {
-        $this->ensureAbility($request, 'merchant:catalog.write');
+        $this->ensureCatalogAbility($request, 'merchant:catalog.write');
 
         $merchant = Merchant::query()->where('uuid', $request->string('merchant_uuid'))->firstOrFail();
         $this->authorize('update', $merchant);
@@ -124,7 +125,7 @@ class CatalogController extends Controller
 
     public function update(StoreCatalogItemRequest $request, CatalogItem $catalogItem): JsonResponse
     {
-        $this->ensureAbility($request, 'merchant:catalog.write');
+        $this->ensureCatalogAbility($request, 'merchant:catalog.write');
         $this->authorize('update', $catalogItem);
 
         $catalogItem->update($request->safe()->except('merchant_uuid'));
@@ -150,7 +151,7 @@ class CatalogController extends Controller
         StoreModifierGroupRequest $request,
         CatalogItem $catalogItem
     ): JsonResponse {
-        $this->ensureAbility($request, 'merchant:catalog.write');
+        $this->ensureCatalogAbility($request, 'merchant:catalog.write');
         $this->authorize('update', $catalogItem);
 
         $modifierGroup = DB::transaction(function () use ($request, $catalogItem) {
@@ -201,7 +202,7 @@ class CatalogController extends Controller
         CatalogItem $catalogItem,
         CatalogItemModifierGroup $modifierGroup
     ): JsonResponse {
-        $this->ensureAbility($request, 'merchant:catalog.write');
+        $this->ensureCatalogAbility($request, 'merchant:catalog.write');
         $this->authorize('update', $catalogItem);
         abort_unless($modifierGroup->catalog_item_id === $catalogItem->id, 404);
 
@@ -279,7 +280,7 @@ class CatalogController extends Controller
         Branch $branch,
         CatalogItem $catalogItem
     ): JsonResponse {
-        $this->ensureAbility($request, 'merchant:catalog.write');
+        $this->ensureCatalogAbility($request, 'merchant:catalog.write');
         $this->authorize('update', $catalogItem);
 
         $override = BranchCatalogOverride::query()->updateOrCreate(
@@ -311,5 +312,16 @@ class CatalogController extends Controller
                 ],
             ],
         ]);
+    }
+
+    private function ensureCatalogAbility(Request $request, string $merchantAbility): void
+    {
+        if ($request->is('api/v1/ops/*')) {
+            $this->ensureAbility($request, 'ops:merchants.manage');
+
+            return;
+        }
+
+        $this->ensureAbility($request, $merchantAbility);
     }
 }

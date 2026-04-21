@@ -105,7 +105,10 @@ function modifierGroupDraft(group) {
 
 function modifierGroupDrafts(item) {
   return Object.fromEntries(
-    (item?.modifier_groups ?? []).map((group) => [group.uuid, modifierGroupDraft(group)])
+    (item?.modifier_groups ?? []).map((group) => [
+      group.uuid,
+      modifierGroupDraft(group),
+    ])
   );
 }
 
@@ -121,7 +124,8 @@ function overrideDrafts(item, branches = []) {
         {
           price_minor: numberDraft(currentOverride?.price_minor),
           stock_quantity: numberDraft(currentOverride?.stock_quantity),
-          is_available: currentOverride?.is_available ?? item?.is_active ?? true,
+          is_available:
+            currentOverride?.is_available ?? item?.is_active ?? true,
         },
       ];
     })
@@ -139,7 +143,11 @@ function parseNullableInteger(value) {
 }
 
 function errorMessage(error) {
-  return error?.issues?.[0]?.message ?? error?.message ?? 'Catalog action could not be completed.';
+  return (
+    error?.issues?.[0]?.message ??
+    error?.message ??
+    'Catalog action could not be completed.'
+  );
 }
 
 export function MerchantCatalogManager() {
@@ -155,7 +163,9 @@ export function MerchantCatalogManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [feedback, setFeedback] = useState('');
   const deferredSearchTerm = useDeferredValue(searchTerm);
-  const canWrite = session.permissions.includes('merchant:catalog.write');
+  const canWrite =
+    session.permissions.includes('merchant:catalog.write') ||
+    session.permissions.includes('ops:merchants.manage');
 
   const managedMerchantsQuery = useQuery({
     queryKey: ['managed-merchants'],
@@ -165,7 +175,8 @@ export function MerchantCatalogManager() {
   const catalogItemsQuery = useQuery({
     queryKey: ['merchant-catalog-items', selectedMerchantUuid],
     enabled: Boolean(selectedMerchantUuid),
-    queryFn: () => api.listCatalogItems({ merchant_uuid: selectedMerchantUuid }),
+    queryFn: () =>
+      api.listCatalogItems({ merchant_uuid: selectedMerchantUuid }),
   });
 
   const createCatalogItemMutation = useMutation({
@@ -184,7 +195,8 @@ export function MerchantCatalogManager() {
   });
 
   const updateCatalogItemMutation = useMutation({
-    mutationFn: ({ catalogItemUuid, payload }) => api.updateCatalogItem(catalogItemUuid, payload),
+    mutationFn: ({ catalogItemUuid, payload }) =>
+      api.updateCatalogItem(catalogItemUuid, payload),
     onSuccess: async (item) => {
       setFeedback(`${item.name} base item updated.`);
       await queryClient.invalidateQueries({
@@ -211,7 +223,8 @@ export function MerchantCatalogManager() {
   });
 
   const createModifierGroupMutation = useMutation({
-    mutationFn: ({ catalogItemUuid, payload }) => api.createModifierGroup(catalogItemUuid, payload),
+    mutationFn: ({ catalogItemUuid, payload }) =>
+      api.createModifierGroup(catalogItemUuid, payload),
     onSuccess: async (group) => {
       setFeedback(`${group.name} modifier group added.`);
       setCreateGroupForm(modifierGroupDraft());
@@ -245,7 +258,9 @@ export function MerchantCatalogManager() {
   }, [managedMerchantsQuery.data, selectedMerchantUuid]);
 
   const selectedMerchant =
-    managedMerchantsQuery.data?.find((merchant) => merchant.uuid === selectedMerchantUuid) ?? null;
+    managedMerchantsQuery.data?.find(
+      (merchant) => merchant.uuid === selectedMerchantUuid
+    ) ?? null;
   const allCatalogItems = catalogItemsQuery.data ?? [];
   const filteredCatalogItems = allCatalogItems.filter((item) => {
     const term = deferredSearchTerm.trim().toLowerCase();
@@ -272,7 +287,9 @@ export function MerchantCatalogManager() {
 
   useEffect(() => {
     setEditForm(itemDraft(selectedItem));
-    setOverrideFormState(overrideDrafts(selectedItem, selectedMerchant?.branches ?? []));
+    setOverrideFormState(
+      overrideDrafts(selectedItem, selectedMerchant?.branches ?? [])
+    );
     setModifierGroupForms(modifierGroupDrafts(selectedItem));
     setCreateGroupForm(modifierGroupDraft());
   }, [selectedItem, selectedMerchant]);
@@ -386,7 +403,10 @@ export function MerchantCatalogManager() {
   function appendCreateGroupOption() {
     setCreateGroupForm((current) => ({
       ...current,
-      options: [...current.options, createEmptyModifierOption(false, current.options.length)],
+      options: [
+        ...current.options,
+        createEmptyModifierOption(false, current.options.length),
+      ],
     }));
   }
 
@@ -413,7 +433,9 @@ export function MerchantCatalogManager() {
       <section className="board panel">
         <div className="empty-state">
           <h2>Loading merchant catalog scope</h2>
-          <p>Pulling merchant memberships and shared menu items into the portal.</p>
+          <p>
+            Pulling merchant memberships and shared menu items into the portal.
+          </p>
         </div>
       </section>
     );
@@ -464,12 +486,18 @@ export function MerchantCatalogManager() {
         <div className="panel">
           <span className="eyebrow">Shared source</span>
           <strong>One merchant menu</strong>
-          <p>Base price, stock, and active state stay centralized so branch teams work from one canonical item.</p>
+          <p>
+            Base price, stock, and active state stay centralized so branch teams
+            work from one canonical item.
+          </p>
         </div>
         <div className="panel">
           <span className="eyebrow">Branch tuning</span>
           <strong>Override only where needed</strong>
-          <p>Each branch can tune price, stock, and availability without duplicating the merchant menu structure.</p>
+          <p>
+            Each branch can tune price, stock, and availability without
+            duplicating the merchant menu structure.
+          </p>
         </div>
       </div>
 
@@ -487,11 +515,15 @@ export function MerchantCatalogManager() {
                 <span className="eyebrow">Catalog items</span>
                 <h3>{filteredCatalogItems.length} visible items</h3>
               </div>
-              {selectedMerchant ? <p>{selectedMerchant.branches.length} branches in scope</p> : null}
+              {selectedMerchant ? (
+                <p>{selectedMerchant.branches.length} branches in scope</p>
+              ) : null}
             </div>
 
             {filteredCatalogItems.length === 0 ? (
-              <div className="lane-empty">No catalog items match the current merchant or search term.</div>
+              <div className="lane-empty">
+                No catalog items match the current merchant or search term.
+              </div>
             ) : (
               <div className="catalog-list">
                 {filteredCatalogItems.map((item) => (
@@ -515,7 +547,10 @@ export function MerchantCatalogManager() {
 
                     <div className="board-meta">
                       <span>{item.sku || 'No SKU'}</span>
-                      <span>{item.branch_overrides.length} override{item.branch_overrides.length === 1 ? '' : 's'}</span>
+                      <span>
+                        {item.branch_overrides.length} override
+                        {item.branch_overrides.length === 1 ? '' : 's'}
+                      </span>
                     </div>
 
                     <dl>
@@ -529,7 +564,9 @@ export function MerchantCatalogManager() {
                       </div>
                     </dl>
 
-                    {item.description ? <p className="board-note">{item.description}</p> : null}
+                    {item.description ? (
+                      <p className="board-note">{item.description}</p>
+                    ) : null}
 
                     <footer className="card-actions">
                       <button
@@ -552,7 +589,10 @@ export function MerchantCatalogManager() {
                 <span className="eyebrow">Create item</span>
                 <h3>Add to the shared merchant menu</h3>
               </div>
-              <p>Every new item starts at the merchant level, then branches opt into overrides.</p>
+              <p>
+                Every new item starts at the merchant level, then branches opt
+                into overrides.
+              </p>
             </div>
 
             {canWrite ? (
@@ -676,14 +716,21 @@ export function MerchantCatalogManager() {
 
                 <button
                   className="action-button"
-                  disabled={createCatalogItemMutation.isPending || !selectedMerchantUuid}
+                  disabled={
+                    createCatalogItemMutation.isPending || !selectedMerchantUuid
+                  }
                   type="submit"
                 >
-                  {createCatalogItemMutation.isPending ? 'Creating…' : 'Create catalog item'}
+                  {createCatalogItemMutation.isPending
+                    ? 'Creating…'
+                    : 'Create catalog item'}
                 </button>
               </form>
             ) : (
-              <div className="lane-empty">This session can review catalog data but cannot create new base items.</div>
+              <div className="lane-empty">
+                This session can review catalog data but cannot create new base
+                items.
+              </div>
             )}
           </section>
         </aside>
@@ -692,11 +739,18 @@ export function MerchantCatalogManager() {
           <div className="lane-header">
             <div>
               <span className="eyebrow">Selected item</span>
-              <h3>{selectedItem ? selectedItem.name : 'Choose a catalog item'}</h3>
+              <h3>
+                {selectedItem ? selectedItem.name : 'Choose a catalog item'}
+              </h3>
             </div>
             {selectedItem ? (
-              <span className="status-pill" data-tone={selectedItem.is_active ? 'success' : 'muted'}>
-                {selectedItem.is_active ? 'Active base item' : 'Inactive base item'}
+              <span
+                className="status-pill"
+                data-tone={selectedItem.is_active ? 'success' : 'muted'}
+              >
+                {selectedItem.is_active
+                  ? 'Active base item'
+                  : 'Inactive base item'}
               </span>
             ) : null}
           </div>
@@ -707,11 +761,15 @@ export function MerchantCatalogManager() {
                 <div className="summary-pairs">
                   <div>
                     <span className="eyebrow">Base price</span>
-                    <strong>{formatMoney(selectedItem.base_price_minor)}</strong>
+                    <strong>
+                      {formatMoney(selectedItem.base_price_minor)}
+                    </strong>
                   </div>
                   <div>
                     <span className="eyebrow">Category</span>
-                    <strong>{selectedItem.category_name || 'Uncategorized'}</strong>
+                    <strong>
+                      {selectedItem.category_name || 'Uncategorized'}
+                    </strong>
                   </div>
                   <div>
                     <span className="eyebrow">Base stock</span>
@@ -861,11 +919,16 @@ export function MerchantCatalogManager() {
                     disabled={updateCatalogItemMutation.isPending}
                     type="submit"
                   >
-                    {updateCatalogItemMutation.isPending ? 'Saving…' : 'Save base item'}
+                    {updateCatalogItemMutation.isPending
+                      ? 'Saving…'
+                      : 'Save base item'}
                   </button>
                 </form>
               ) : (
-                <div className="lane-empty">This session can inspect the base item but cannot edit merchant catalog data.</div>
+                <div className="lane-empty">
+                  This session can inspect the base item but cannot edit
+                  merchant catalog data.
+                </div>
               )}
 
               <div className="lane-header">
@@ -873,12 +936,18 @@ export function MerchantCatalogManager() {
                   <span className="eyebrow">Modifier groups</span>
                   <h3>Set option groups and add-on pricing for this item</h3>
                 </div>
-                <p>Modifier groups stay item-specific in v1 so checkout validation and pricing remain explicit.</p>
+                <p>
+                  Modifier groups stay item-specific in v1 so checkout
+                  validation and pricing remain explicit.
+                </p>
               </div>
 
               {canWrite ? (
                 <section className="catalog-panel modifier-section">
-                  <form className="catalog-form" onSubmit={handleCreateModifierGroupSubmit}>
+                  <form
+                    className="catalog-form"
+                    onSubmit={handleCreateModifierGroupSubmit}
+                  >
                     <div className="field-grid">
                       <label className="field-stack">
                         <span>New modifier group name</span>
@@ -961,7 +1030,10 @@ export function MerchantCatalogManager() {
 
                     <div className="catalog-modifier-list">
                       {createGroupForm.options.map((option, index) => (
-                        <article className="catalog-modifier-card" key={option.uuid ?? `new-${index}`}>
+                        <article
+                          className="catalog-modifier-card"
+                          key={option.uuid ?? `new-${index}`}
+                        >
                           <div className="field-grid">
                             <label className="field-stack">
                               <span>Option name</span>
@@ -969,10 +1041,14 @@ export function MerchantCatalogManager() {
                                 onChange={(event) =>
                                   setCreateGroupForm((current) => ({
                                     ...current,
-                                    options: current.options.map((entry, optionIndex) =>
-                                      optionIndex === index
-                                        ? { ...entry, name: event.target.value }
-                                        : entry
+                                    options: current.options.map(
+                                      (entry, optionIndex) =>
+                                        optionIndex === index
+                                          ? {
+                                              ...entry,
+                                              name: event.target.value,
+                                            }
+                                          : entry
                                     ),
                                   }))
                                 }
@@ -989,10 +1065,15 @@ export function MerchantCatalogManager() {
                                 onChange={(event) =>
                                   setCreateGroupForm((current) => ({
                                     ...current,
-                                    options: current.options.map((entry, optionIndex) =>
-                                      optionIndex === index
-                                        ? { ...entry, price_delta_minor: event.target.value }
-                                        : entry
+                                    options: current.options.map(
+                                      (entry, optionIndex) =>
+                                        optionIndex === index
+                                          ? {
+                                              ...entry,
+                                              price_delta_minor:
+                                                event.target.value,
+                                            }
+                                          : entry
                                     ),
                                   }))
                                 }
@@ -1009,10 +1090,14 @@ export function MerchantCatalogManager() {
                                 onChange={(event) =>
                                   setCreateGroupForm((current) => ({
                                     ...current,
-                                    options: current.options.map((entry, optionIndex) =>
-                                      optionIndex === index
-                                        ? { ...entry, description: event.target.value }
-                                        : entry
+                                    options: current.options.map(
+                                      (entry, optionIndex) =>
+                                        optionIndex === index
+                                          ? {
+                                              ...entry,
+                                              description: event.target.value,
+                                            }
+                                          : entry
                                     ),
                                   }))
                                 }
@@ -1028,10 +1113,14 @@ export function MerchantCatalogManager() {
                                 onChange={(event) =>
                                   setCreateGroupForm((current) => ({
                                     ...current,
-                                    options: current.options.map((entry, optionIndex) =>
-                                      optionIndex === index
-                                        ? { ...entry, sort_order: event.target.value }
-                                        : entry
+                                    options: current.options.map(
+                                      (entry, optionIndex) =>
+                                        optionIndex === index
+                                          ? {
+                                              ...entry,
+                                              sort_order: event.target.value,
+                                            }
+                                          : entry
                                     ),
                                   }))
                                 }
@@ -1046,10 +1135,14 @@ export function MerchantCatalogManager() {
                               onChange={(event) =>
                                 setCreateGroupForm((current) => ({
                                   ...current,
-                                  options: current.options.map((entry, optionIndex) =>
-                                    optionIndex === index
-                                      ? { ...entry, is_default: event.target.checked }
-                                      : entry
+                                  options: current.options.map(
+                                    (entry, optionIndex) =>
+                                      optionIndex === index
+                                        ? {
+                                            ...entry,
+                                            is_default: event.target.checked,
+                                          }
+                                        : entry
                                   ),
                                 }))
                               }
@@ -1062,7 +1155,11 @@ export function MerchantCatalogManager() {
                     </div>
 
                     <div className="card-actions">
-                      <button className="action-button secondary" onClick={appendCreateGroupOption} type="button">
+                      <button
+                        className="action-button secondary"
+                        onClick={appendCreateGroupOption}
+                        type="button"
+                      >
                         Add option
                       </button>
                       <button
@@ -1070,7 +1167,9 @@ export function MerchantCatalogManager() {
                         disabled={createModifierGroupMutation.isPending}
                         type="submit"
                       >
-                        {createModifierGroupMutation.isPending ? 'Saving group…' : 'Create modifier group'}
+                        {createModifierGroupMutation.isPending
+                          ? 'Saving group…'
+                          : 'Create modifier group'}
                       </button>
                     </div>
                   </form>
@@ -1078,23 +1177,34 @@ export function MerchantCatalogManager() {
               ) : null}
 
               {selectedItem.modifier_groups.length === 0 ? (
-                <div className="lane-empty">No modifier groups are configured for this item yet.</div>
+                <div className="lane-empty">
+                  No modifier groups are configured for this item yet.
+                </div>
               ) : (
                 <div className="catalog-modifier-list">
                   {selectedItem.modifier_groups.map((group) => {
-                    const groupDraft = modifierGroupForms[group.uuid] ?? modifierGroupDraft(group);
+                    const groupDraft =
+                      modifierGroupForms[group.uuid] ??
+                      modifierGroupDraft(group);
                     const isSavingGroup =
                       updateModifierGroupMutation.isPending &&
-                      updateModifierGroupMutation.variables?.modifierGroupUuid === group.uuid;
+                      updateModifierGroupMutation.variables
+                        ?.modifierGroupUuid === group.uuid;
 
                     return (
-                      <article className="catalog-modifier-card" key={group.uuid}>
+                      <article
+                        className="catalog-modifier-card"
+                        key={group.uuid}
+                      >
                         <header>
                           <div>
                             <span className="eyebrow">Modifier group</span>
                             <h3>{group.name}</h3>
                           </div>
-                          <span className="status-pill" data-tone={group.is_active ? 'success' : 'muted'}>
+                          <span
+                            className="status-pill"
+                            data-tone={group.is_active ? 'success' : 'muted'}
+                          >
                             {group.is_active ? 'Active' : 'Hidden'}
                           </span>
                         </header>
@@ -1121,7 +1231,9 @@ export function MerchantCatalogManager() {
                                   ...current,
                                   selection_type: event.target.value,
                                   max_selected:
-                                    event.target.value === 'single' ? '1' : current.max_selected,
+                                    event.target.value === 'single'
+                                      ? '1'
+                                      : current.max_selected,
                                 }))
                               }
                               value={groupDraft.selection_type}
@@ -1178,20 +1290,30 @@ export function MerchantCatalogManager() {
 
                         <div className="catalog-modifier-list">
                           {groupDraft.options.map((option, index) => (
-                            <article className="catalog-modifier-card nested" key={option.uuid ?? `${group.uuid}-${index}`}>
+                            <article
+                              className="catalog-modifier-card nested"
+                              key={option.uuid ?? `${group.uuid}-${index}`}
+                            >
                               <div className="field-grid">
                                 <label className="field-stack">
                                   <span>Option name</span>
                                   <input
                                     onChange={(event) =>
-                                      updateGroupDraft(group.uuid, (current) => ({
-                                        ...current,
-                                        options: current.options.map((entry, optionIndex) =>
-                                          optionIndex === index
-                                            ? { ...entry, name: event.target.value }
-                                            : entry
-                                        ),
-                                      }))
+                                      updateGroupDraft(
+                                        group.uuid,
+                                        (current) => ({
+                                          ...current,
+                                          options: current.options.map(
+                                            (entry, optionIndex) =>
+                                              optionIndex === index
+                                                ? {
+                                                    ...entry,
+                                                    name: event.target.value,
+                                                  }
+                                                : entry
+                                          ),
+                                        })
+                                      )
                                     }
                                     type="text"
                                     value={option.name}
@@ -1203,14 +1325,22 @@ export function MerchantCatalogManager() {
                                     inputMode="numeric"
                                     min="0"
                                     onChange={(event) =>
-                                      updateGroupDraft(group.uuid, (current) => ({
-                                        ...current,
-                                        options: current.options.map((entry, optionIndex) =>
-                                          optionIndex === index
-                                            ? { ...entry, price_delta_minor: event.target.value }
-                                            : entry
-                                        ),
-                                      }))
+                                      updateGroupDraft(
+                                        group.uuid,
+                                        (current) => ({
+                                          ...current,
+                                          options: current.options.map(
+                                            (entry, optionIndex) =>
+                                              optionIndex === index
+                                                ? {
+                                                    ...entry,
+                                                    price_delta_minor:
+                                                      event.target.value,
+                                                  }
+                                                : entry
+                                          ),
+                                        })
+                                      )
                                     }
                                     type="number"
                                     value={option.price_delta_minor}
@@ -1222,14 +1352,22 @@ export function MerchantCatalogManager() {
                                   <span>Option description</span>
                                   <input
                                     onChange={(event) =>
-                                      updateGroupDraft(group.uuid, (current) => ({
-                                        ...current,
-                                        options: current.options.map((entry, optionIndex) =>
-                                          optionIndex === index
-                                            ? { ...entry, description: event.target.value }
-                                            : entry
-                                        ),
-                                      }))
+                                      updateGroupDraft(
+                                        group.uuid,
+                                        (current) => ({
+                                          ...current,
+                                          options: current.options.map(
+                                            (entry, optionIndex) =>
+                                              optionIndex === index
+                                                ? {
+                                                    ...entry,
+                                                    description:
+                                                      event.target.value,
+                                                  }
+                                                : entry
+                                          ),
+                                        })
+                                      )
                                     }
                                     type="text"
                                     value={option.description}
@@ -1241,14 +1379,22 @@ export function MerchantCatalogManager() {
                                     inputMode="numeric"
                                     min="0"
                                     onChange={(event) =>
-                                      updateGroupDraft(group.uuid, (current) => ({
-                                        ...current,
-                                        options: current.options.map((entry, optionIndex) =>
-                                          optionIndex === index
-                                            ? { ...entry, sort_order: event.target.value }
-                                            : entry
-                                        ),
-                                      }))
+                                      updateGroupDraft(
+                                        group.uuid,
+                                        (current) => ({
+                                          ...current,
+                                          options: current.options.map(
+                                            (entry, optionIndex) =>
+                                              optionIndex === index
+                                                ? {
+                                                    ...entry,
+                                                    sort_order:
+                                                      event.target.value,
+                                                  }
+                                                : entry
+                                          ),
+                                        })
+                                      )
                                     }
                                     type="number"
                                     value={option.sort_order}
@@ -1260,14 +1406,22 @@ export function MerchantCatalogManager() {
                                   <input
                                     checked={option.is_default}
                                     onChange={(event) =>
-                                      updateGroupDraft(group.uuid, (current) => ({
-                                        ...current,
-                                        options: current.options.map((entry, optionIndex) =>
-                                          optionIndex === index
-                                            ? { ...entry, is_default: event.target.checked }
-                                            : entry
-                                        ),
-                                      }))
+                                      updateGroupDraft(
+                                        group.uuid,
+                                        (current) => ({
+                                          ...current,
+                                          options: current.options.map(
+                                            (entry, optionIndex) =>
+                                              optionIndex === index
+                                                ? {
+                                                    ...entry,
+                                                    is_default:
+                                                      event.target.checked,
+                                                  }
+                                                : entry
+                                          ),
+                                        })
+                                      )
                                     }
                                     type="checkbox"
                                   />
@@ -1277,14 +1431,22 @@ export function MerchantCatalogManager() {
                                   <input
                                     checked={option.is_active}
                                     onChange={(event) =>
-                                      updateGroupDraft(group.uuid, (current) => ({
-                                        ...current,
-                                        options: current.options.map((entry, optionIndex) =>
-                                          optionIndex === index
-                                            ? { ...entry, is_active: event.target.checked }
-                                            : entry
-                                        ),
-                                      }))
+                                      updateGroupDraft(
+                                        group.uuid,
+                                        (current) => ({
+                                          ...current,
+                                          options: current.options.map(
+                                            (entry, optionIndex) =>
+                                              optionIndex === index
+                                                ? {
+                                                    ...entry,
+                                                    is_active:
+                                                      event.target.checked,
+                                                  }
+                                                : entry
+                                          ),
+                                        })
+                                      )
                                     }
                                     type="checkbox"
                                   />
@@ -1307,10 +1469,14 @@ export function MerchantCatalogManager() {
                             <button
                               className="action-button"
                               disabled={isSavingGroup}
-                              onClick={() => handleSaveModifierGroup(group.uuid)}
+                              onClick={() =>
+                                handleSaveModifierGroup(group.uuid)
+                              }
                               type="button"
                             >
-                              {isSavingGroup ? 'Saving group…' : `Save ${group.name}`}
+                              {isSavingGroup
+                                ? 'Saving group…'
+                                : `Save ${group.name}`}
                             </button>
                           </div>
                         ) : null}
@@ -1325,7 +1491,10 @@ export function MerchantCatalogManager() {
                   <span className="eyebrow">Branch overrides</span>
                   <h3>Override price, stock, and availability per branch</h3>
                 </div>
-                <p>Overrides only touch branch-level delivery behavior and do not fork the item itself.</p>
+                <p>
+                  Overrides only touch branch-level delivery behavior and do not
+                  fork the item itself.
+                </p>
               </div>
 
               <div className="catalog-override-grid">
@@ -1340,7 +1509,10 @@ export function MerchantCatalogManager() {
                   };
 
                   return (
-                    <article className="catalog-override-card" key={branch.uuid}>
+                    <article
+                      className="catalog-override-card"
+                      key={branch.uuid}
+                    >
                       <header>
                         <div>
                           <span className="eyebrow">Branch</span>
@@ -1348,9 +1520,16 @@ export function MerchantCatalogManager() {
                         </div>
                         <span
                           className="status-pill"
-                          data-tone={currentOverride?.is_available ?? selectedItem.is_active ? 'success' : 'muted'}
+                          data-tone={
+                            (currentOverride?.is_available ??
+                            selectedItem.is_active)
+                              ? 'success'
+                              : 'muted'
+                          }
                         >
-                          {currentOverride ? 'Override active' : 'Using base item'}
+                          {currentOverride
+                            ? 'Override active'
+                            : 'Using base item'}
                         </span>
                       </header>
 
@@ -1419,7 +1598,9 @@ export function MerchantCatalogManager() {
                         <strong>Current override:</strong>{' '}
                         {currentOverride
                           ? `${currentOverride.price_minor ?? selectedItem.base_price_minor} minor units, ${
-                              currentOverride.stock_quantity ?? selectedItem.base_stock ?? 'untracked'
+                              currentOverride.stock_quantity ??
+                              selectedItem.base_stock ??
+                              'untracked'
                             } stock, ${currentOverride.is_available ? 'available' : 'hidden'}`
                           : 'No override yet. This branch is still inheriting the base item values.'}
                       </div>
@@ -1429,13 +1610,15 @@ export function MerchantCatalogManager() {
                           className="action-button"
                           disabled={
                             branchOverrideMutation.isPending &&
-                            branchOverrideMutation.variables?.branchUuid === branch.uuid
+                            branchOverrideMutation.variables?.branchUuid ===
+                              branch.uuid
                           }
                           onClick={() => handleOverrideSubmit(branch.uuid)}
                           type="button"
                         >
                           {branchOverrideMutation.isPending &&
-                          branchOverrideMutation.variables?.branchUuid === branch.uuid
+                          branchOverrideMutation.variables?.branchUuid ===
+                            branch.uuid
                             ? 'Saving…'
                             : `Save ${branch.name} override`}
                         </button>
@@ -1446,7 +1629,10 @@ export function MerchantCatalogManager() {
               </div>
             </>
           ) : (
-            <div className="lane-empty">Pick a catalog item from the left column to edit it and manage branch overrides.</div>
+            <div className="lane-empty">
+              Pick a catalog item from the left column to edit it and manage
+              branch overrides.
+            </div>
           )}
         </section>
       </div>

@@ -13,6 +13,7 @@ import {
   branchServiceZoneInputSchema,
   branchServiceZoneSchema,
   changePasswordSchema,
+  createMerchantInputSchema,
   createOpsUserInputSchema,
   customerProfileSchema,
   dispatchAssignmentSchema,
@@ -551,6 +552,11 @@ export function createOpsApi({ baseURL, token } = {}) {
 
       return z.array(opsUserSchema).parse(data);
     },
+    async listManagedMerchants() {
+      const data = unwrapData(await client.get('merchants'));
+
+      return z.array(managedMerchantSchema).parse(data);
+    },
     async createUser(payload) {
       const parsedPayload = createOpsUserInputSchema.parse(payload);
       const data = unwrapData(await client.post('users', parsedPayload));
@@ -623,6 +629,77 @@ export function createOpsApi({ baseURL, token } = {}) {
       const data = unwrapData(await client.get('configuration/merchants'));
 
       return z.array(opsMerchantConfigurationSchema).parse(data);
+    },
+    async createMerchant(payload) {
+      const parsedPayload = createMerchantInputSchema.parse(payload);
+      const data = unwrapData(await client.post('merchants', parsedPayload));
+
+      return managedMerchantSchema.parse(data);
+    },
+    async listCatalogItems(query) {
+      const parsedQuery = merchantCatalogListQuerySchema.parse(
+        compactParams(query)
+      );
+      const data = unwrapData(
+        await client.get('catalog/items', {
+          params: compactParams(parsedQuery),
+        })
+      );
+
+      return z.array(merchantCatalogItemSchema).parse(data);
+    },
+    async createCatalogItem(payload) {
+      const parsedPayload = merchantCatalogItemInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.post('catalog/items', parsedPayload)
+      );
+
+      return merchantCatalogItemSchema.parse(data);
+    },
+    async updateCatalogItem(catalogItemUuid, payload) {
+      const parsedPayload = merchantCatalogItemInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.patch(`catalog/items/${catalogItemUuid}`, parsedPayload)
+      );
+
+      return merchantCatalogItemSchema.parse(data);
+    },
+    async createModifierGroup(catalogItemUuid, payload) {
+      const parsedPayload =
+        merchantCatalogModifierGroupInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.post(
+          `catalog/items/${catalogItemUuid}/modifier-groups`,
+          parsedPayload
+        )
+      );
+
+      return merchantCatalogModifierGroupSchema.parse(data);
+    },
+    async updateModifierGroup(catalogItemUuid, modifierGroupUuid, payload) {
+      const parsedPayload =
+        merchantCatalogModifierGroupInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.patch(
+          `catalog/items/${catalogItemUuid}/modifier-groups/${modifierGroupUuid}`,
+          parsedPayload
+        )
+      );
+
+      return merchantCatalogModifierGroupSchema.parse(data);
+    },
+    async upsertBranchOverride(branchUuid, catalogItemUuid, payload) {
+      const parsedPayload = branchCatalogOverrideInputSchema.parse(payload);
+      const response = await client.post(
+        `branches/${branchUuid}/catalog-overrides/${catalogItemUuid}`,
+        parsedPayload
+      );
+
+      return {
+        branch_uuid: response.data.data.branch_uuid,
+        catalog_item_uuid: response.data.data.catalog_item_uuid,
+        override: response.data.data.override,
+      };
     },
     async getMapsProviderConfiguration() {
       const data = unwrapData(await client.get('configuration/maps-provider'));

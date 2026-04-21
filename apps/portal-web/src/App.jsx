@@ -123,6 +123,15 @@ const navItems = [
     iconName: 'settings',
   },
   {
+    labelKey: 'navigation.merchantCatalog',
+    path: '/ops/catalog',
+    actors: ['ops'],
+    badgeKey: 'navigation.badges.scoped',
+    requiredPermissions: ['ops:merchants.manage'],
+    groupKey: 'navigation.groups.manage',
+    iconName: 'catalog',
+  },
+  {
     labelKey: 'navigation.opsPromotions',
     path: '/ops/promotions',
     actors: ['ops'],
@@ -366,6 +375,17 @@ export function App({
                       requiredPermissions={['ops:merchants.manage']}
                     >
                       <OpsConfigurationBoard />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/ops/catalog"
+                  element={
+                    <RequireAccess
+                      allowedActors={['ops']}
+                      requiredPermissions={['ops:merchants.manage']}
+                    >
+                      <MerchantCatalogManager />
                     </RequireAccess>
                   }
                 />

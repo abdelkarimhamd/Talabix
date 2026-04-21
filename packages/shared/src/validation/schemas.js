@@ -511,6 +511,49 @@ export const branchFeeBandInputSchema = branchFeeBandSchema.omit({
   uuid: true,
 });
 
+export const createMerchantInputSchema = z.object({
+  name: z.string().min(1).max(255),
+  slug: z.string().min(1).max(255),
+  platform_commission_bps: z.number().int().min(0).max(10000).optional(),
+  branch: z.object({
+    name: z.string().min(1).max(255),
+    city: z.string().min(1).max(120),
+    address_line: z.string().min(1).max(255),
+    latitude: z.number(),
+    longitude: z.number(),
+    hours: z
+      .array(
+        z.object({
+          day_of_week: z.number().int().min(0).max(6),
+          opens_at: z.string().nullable().optional(),
+          closes_at: z.string().nullable().optional(),
+        })
+      )
+      .min(1),
+    zones: z
+      .array(
+        z.object({
+          name: z.string().min(1),
+          city: z.string().min(1),
+          postal_code: z.string().nullable().optional(),
+          center_latitude: z.number(),
+          center_longitude: z.number(),
+          radius_meters: z.number().int().min(100),
+        })
+      )
+      .min(1),
+    fee_bands: z
+      .array(
+        z.object({
+          min_distance_meters: z.number().int().nonnegative(),
+          max_distance_meters: z.number().int().positive(),
+          fee_minor: z.number().int().nonnegative(),
+        })
+      )
+      .min(1),
+  }),
+});
+
 export const catalogItemSchema = z.object({
   uuid: z.string().uuid().optional(),
   id: z.string().optional(),
