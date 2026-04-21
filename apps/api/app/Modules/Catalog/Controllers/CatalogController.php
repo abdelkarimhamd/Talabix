@@ -70,21 +70,20 @@ class CatalogController extends Controller
             ->orderBy('name')
             ->get()
             ->each(function (CatalogItem $catalogItem) use ($branch) {
-                /** @var BranchCatalogOverride|null $override */
                 $override = $catalogItem->branchOverrides->first();
 
                 $catalogItem->setAttribute('effective_branch_uuid', $branch->uuid);
                 $catalogItem->setAttribute(
                     'effective_price_minor',
-                    $override?->price_minor ?? $catalogItem->base_price_minor
+                    data_get($override, 'price_minor') ?? $catalogItem->base_price_minor
                 );
                 $catalogItem->setAttribute(
                     'effective_stock_quantity',
-                    $override?->stock_quantity ?? $catalogItem->base_stock
+                    data_get($override, 'stock_quantity') ?? $catalogItem->base_stock
                 );
                 $catalogItem->setAttribute(
                     'effective_is_available',
-                    $override?->is_available ?? $catalogItem->is_active
+                    data_get($override, 'is_available') ?? $catalogItem->is_active
                 );
             });
 
