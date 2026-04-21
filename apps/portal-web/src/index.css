@@ -1257,11 +1257,9 @@ body {
 }
 
 .nav-link-copy > span {
-  overflow: hidden;
   font-weight: 760;
   line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .nav-link-copy small {
