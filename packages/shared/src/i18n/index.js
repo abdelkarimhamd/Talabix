@@ -78,6 +78,12 @@ export const translations = {
       dispatchBoard: 'Dispatch Board',
       supportConsole: 'Support Console',
       settlementLedger: 'Settlement Ledger',
+      groups: {
+        work: 'Work',
+        manage: 'Manage',
+        finance: 'Finance',
+        account: 'Account',
+      },
       badges: {
         live: 'Live',
         scoped: 'Scoped',
@@ -100,6 +106,7 @@ export const translations = {
       summary:
         'One React shell, split by actor routes and permissions so merchant staff and ops teams share infrastructure without sharing scope.',
       activeSession: 'Active session',
+      currentWorkspace: 'Current workspace',
       actorSwitcher: 'Actor session',
       merchantSession: 'Merchant',
       opsSession: 'Ops',
@@ -1062,6 +1069,12 @@ export const translations = {
       dispatchBoard: 'لوحة الإسناد',
       supportConsole: 'وحدة الدعم',
       settlementLedger: 'سجل التسويات',
+      groups: {
+        work: 'العمل',
+        manage: 'الإدارة',
+        finance: 'المالية',
+        account: 'الحساب',
+      },
       badges: {
         live: 'مباشر',
         scoped: 'مقيد',
@@ -1084,6 +1097,7 @@ export const translations = {
       summary:
         'واجهة React واحدة مقسمة حسب مسارات الأدوار والصلاحيات حتى يعمل فريق التاجر وفريق العمليات على نفس البنية دون خلط نطاقات الوصول.',
       activeSession: 'الجلسة النشطة',
+      currentWorkspace: 'مساحة العمل',
       actorSwitcher: 'جلسة الدور',
       merchantSession: 'التاجر',
       opsSession: 'العمليات',
