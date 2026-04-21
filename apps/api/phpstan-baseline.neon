@@ -1,0 +1,2371 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Branch.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/BranchFeeBand.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/BranchServiceZone.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CatalogItem.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CatalogItemModifierGroup.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CatalogItemModifierOption.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CustomerAddress.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CustomerProfile.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Merchant.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/MerchantStaffMembership.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Order.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/PromotionOffer.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/RiderProfile.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/SupportCase.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Instanceof between string and App\\Modules\\Orders\\Enums\\OrderStatus will always evaluate to false\.$#'
+			identifier: instanceof.alwaysFalse
+			count: 1
+			path: app/Modules/Dispatch/Controllers/DispatchController.php
+
+		-
+			message: '#^Property App\\Modules\\Dispatch\\Controllers\\DispatchController\:\:\$dispatchScoringService is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Modules/Dispatch/Controllers/DispatchController.php
+
+		-
+			message: '#^Property App\\Modules\\Dispatch\\Controllers\\DispatchController\:\:\$orderLifecycleService is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Modules/Dispatch/Controllers/DispatchController.php
+
+		-
+			message: '#^Property App\\Modules\\Dispatch\\Controllers\\DispatchController\:\:\$recordAuditLogAction is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Modules/Dispatch/Controllers/DispatchController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Modules\\Dispatch\\Enums\\RiderAvailability\:\:AVAILABLE will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Modules/Dispatch/Controllers/DispatchController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Modules/Dispatch/Controllers/DispatchController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Modules/Dispatch/Controllers/RiderStatusController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Dispatch/Controllers/RiderStatusController.php
+
+		-
+			message: '#^Method App\\Modules\\Dispatch\\Events\\OpsDispatchBoardUpdated\:\:__construct\(\) has parameter \$payload with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Dispatch/Events/OpsDispatchBoardUpdated.php
+
+		-
+			message: '#^Method App\\Modules\\Dispatch\\Events\\OpsDispatchBoardUpdated\:\:broadcastWith\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Dispatch/Events/OpsDispatchBoardUpdated.php
+
+		-
+			message: '#^Method App\\Modules\\Dispatch\\Requests\\ReassignOrderRequest\:\:bodyParameters\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Dispatch/Requests/ReassignOrderRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Dispatch\\Requests\\ReassignOrderRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Dispatch/Requests/ReassignOrderRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Dispatch\\Requests\\UpdateRiderAvailabilityRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Dispatch/Requests/UpdateRiderAvailabilityRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Dispatch\\Requests\\UpdateRiderLocationRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Dispatch/Requests/UpdateRiderLocationRequest.php
+
+		-
+			message: '#^Property App\\Modules\\Dispatch\\Services\\AutoAssignOrderAction\:\:\$lifecycleService is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Modules/Dispatch/Services/AutoAssignOrderAction.php
+
+		-
+			message: '#^Property App\\Modules\\Dispatch\\Services\\AutoAssignOrderAction\:\:\$scoringService is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Modules/Dispatch/Services/AutoAssignOrderAction.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Modules\\Orders\\Enums\\OrderStatus\:\:ACCEPTED will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Modules/Dispatch/Services/AutoAssignOrderAction.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Modules/Dispatch/Services/AutoAssignOrderAction.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Instanceof between string and App\\Modules\\Orders\\Enums\\OrderStatus will always evaluate to false\.$#'
+			identifier: instanceof.alwaysFalse
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Method App\\Modules\\Dispatch\\Services\\DispatchRouteProjectionService\:\:activeAssignments\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Method App\\Modules\\Dispatch\\Services\\DispatchRouteProjectionService\:\:eligibleRiders\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Method App\\Modules\\Dispatch\\Services\\DispatchRouteProjectionService\:\:minutesSince\(\) has parameter \$timestamp with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Method App\\Modules\\Dispatch\\Services\\DispatchRouteProjectionService\:\:projectAssignment\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Method App\\Modules\\Dispatch\\Services\\DispatchRouteProjectionService\:\:slaSnapshot\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\RiderProfile\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:sortByDesc\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\RiderProfile\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:all\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>latitude" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>longitude" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Modules/Dispatch/Services/DispatchRouteProjectionService.php
+
+		-
+			message: '#^Property App\\Modules\\Dispatch\\Services\\DispatchScoringService\:\:\$pricingService is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchScoringService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Modules\\Dispatch\\Enums\\RiderAvailability\:\:AVAILABLE will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchScoringService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Modules/Dispatch/Services/DispatchScoringService.php
+
+		-
+			message: '#^Constant App\\Modules\\Identity\\Actions\\IssueTokenAction\:\:ABILITY_MAP is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: app/Modules/Identity/Actions/IssueTokenAction.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Modules\\Identity\\Enums\\UserAccountStatus\:\:ACTIVE will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Modules/Identity/Actions/IssueTokenAction.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Modules/Identity/Actions/IssueTokenAction.php
+
+		-
+			message: '#^Method App\\Modules\\Identity\\Requests\\ForgotPasswordRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Identity/Requests/ForgotPasswordRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Identity\\Requests\\LoginRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Identity/Requests/LoginRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Identity\\Requests\\RegisterCustomerRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Identity/Requests/RegisterCustomerRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Identity\\Requests\\ResetPasswordRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Identity/Requests/ResetPasswordRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Identity\\Requests\\UpdateCustomerProfileRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Identity/Requests/UpdateCustomerProfileRequest.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Identity\\Resources\\UserResource\:\:\$account_status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Identity/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Identity\\Resources\\UserResource\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Identity/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Identity\\Resources\\UserResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Identity/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Identity\\Resources\\UserResource\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Identity/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Identity\\Resources\\UserResource\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Identity/Resources/UserResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Modules\\Identity\\Resources\\UserResource\:\:getRoleNames\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Modules/Identity/Resources/UserResource.php
+
+		-
+			message: '#^Method App\\Modules\\Identity\\Resources\\UserResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Identity/Resources/UserResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>abilities" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Identity/Resources/UserResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Identity/Resources/UserResource.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Actions\\CreateMerchantAction\:\:execute\(\) has parameter \$payload with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Actions/CreateMerchantAction.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Requests\\CustomerMerchantDiscoveryRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Requests/CustomerMerchantDiscoveryRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Requests\\StoreMerchantRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Requests/StoreMerchantRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Requests\\UpdateBranchConfigurationRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Requests/UpdateBranchConfigurationRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Requests\\UpdateMerchantConfigurationRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Requests/UpdateMerchantConfigurationRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Requests\\UpsertBranchFeeBandRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Requests/UpsertBranchFeeBandRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Requests\\UpsertBranchServiceZoneRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Requests/UpsertBranchServiceZoneRequest.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchFeeBandResource\:\:\$fee_minor\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchFeeBandResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchFeeBandResource\:\:\$max_distance_meters\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchFeeBandResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchFeeBandResource\:\:\$min_distance_meters\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchFeeBandResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchFeeBandResource\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchFeeBandResource.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Resources\\BranchFeeBandResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchFeeBandResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchResource\:\:\$accepts_orders\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchResource\:\:\$address_line\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchResource\:\:\$city\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchResource\:\:\$latitude\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchResource\:\:\$longitude\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchResource\:\:\$serviceability\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchResource\:\:\$today_hours\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchResource\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchResource.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Resources\\BranchResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchServiceZoneResource\:\:\$center_latitude\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchServiceZoneResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchServiceZoneResource\:\:\$center_longitude\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchServiceZoneResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchServiceZoneResource\:\:\$city\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchServiceZoneResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchServiceZoneResource\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchServiceZoneResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchServiceZoneResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchServiceZoneResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchServiceZoneResource\:\:\$postal_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchServiceZoneResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchServiceZoneResource\:\:\$radius_meters\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchServiceZoneResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\BranchServiceZoneResource\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchServiceZoneResource.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Resources\\BranchServiceZoneResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Resources/BranchServiceZoneResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\MerchantConfigurationResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\MerchantConfigurationResource\:\:\$platform_commission_bps\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\MerchantConfigurationResource\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\MerchantConfigurationResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\MerchantConfigurationResource\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantConfigurationResource.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Resources\\MerchantConfigurationResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\MerchantResource\:\:\$is_serviceable\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\MerchantResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\MerchantResource\:\:\$serviceable_branch_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\MerchantResource\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\MerchantResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\MerchantResource\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantResource.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Resources\\MerchantResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Resources/MerchantResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\OpsBranchConfigurationResource\:\:\$accepts_orders\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/OpsBranchConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\OpsBranchConfigurationResource\:\:\$address_line\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/OpsBranchConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\OpsBranchConfigurationResource\:\:\$city\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/OpsBranchConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\OpsBranchConfigurationResource\:\:\$latitude\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/OpsBranchConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\OpsBranchConfigurationResource\:\:\$longitude\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/OpsBranchConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\OpsBranchConfigurationResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/OpsBranchConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\OpsBranchConfigurationResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/OpsBranchConfigurationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Merchants\\Resources\\OpsBranchConfigurationResource\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Merchants/Resources/OpsBranchConfigurationResource.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Resources\\OpsBranchConfigurationResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Resources/OpsBranchConfigurationResource.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Services\\CustomerMerchantDiscoveryService\:\:isBranchOpenNow\(\) has parameter \$todayHours with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Services/CustomerMerchantDiscoveryService.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Services\\CustomerMerchantDiscoveryService\:\:list\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Merchants/Services/CustomerMerchantDiscoveryService.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Services\\CustomerMerchantDiscoveryService\:\:serviceabilityForBranch\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Services/CustomerMerchantDiscoveryService.php
+
+		-
+			message: '#^Method App\\Modules\\Merchants\\Services\\CustomerMerchantDiscoveryService\:\:todayHoursForBranch\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Merchants/Services/CustomerMerchantDiscoveryService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$read_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Controllers/NotificationController.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Controllers\\NotificationController\:\:actorInboxQuery\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Notifications/Controllers/NotificationController.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Jobs\\SendOrderStatusNotificationJob\:\:__construct\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Jobs/SendOrderStatusNotificationJob.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Requests\\NotificationInboxRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Requests/NotificationInboxRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Requests\\NotificationIndexRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Requests/NotificationIndexRequest.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$attempt_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$body\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$channel\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$last_attempted_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$last_error\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$next_retry_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$notification_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$order_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$payload\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$provider\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$provider_reference\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$queued_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$read_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$recipientUser\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$recipient_actor\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$recipient_user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$sent_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Resources\\NotificationDeliveryResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Modules/Notifications/Resources/NotificationDeliveryResource.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationDeliveryService\:\:orderRecipients\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationDeliveryService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationDeliveryService\:\:persistDeliveries\(\) has parameter \$recipients with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationDeliveryService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationDeliveryService\:\:queueOrderStatusNotifications\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationDeliveryService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Modules\\Notifications\\Enums\\NotificationDeliveryStatus\:\:SENT will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationDeliveryService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:basePayload\(\) has parameter \$extra with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:basePayload\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:customerOrderStatusMessage\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:customerOrderStatusMessage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:genericOrderStatusMessage\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:genericOrderStatusMessage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:genericTitleBody\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:merchantOrderStatusMessage\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:merchantOrderStatusMessage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:orderStatusMessage\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:orderStatusMessage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:riderOrderStatusMessage\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:riderOrderStatusMessage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:supportNoteMessage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:titleBody\(\) has parameter \$replace with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Method App\\Modules\\Notifications\\Services\\NotificationTemplateService\:\:titleBody\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 14
+			path: app/Modules/Notifications/Services/NotificationTemplateService.php
+
+		-
+			message: '#^Instanceof between string and App\\Modules\\Notifications\\Enums\\NotificationChannel will always evaluate to false\.$#'
+			identifier: instanceof.alwaysFalse
+			count: 1
+			path: app/Modules/Notifications/Services/NotificationTransportManager.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Modules/Notifications/Services/Transports/FailingNotificationTransport.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Notifications/Services/Transports/FailingNotificationTransport.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Modules/Notifications/Services/Transports/LogPushNotificationTransport.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Notifications/Services/Transports/LogPushNotificationTransport.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Modules/Notifications/Services/Transports/LogSmsNotificationTransport.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Notifications/Services/Transports/LogSmsNotificationTransport.php
+
+		-
+			message: '#^Method App\\Modules\\Offers\\Controllers\\PromotionOfferController\:\:payloadForOffer\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Offers/Controllers/PromotionOfferController.php
+
+		-
+			message: '#^Method App\\Modules\\Offers\\Requests\\StorePromotionOfferRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Offers/Requests/StorePromotionOfferRequest.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$amount_minor\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$branch\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$catalogItem\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$discount_label\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$discount_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$expires_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$min_spend_minor\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$percent\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$requires_promo_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$starts_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Method App\\Modules\\Offers\\Resources\\PromotionOfferResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Offers/Resources/PromotionOfferResource.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Controllers\\CustomerAddressController\:\:ensureDefaultAddressExists\(\) has parameter \$profile with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Modules/Orders/Controllers/CustomerAddressController.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Controllers\\OrderController\:\:activeAssignmentForRider\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Modules/Orders/Controllers/OrderController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Modules\\Orders\\Enums\\OrderStatus\:\:ASSIGNED will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
+			path: app/Modules/Orders/Controllers/OrderController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Modules\\Orders\\Enums\\OrderStatus\:\:PICKED_UP will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Modules/Orders/Controllers/OrderController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Modules/Orders/Controllers/OrderController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Modules/Orders/Controllers/OrderController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 3
+			path: app/Modules/Orders/Controllers/OrderController.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Events\\OrderStatusChanged\:\:__construct\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Events/OrderStatusChanged.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Requests\\CheckoutRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Requests/CheckoutRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Requests\\CompleteDeliveryRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Requests/CompleteDeliveryRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Requests\\StoreAddressRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Requests/StoreAddressRequest.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$apartment\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$building\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$city\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$delivery_notes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$floor\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$is_default\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$label\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$landmark\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$latitude\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$line_1\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$line_2\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$longitude\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\AddressResource\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Resources\\AddressResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Resources/AddressResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$accepted_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$assignments\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$branch\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$currency\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$customerProfile\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$delivered_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$delivery_address_snapshot\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$delivery_fee_minor\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$items\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$merchant\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$notes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$payment_status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$placed_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$platform_commission_minor\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$pricing_snapshot\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$rider_earning_minor\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$subtotal_minor\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$supportCase\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$supportNotes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$timeline\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$total_minor\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Orders\\Resources\\OrderResource\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Modules\\Orders\\Resources\\OrderResource\:\:relationLoaded\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Resources\\OrderResource\:\:merchantActions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Resources\\OrderResource\:\:riderActions\(\) has parameter \$latestAssignment with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Resources\\OrderResource\:\:riderActions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Resources\\OrderResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 10
+			path: app/Modules/Orders/Resources/OrderResource.php
+
+		-
+			message: '#^Instanceof between string and App\\Modules\\Orders\\Enums\\OrderStatus will always evaluate to false\.$#'
+			identifier: instanceof.alwaysFalse
+			count: 1
+			path: app/Modules/Orders/Services/OrderLifecycleService.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Services\\OrderLifecycleService\:\:recordTimelineEvent\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Services/OrderLifecycleService.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Services\\OrderLifecycleService\:\:timelineRecord\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Services/OrderLifecycleService.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Services\\OrderLifecycleService\:\:transition\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Services/OrderLifecycleService.php
+
+		-
+			message: '#^Offset ''accepted''\|''assigned''\|''cancelled''\|''delivered''\|''picked_up''\|''placed''\|''preparing''\|''ready_for_pickup'' on array\{placed\: array\{App\\Modules\\Orders\\Enums\\OrderStatus\:\:ACCEPTED, App\\Modules\\Orders\\Enums\\OrderStatus\:\:CANCELLED\}, accepted\: array\{App\\Modules\\Orders\\Enums\\OrderStatus\:\:PREPARING, App\\Modules\\Orders\\Enums\\OrderStatus\:\:ASSIGNED, App\\Modules\\Orders\\Enums\\OrderStatus\:\:CANCELLED\}, preparing\: array\{App\\Modules\\Orders\\Enums\\OrderStatus\:\:READY_FOR_PICKUP, App\\Modules\\Orders\\Enums\\OrderStatus\:\:ASSIGNED, App\\Modules\\Orders\\Enums\\OrderStatus\:\:CANCELLED\}, ready_for_pickup\: array\{App\\Modules\\Orders\\Enums\\OrderStatus\:\:ASSIGNED, App\\Modules\\Orders\\Enums\\OrderStatus\:\:CANCELLED\}, assigned\: array\{App\\Modules\\Orders\\Enums\\OrderStatus\:\:PICKED_UP, App\\Modules\\Orders\\Enums\\OrderStatus\:\:CANCELLED\}, picked_up\: array\{App\\Modules\\Orders\\Enums\\OrderStatus\:\:DELIVERED\}, delivered\: array\{\}, cancelled\: array\{\}\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Modules/Orders/Services/OrderLifecycleService.php
+
+		-
+			message: '#^Parameter \#5 \$fromStatus of method App\\Modules\\Orders\\Services\\OrderLifecycleService\:\:timelineRecord\(\) expects App\\Modules\\Orders\\Enums\\OrderStatus, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Orders/Services/OrderLifecycleService.php
+
+		-
+			message: '#^Parameter \#6 \$toStatus of method App\\Modules\\Orders\\Services\\OrderLifecycleService\:\:timelineRecord\(\) expects App\\Modules\\Orders\\Enums\\OrderStatus, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Modules/Orders/Services/OrderLifecycleService.php
+
+		-
+			message: '#^Property App\\Models\\Order\:\:\$payment_status \(string\) does not accept App\\Modules\\Orders\\Enums\\PaymentStatus\:\:COLLECTED_COD\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Modules/Orders/Services/OrderLifecycleService.php
+
+		-
+			message: '#^Property App\\Models\\Order\:\:\$status \(string\) does not accept App\\Modules\\Orders\\Enums\\OrderStatus\:\:ACCEPTED\|App\\Modules\\Orders\\Enums\\OrderStatus\:\:ASSIGNED\|App\\Modules\\Orders\\Enums\\OrderStatus\:\:CANCELLED\|App\\Modules\\Orders\\Enums\\OrderStatus\:\:DELIVERED\|App\\Modules\\Orders\\Enums\\OrderStatus\:\:PICKED_UP\|App\\Modules\\Orders\\Enums\\OrderStatus\:\:PREPARING\|App\\Modules\\Orders\\Enums\\OrderStatus\:\:READY_FOR_PICKUP\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Modules/Orders/Services/OrderLifecycleService.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Services\\OrderPricingService\:\:calculateOfferDiscounts\(\) has parameter \$items with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Services\\OrderPricingService\:\:calculateOfferDiscounts\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Services\\OrderPricingService\:\:quote\(\) has parameter \$lineItems with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Services\\OrderPricingService\:\:quote\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Services\\OrderPricingService\:\:resolveSelectedModifiers\(\) has parameter \$selectedOptionUuids with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Method App\\Modules\\Orders\\Services\\OrderPricingService\:\:resolveSelectedModifiers\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>is_available" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>platform_commission_bps" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>price_minor" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>stock_quantity" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Orders/Services/OrderPricingService.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Modules/Settlements/Controllers/SettlementController.php
+
+		-
+			message: '#^Method App\\Modules\\Settlements\\Controllers\\SettlementController\:\:exportHeaders\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Settlements/Controllers/SettlementController.php
+
+		-
+			message: '#^Method App\\Modules\\Settlements\\Controllers\\SettlementController\:\:filteredEntries\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Modules/Settlements/Controllers/SettlementController.php
+
+		-
+			message: '#^Property App\\Modules\\Settlements\\Controllers\\SettlementController\:\:\$recordAuditLogAction is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Modules/Settlements/Controllers/SettlementController.php
+
+		-
+			message: '#^Property App\\Modules\\Settlements\\Controllers\\SettlementController\:\:\$settlementService is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Modules/Settlements/Controllers/SettlementController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Modules\\Orders\\Enums\\OrderStatus\:\:DELIVERED will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Modules/Settlements/Controllers/SettlementController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Modules/Settlements/Controllers/SettlementController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Settlements/Controllers/SettlementController.php
+
+		-
+			message: '#^Method App\\Modules\\Settlements\\Requests\\SettlementLedgerIndexRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Settlements/Requests/SettlementLedgerIndexRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Settlements\\Requests\\StoreSettlementAdjustmentRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Settlements/Requests/StoreSettlementAdjustmentRequest.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$amount_minor\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$currency\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$entry_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$merchant\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$merchant_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$notes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$occurred_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$order_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$riderProfile\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:\$rider_profile_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Method App\\Modules\\Settlements\\Resources\\LedgerEntryResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Settlements/Resources/LedgerEntryResource.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Modules\\Orders\\Enums\\OrderStatus\:\:DELIVERED will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Modules/Settlements/Services/SettlementService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Modules/Settlements/Services/SettlementService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Actions\\RecordAuditLogAction\:\:execute\(\) has parameter \$properties with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Actions/RecordAuditLogAction.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Requests\\MerchantSalesReportRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Requests/MerchantSalesReportRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Requests\\PlaceSearchRequest\:\:queryParameters\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Requests/PlaceSearchRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Requests\\PlaceSearchRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Requests/PlaceSearchRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Requests\\ReportRangeRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Requests/ReportRangeRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Resources\\MerchantSalesReportResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Resources/MerchantSalesReportResource.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Resources\\OpsDashboardOverviewResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Resources/OpsDashboardOverviewResource.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Resources\\PlaceSuggestionResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Resources/PlaceSuggestionResource.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Resources\\RiderEarningsReportResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Resources/RiderEarningsReportResource.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\MapsProviderService\:\:demoDistanceEstimate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/MapsProviderService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\MapsProviderService\:\:distanceEstimate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/MapsProviderService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\MapsProviderService\:\:googleDistanceEstimate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/MapsProviderService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\MapsProviderService\:\:mapGooglePlaceCandidate\(\) has parameter \$candidate with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/MapsProviderService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\MapsProviderService\:\:mapGooglePlaceCandidate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/MapsProviderService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\MapsProviderService\:\:searchDemoPlaces\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/MapsProviderService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\MapsProviderService\:\:searchGooglePlaces\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/MapsProviderService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\MapsProviderService\:\:searchPlaces\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/MapsProviderService.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Modules/Shared/Services/MapsProviderService.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Modules/Shared/Services/MapsProviderService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReadinessCheckService\:\:checkCache\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReadinessCheckService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReadinessCheckService\:\:checkDatabase\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReadinessCheckService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReadinessCheckService\:\:checkQueue\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReadinessCheckService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReadinessCheckService\:\:checkReverb\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReadinessCheckService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReadinessCheckService\:\:measure\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReadinessCheckService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReadinessCheckService\:\:report\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReadinessCheckService.php
+
+		-
+			message: '#^Cannot call method toDateString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Cannot call method toIso8601String\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Instanceof between string and App\\Modules\\Dispatch\\Enums\\RiderAvailability will always evaluate to false\.$#'
+			identifier: instanceof.alwaysFalse
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Instanceof between string and App\\Modules\\Orders\\Enums\\OrderStatus will always evaluate to false\.$#'
+			identifier: instanceof.alwaysFalse
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Instanceof between string and App\\Modules\\Settlements\\Enums\\LedgerEntryType will always evaluate to false\.$#'
+			identifier: instanceof.alwaysFalse
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReportingService\:\:merchantSales\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReportingService\:\:opsOverview\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReportingService\:\:rangeMeta\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReportingService\:\:resolveRange\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReportingService\:\:riderEarnings\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReportingService\:\:seedDateBuckets\(\) has parameter \$template with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Method App\\Modules\\Shared\\Services\\ReportingService\:\:seedDateBuckets\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\LedgerEntry\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\LedgerEntry\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:all\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Unable to resolve the template type TGroupKey in call to method Illuminate\\Support\\Collection\<int,App\\Models\\OrderItem\>\:\:groupBy\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type string\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>currency" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 6
+			path: app/Modules/Shared/Services/ReportingService.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 4
+			path: app/Modules/Support/Controllers/SupportController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: app/Modules/Support/Controllers/SupportController.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Requests\\CancelSupportOrderRequest\:\:bodyParameters\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Requests/CancelSupportOrderRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Requests\\CancelSupportOrderRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Requests/CancelSupportOrderRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Requests\\StoreSupportCaseRequest\:\:after\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Requests/StoreSupportCaseRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Requests\\StoreSupportCaseRequest\:\:bodyParameters\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Requests/StoreSupportCaseRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Requests\\StoreSupportCaseRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Requests/StoreSupportCaseRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Requests\\StoreSupportNoteRequest\:\:bodyParameters\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Requests/StoreSupportNoteRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Requests\\StoreSupportNoteRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Requests/StoreSupportNoteRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Requests\\UpdateSupportCaseRequest\:\:after\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Requests/UpdateSupportCaseRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Requests\\UpdateSupportCaseRequest\:\:bodyParameters\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Requests/UpdateSupportCaseRequest.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Requests\\UpdateSupportCaseRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Requests/UpdateSupportCaseRequest.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$cancellation_reason_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$issue_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$openedBy\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$opened_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$opened_by_user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$order_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$resolution_notes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$resolution_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$resolvedBy\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$resolved_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$resolved_by_user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$summary\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportCaseResource\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Resources\\SupportCaseResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: app/Modules/Support/Resources/SupportCaseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportNoteResource\:\:\$attachment_disk\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportNoteResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportNoteResource\:\:\$attachment_path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportNoteResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportNoteResource\:\:\$author\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportNoteResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportNoteResource\:\:\$author_user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportNoteResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportNoteResource\:\:\$body\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportNoteResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportNoteResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportNoteResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportNoteResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportNoteResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportNoteResource\:\:\$order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportNoteResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Support\\Resources\\SupportNoteResource\:\:\$order_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Support/Resources/SupportNoteResource.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Resources\\SupportNoteResource\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Resources/SupportNoteResource.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 4
+			path: app/Modules/Support/Services/SupportCaseService.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Services\\SupportCaseService\:\:createOrUpdateForOrder\(\) has parameter \$payload with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Services/SupportCaseService.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Services\\SupportCaseService\:\:persist\(\) has parameter \$payload with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Services/SupportCaseService.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Services\\SupportCaseService\:\:resolveFromCancellation\(\) has parameter \$payload with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Services/SupportCaseService.php
+
+		-
+			message: '#^Method App\\Modules\\Support\\Services\\SupportCaseService\:\:update\(\) has parameter \$payload with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Modules/Support/Services/SupportCaseService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Support/Services/SupportCaseService.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type string\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/Support/Services/SupportCaseService.php
