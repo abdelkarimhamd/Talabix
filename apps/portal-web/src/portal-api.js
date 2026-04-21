@@ -1107,8 +1107,13 @@ function nextNotificationEntries(order, notificationType, title, body) {
 }
 
 export function createPortalApi(session) {
+  const baseURL = resolvePortalApiBaseUrl();
+  const liveOpsApi =
+    session.isAuthenticated && session.actor === 'ops'
+      ? createOpsApi({ baseURL, token: session.token })
+      : null;
   const client = createApiClient({
-    baseURL: resolvePortalApiBaseUrl(),
+    baseURL,
     actor: session.actor,
     token: session.token,
   });
@@ -1116,6 +1121,11 @@ export function createPortalApi(session) {
   return {
     client,
     async logout() {
+      if (liveOpsApi) {
+        await liveOpsApi.logout();
+        return;
+      }
+
       await client.post('auth/logout');
     },
     async listManagedMerchants() {
@@ -1127,19 +1137,35 @@ export function createPortalApi(session) {
       return buildMerchantSalesReport(query);
     },
     async getOpsDashboardOverview(query = {}) {
+      if (liveOpsApi) {
+        return liveOpsApi.getDashboardOverview(query);
+      }
+
       return buildOpsDashboardOverview(query);
     },
     async listMerchantConfigurations() {
+      if (liveOpsApi) {
+        return liveOpsApi.listMerchantConfigurations();
+      }
+
       return state.merchantConfigurations.map((merchant) =>
         opsMerchantConfigurationSchema.parse(merchant)
       );
     },
     async getMapsProviderConfiguration() {
+      if (liveOpsApi) {
+        return liveOpsApi.getMapsProviderConfiguration();
+      }
+
       return mapsProviderConfigurationSchema.parse(
         clone(state.mapsProviderConfiguration)
       );
     },
     async updateMapsProviderConfiguration(payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.updateMapsProviderConfiguration(payload);
+      }
+
       const parsedPayload = updateMapsProviderConfigurationSchema.parse(
         Object.fromEntries(
           Object.entries(payload).filter(
@@ -1187,6 +1213,10 @@ export function createPortalApi(session) {
       );
     },
     async updateMerchantConfiguration(merchantUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.updateMerchantConfiguration(merchantUuid, payload);
+      }
+
       const parsedPayload = updateMerchantConfigurationSchema.parse(
         Object.fromEntries(
           Object.entries(payload).filter(([, value]) => value !== undefined)
@@ -1209,6 +1239,10 @@ export function createPortalApi(session) {
       return nextMerchant;
     },
     async updateBranchConfiguration(branchUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.updateBranchConfiguration(branchUuid, payload);
+      }
+
       const parsedPayload = updateBranchConfigurationSchema.parse(
         Object.fromEntries(
           Object.entries(payload).filter(([, value]) => value !== undefined)
@@ -1242,6 +1276,10 @@ export function createPortalApi(session) {
       return nextBranches.find((branch) => branch.uuid === branchUuid);
     },
     async createServiceZone(branchUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.createServiceZone(branchUuid, payload);
+      }
+
       const parsedPayload = branchServiceZoneInputSchema.parse(payload);
       const existingMerchant = state.merchantConfigurations.find((merchant) =>
         merchant.branches.some((branch) => branch.uuid === branchUuid)
@@ -1277,6 +1315,10 @@ export function createPortalApi(session) {
       return nextServiceZone;
     },
     async updateServiceZone(serviceZoneUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.updateServiceZone(serviceZoneUuid, payload);
+      }
+
       const parsedPayload = branchServiceZoneInputSchema.parse(payload);
       const existingMerchant = state.merchantConfigurations.find((merchant) =>
         merchant.branches.some((branch) =>
@@ -1321,6 +1363,10 @@ export function createPortalApi(session) {
       return updatedZone;
     },
     async createFeeBand(branchUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.createFeeBand(branchUuid, payload);
+      }
+
       const parsedPayload = branchFeeBandInputSchema.parse(payload);
       const existingMerchant = state.merchantConfigurations.find((merchant) =>
         merchant.branches.some((branch) => branch.uuid === branchUuid)
@@ -1357,6 +1403,10 @@ export function createPortalApi(session) {
       return nextFeeBand;
     },
     async updateFeeBand(feeBandUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.updateFeeBand(feeBandUuid, payload);
+      }
+
       const parsedPayload = branchFeeBandInputSchema.parse(payload);
       const existingMerchant = state.merchantConfigurations.find((merchant) =>
         merchant.branches.some((branch) =>
@@ -1729,11 +1779,19 @@ export function createPortalApi(session) {
       return nextDelivery;
     },
     async listDispatchAssignments() {
+      if (liveOpsApi) {
+        return liveOpsApi.listDispatchAssignments();
+      }
+
       return state.dispatchAssignments.map((assignment) =>
         dispatchAssignmentSchema.parse(assignment)
       );
     },
     async reassignDispatchOrder(orderUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.reassignDispatchOrder(orderUuid, payload);
+      }
+
       const parsedPayload = dispatchReassignmentInputSchema.parse(payload);
       const assignment = state.dispatchAssignments.find(
         (entry) => entry.orderUuid === orderUuid
@@ -1781,6 +1839,10 @@ export function createPortalApi(session) {
       };
     },
     async searchSupportOrders(query = {}) {
+      if (liveOpsApi) {
+        return liveOpsApi.searchSupportOrders(query);
+      }
+
       return searchSupportOrders(state.merchantOrders, query)
         .slice()
         .sort(
@@ -1790,6 +1852,10 @@ export function createPortalApi(session) {
         .map((order) => supportOrderSchema.parse(order));
     },
     async createOrUpdateSupportCase(orderUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.createOrUpdateSupportCase(orderUuid, payload);
+      }
+
       const parsedPayload = supportCaseInputSchema.parse(payload);
       const order = state.merchantOrders.find(
         (entry) => entry.uuid === orderUuid
@@ -1816,6 +1882,10 @@ export function createPortalApi(session) {
       return nextCase;
     },
     async updateSupportCase(supportCaseUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.updateSupportCase(supportCaseUuid, payload);
+      }
+
       const parsedPayload = supportCaseUpdateSchema.parse(
         Object.fromEntries(
           Object.entries(payload).filter(([, value]) => value !== undefined)
@@ -1846,6 +1916,10 @@ export function createPortalApi(session) {
       return nextCase;
     },
     async createSupportNote(orderUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.createSupportNote(orderUuid, payload);
+      }
+
       const parsedPayload = supportNoteInputSchema.parse(payload);
       const order = state.merchantOrders.find(
         (entry) => entry.uuid === orderUuid
@@ -1910,6 +1984,10 @@ export function createPortalApi(session) {
       return note;
     },
     async cancelSupportOrder(orderUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.cancelSupportOrder(orderUuid, payload);
+      }
+
       const parsedPayload = cancelSupportOrderInputSchema.parse(payload);
       const order = state.merchantOrders.find(
         (entry) => entry.uuid === orderUuid
@@ -1975,6 +2053,10 @@ export function createPortalApi(session) {
       return nextOrder;
     },
     async listNotifications(query = {}) {
+      if (liveOpsApi) {
+        return liveOpsApi.listNotifications(query);
+      }
+
       const data = listNotificationDeliveries(
         state.notificationDeliveries,
         query
@@ -1994,6 +2076,10 @@ export function createPortalApi(session) {
       };
     },
     async retryNotification(notificationDeliveryId) {
+      if (liveOpsApi) {
+        return liveOpsApi.retryNotification(notificationDeliveryId);
+      }
+
       const delivery = state.notificationDeliveries.find(
         (entry) => entry.id === notificationDeliveryId
       );
@@ -2021,6 +2107,10 @@ export function createPortalApi(session) {
       return nextDelivery;
     },
     async listSettlementLedger(query = {}) {
+      if (liveOpsApi) {
+        return liveOpsApi.listSettlementLedger(query);
+      }
+
       const entries = filterSettlementEntries(state.settlementEntries, query)
         .slice()
         .sort(
@@ -2035,6 +2125,10 @@ export function createPortalApi(session) {
       };
     },
     async createSettlementAdjustment(orderUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.createSettlementAdjustment(orderUuid, payload);
+      }
+
       const parsedPayload = settlementAdjustmentSchema.parse(payload);
       const relatedEntry = state.settlementEntries.find(
         (entry) => entry.order_uuid === orderUuid
