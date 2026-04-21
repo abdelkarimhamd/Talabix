@@ -4,14 +4,28 @@ This record is the source of truth for pre-launch operational proof. Keep raw se
 
 ## Required Before Production Traffic
 
-| Area                  | Required evidence                                           | Status  | Owner | Evidence link or note                                                                                                                      |
-| --------------------- | ----------------------------------------------------------- | ------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Staging deployment    | Successful staging deploy, migrations, and smoke checks     | Blocked | Ops   | Blocked: staging VM/domain/secrets and deployment target access are not available in this workspace                                        |
-| Baseline monitoring   | Uptime, error-rate, queue, failed-job, scheduler, DB, Redis | Blocked | Ops   | Blocked: monitoring provider, log drain, uptime/error/queue dashboard links, and alert destination are not available in this workspace     |
-| Maps provider alerts  | Provider dashboard alerts and fallback log-drain drill      | Blocked | Ops   | Blocked: staging key, provider dashboard links, and log-drain monitor links are not available in this workspace                            |
-| Dispatch SLA alerting | Log-drain monitor and successful alert drill                | Blocked | Ops   | Blocked: staging log-drain monitor, alert destination, and synthetic staging order access are not available in this workspace              |
-| MySQL restore drill   | Backup archive restored into a disposable database          | Blocked | Ops   | Blocked: staging backup disk, backup archive, disposable restore database, and maintenance host access are not available in this workspace |
-| Incident drill        | P0/P1 response walkthrough with roles and follow-up issue   | Blocked | Ops   | Blocked: staging incident channel/tool, participant roster, and follow-up issue tracker links are not available in this workspace          |
+| Area                  | Required evidence                                           | Status  | Owner | Evidence link or note                                                                                                                                                                                                 |
+| --------------------- | ----------------------------------------------------------- | ------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Staging deployment    | Successful staging deploy, migrations, and smoke checks     | Blocked | Ops   | Latest branch CI passed: https://github.com/abdelkarimhamd/Talabix/actions/runs/24722098497. Blocked: staging VM/domain/secrets and deployment target access are not available in this workspace                      |
+| Baseline monitoring   | Uptime, error-rate, queue, failed-job, scheduler, DB, Redis | Blocked | Ops   | CI guardrails passed for lint, tests, PHPStan, Pint, and API migrations/tests. Blocked: monitoring provider, log drain, uptime/error/queue dashboard links, and alert destination are not available in this workspace |
+| Maps provider alerts  | Provider dashboard alerts and fallback log-drain drill      | Blocked | Ops   | Blocked: staging key, provider dashboard links, and log-drain monitor links are not available in this workspace                                                                                                       |
+| Dispatch SLA alerting | Log-drain monitor and successful alert drill                | Blocked | Ops   | Blocked: staging log-drain monitor, alert destination, and synthetic staging order access are not available in this workspace                                                                                         |
+| MySQL restore drill   | Backup archive restored into a disposable database          | Blocked | Ops   | Blocked: staging backup disk, backup archive, disposable restore database, and maintenance host access are not available in this workspace                                                                            |
+| Incident drill        | P0/P1 response walkthrough with roles and follow-up issue   | Blocked | Ops   | Blocked: staging incident channel/tool, participant roster, and follow-up issue tracker links are not available in this workspace                                                                                     |
+
+## Latest CI Gate Evidence
+
+| Field                  | Value                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Gate date              | 2026-04-21T15:25:33+03:00                                                                                          |
+| Branch                 | `codex/design`                                                                                                     |
+| Commit                 | `157f76f`                                                                                                          |
+| GitHub Actions run     | https://github.com/abdelkarimhamd/Talabix/actions/runs/24722098497                                                 |
+| API job result         | Pass: Composer install, env/key setup, MySQL migrations/seeds, Pint, PHPStan, and `php artisan test` on PHP 8.3    |
+| Clients job result     | Pass: npm install, Playwright browser setup, lint, i18n audit, workspace tests, customer e2e, and artifact uploads |
+| PHPStan baseline guard | Pass: `apps/api/phpstan-baseline.neon` absent; CI guard is active                                                  |
+| Staging deployment     | Not run from this workspace                                                                                        |
+| Result                 | Pass for CI gate; staging environment evidence still Blocked                                                       |
 
 ## Maps Provider Alert Evidence
 
@@ -45,48 +59,48 @@ Run [maps-provider-alert-drill.md](./maps-provider-alert-drill.md) in staging af
 
 Run [dispatch-sla-alert-drill.md](./dispatch-sla-alert-drill.md) in staging after the log-drain monitor is created.
 
-| Field                                     | Value |
-| ----------------------------------------- | ----- |
-| Drill date                                |       |
-| Environment                               |       |
-| Monitoring provider                       |       |
-| Alert rule name                           |       |
-| Alert destination                         |       |
-| Rule match fields                         |       |
-| `DISPATCH_PICKUP_SLA_MINUTES`             |       |
-| `DELIVERY_EXCEPTION_RESPONSE_SLA_MINUTES` |       |
-| `DISPATCH_SLA_ALERT_THRESHOLD`            |       |
-| Synthetic pickup order UUID               |       |
-| Synthetic delivery-exception UUID         |       |
-| `ops:dispatch-sla-alerts` result          |       |
-| Log event ID or search URL                |       |
-| Alert incident ID or URL                  |       |
-| Cleanup verification                      |       |
-| Operator                                  |       |
-| Result                                    |       |
-| Notes                                     |       |
+| Field                                     | Value                                                                                                                                      |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Drill date                                | 2026-04-21T15:25:33+03:00                                                                                                                  |
+| Environment                               | GitHub Actions CI with MySQL/Redis services; staging log-drain unavailable from workspace                                                  |
+| Monitoring provider                       | Blocked: not recorded                                                                                                                      |
+| Alert rule name                           | Blocked: not recorded                                                                                                                      |
+| Alert destination                         | Blocked: not recorded                                                                                                                      |
+| Rule match fields                         | `event=dispatch_sla_breach_window_exceeded`, `breached_total >= DISPATCH_SLA_ALERT_THRESHOLD`                                              |
+| `DISPATCH_PICKUP_SLA_MINUTES`             | `30`                                                                                                                                       |
+| `DELIVERY_EXCEPTION_RESPONSE_SLA_MINUTES` | `10`                                                                                                                                       |
+| `DISPATCH_SLA_ALERT_THRESHOLD`            | `1`                                                                                                                                        |
+| Synthetic pickup order UUID               | CI-generated by `tests/Feature/Ops/DispatchSlaAlertTest.php`; not persisted as staging evidence                                            |
+| Synthetic delivery-exception UUID         | CI-generated by `tests/Feature/Ops/DispatchSlaAlertTest.php`; not persisted as staging evidence                                            |
+| `ops:dispatch-sla-alerts` result          | Pass in CI feature test: command exits `0` and logs one pickup breach plus one delivery-exception breach                                   |
+| Log event ID or search URL                | Blocked: staging log-drain monitor unavailable                                                                                             |
+| Alert incident ID or URL                  | Blocked: staging alert destination unavailable                                                                                             |
+| Cleanup verification                      | CI database is ephemeral; staging synthetic data cleanup not run                                                                           |
+| Operator                                  | Codex automation                                                                                                                           |
+| Result                                    | Blocked                                                                                                                                    |
+| Notes                                     | CI validates the command, schedule, and warning payload. Full launch pass still requires a real staging log-drain alert and incident link. |
 
 ## MySQL Restore Drill Evidence
 
 Run [mysql-backup-restore-drill.md](./mysql-backup-restore-drill.md) in staging or an isolated maintenance VM.
 
-| Field                    | Value |
-| ------------------------ | ----- |
-| Drill date               |       |
-| Environment              |       |
-| Backup disk              |       |
-| Backup archive timestamp |       |
-| Backup archive size      |       |
-| Backup archive checksum  |       |
-| Restore database         |       |
-| Extract result           |       |
-| Import result            |       |
-| Migration status result  |       |
-| Readiness test result    |       |
-| Cleanup verification     |       |
-| Operator                 |       |
-| Result                   |       |
-| Notes                    |       |
+| Field                    | Value                                                                                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Drill date               | 2026-04-21T15:25:33+03:00                                                                                                              |
+| Environment              | GitHub Actions CI with MySQL service; disposable staging restore host unavailable from workspace                                       |
+| Backup disk              | Configured in CI through `BACKUP_DISKS` defaults; production/staging disk not recorded                                                 |
+| Backup archive timestamp | Blocked: no staging backup archive available                                                                                           |
+| Backup archive size      | Blocked: no staging backup archive available                                                                                           |
+| Backup archive checksum  | Blocked: no staging backup archive available                                                                                           |
+| Restore database         | Blocked: disposable staging restore database unavailable                                                                               |
+| Extract result           | Blocked: no staging backup archive available                                                                                           |
+| Import result            | Blocked: disposable staging restore database unavailable                                                                               |
+| Migration status result  | CI migrations and seeds passed in https://github.com/abdelkarimhamd/Talabix/actions/runs/24722098497                                   |
+| Readiness test result    | API test suite passed in CI; restore-specific readiness test against a disposable restored database was not run                        |
+| Cleanup verification     | CI database is ephemeral; staging restore database cleanup not run                                                                     |
+| Operator                 | Codex automation                                                                                                                       |
+| Result                   | Blocked                                                                                                                                |
+| Notes                    | CI validates backup schedule/config tests. Full launch pass still requires restoring a real backup archive into a disposable database. |
 
 ## Incident Drill Evidence
 
