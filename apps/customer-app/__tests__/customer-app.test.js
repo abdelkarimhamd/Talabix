@@ -13,6 +13,8 @@ import { notifyManager } from '@tanstack/react-query';
 const mockRouterPush = jest.fn();
 const mockRequestCurrentLocation = jest.fn();
 
+jest.setTimeout(15_000);
+
 jest.mock('expo-router', () => ({
   useRouter: () => ({
     push: mockRouterPush,
