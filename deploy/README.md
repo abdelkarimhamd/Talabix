@@ -27,6 +27,8 @@ Create `staging` and `production` GitHub Environments with the same secret names
 | `READINESS_CHECK_KEY`  | Shared key expected by `/api/v1/readiness`.                             |
 | `DEPLOY_READINESS_URL` | Full readiness URL, usually `https://api.example.com/api/v1/readiness`. |
 
+For staging and production, include the backup variables in the encoded API env file: `BACKUP_DISKS`, `BACKUP_NOTIFICATION_EMAIL`, `BACKUP_ARCHIVE_PASSWORD`, backup retention thresholds, and S3-compatible storage credentials when `BACKUP_DISKS` includes `s3`.
+
 Generate the encoded env files locally with:
 
 ```powershell

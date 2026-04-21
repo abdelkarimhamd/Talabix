@@ -1,5 +1,635 @@
 # Talabix Continuous Improvement Log
 
+## 2026-04-21 - Portal support label hardening
+
+### Issues Found
+
+- Merchant order, merchant inbox, and ops support console views still used local string replacement for backend enum values, which exposed lower-case or raw-ish labels such as `order status updated`, `push`, `failed`, and support reason wire values.
+- Shared i18n enum coverage was missing support issue types, support resolution types, support cancellation reasons, notification channels, merchant notification actors, and the maps configuration audit action.
+- Customer app tests had drifted behind the redesigned home/offers/profile surfaces, causing false failures from duplicated visible text and stale Arabic expectations.
+- Workspace-wide lint surfaced a customer order history import/state mismatch while the broader worktree already contained unrelated daily-run changes.
+
+### Fixes Implemented
+
+- Replaced merchant notification type formatting with shared `labelForEnum` labels and locale-aware date formatting.
+- Replaced merchant order board status/timeline humanizers with shared order status, timeline event, and actor labels.
+- Replaced ops support console status, issue, resolution, cancellation reason, notification channel, recipient actor, and delivery status display with shared enum labels while preserving wire values for API payloads.
+- Added the missing shared English/Arabic enum labels and regression coverage for support and notification enum groups.
+- Updated customer app tests to assert redesigned duplicated content safely and to source Arabic expectations from the shared translation helper.
+
+### Enhancements Implemented
+
+- Reused shared support contract arrays for ops support select options instead of duplicating option literals in the component.
+- Strengthened portal regression coverage for merchant notification labels and support notification delivery labels.
+- Restored clean workspace-wide ESLint validation after the customer-app lint blocker was identified.
+
+### Files Changed
+
+- `apps/portal-web/src/features/merchant/MerchantNotificationsBoard.jsx`
+- `apps/portal-web/src/features/merchant/MerchantOrderBoard.jsx`
+- `apps/portal-web/src/features/ops/SupportConsole.jsx`
+- `apps/portal-web/src/App.test.jsx`
+- `packages/shared/src/i18n/index.js`
+- `packages/shared/src/i18n/i18n.test.js`
+- `apps/customer-app/__tests__/customer-app.test.js`
+- `apps/customer-app/src/screens/CustomerOrdersScreen.js`
+- `docs/continuous-improvement-log.md`
+
+### Migrations Added
+
+- None.
+
+### Validation Completed
+
+- `node packages\shared\src\i18n\i18n.test.js` - passed, 4 tests.
+- `npm.cmd --workspace @talabix/customer-app run test` - passed, 36 tests.
+- `npm.cmd --workspace @talabix/portal-web run lint -- --max-warnings=0` - passed.
+- `npm.cmd run lint -- --max-warnings=0` - passed with no warnings.
+- `npm.cmd --workspace @talabix/portal-web run test -- --run` - blocked before test execution by local `esbuild` process spawn `EPERM`.
+
+### Risks And Follow-Up Items
+
+- Portal Vitest remains unverified on this workstation until the existing `spawn EPERM` policy is resolved or CI runs the suite.
+- `apps/portal-web/src/features/ops/SettlementBoard.jsx` still has a local `entry_type.replaceAll('_', ' ')` label and should be migrated to shared enum labels next.
+- Some customer-app static home/offers copy remains English inside Arabic sessions; continue localization incrementally.
+
+### Recommended Next Priorities
+
+- Resolve the portal Vitest `esbuild` spawn blocker or validate the portal suite in CI.
+- Migrate settlement ledger entry labels and remaining portal static option copy to shared i18n.
+- Continue hardening customer mobile tests around redesigned duplicated surfaces with role/testID-based assertions.
+
+## 2026-04-21 - Launch workbench access checklist
+
+### Issues Found
+
+- The launch workbench correctly identified external access blockers, but operators still had to scan each blocked row to assemble one Ops handoff list.
+- The README described launch preflight, but did not name the workbench checklist as the first command to run when evidence is blocked.
+
+### Fixes Implemented
+
+- Added an `externalAccessChecklist` to launch workbench evaluation and formatted output.
+- Grouped external blockers by launch area and owner so Ops can see the staging, monitoring, maps, dispatch SLA, backup, and incident-tool access requests in one section.
+- Normalized blocked evidence notes into actionable `provide ...` checklist items without carrying raw availability phrasing into the request line.
+- Updated the README launch note to point operators to `npm run launch:workbench` before `launch:preflight` when evidence is still blocked.
+
+### Validation Completed
+
+- `node scripts\launch-workbench.test.mjs` passed, 7 tests.
+- `node scripts\launch-preflight.test.mjs` passed, 6 tests.
+- `npm.cmd run test:shared` passed, 20 tests.
+- `npm.cmd run launch:workbench --silent` reported the expected blocked state with a clean external access checklist.
+- `npx.cmd prettier --check README.md docs/continuous-improvement-log.md scripts/launch-workbench.mjs scripts/launch-workbench.test.mjs` passed.
+- `git diff --check -- README.md scripts/launch-workbench.mjs scripts/launch-workbench.test.mjs` passed; Git still emitted the existing LF-to-CRLF warning for README.
+
+### Risks And Follow-Up Items
+
+- This is an operator handoff improvement only; it does not complete the staging deploy, monitoring setup, maps provider alert drill, dispatch SLA drill, MySQL restore drill, or incident walkthrough.
+- After Ops provides the listed access and links, update `docs/ops/launch-evidence.md` and run `launch:preflight` with the verified PHP 8.3 runtime value.
+
+## 2026-04-21 - Launch workbench operator guidance
+
+### Issues Found
+
+- The launch workbench suggested POSIX inline environment-variable syntax for `launch:preflight`, which fails in this PowerShell workspace.
+- External-access rows in the workbench output repeated one generic next action even though `docs/ops/launch-evidence.md` already names each concrete missing dependency.
+
+### Fixes Implemented
+
+- Updated `scripts/launch-workbench.mjs` so blocked external-access rows surface their specific evidence note as the next action.
+- Added PowerShell and POSIX `launch:preflight` command hints when the PHP runtime warning is present.
+- Updated the README launch preflight note with both shell forms.
+
+### Validation Completed
+
+- `node scripts\launch-workbench.test.mjs` passed, 6 tests.
+- `node scripts\launch-preflight.test.mjs` passed, 6 tests.
+- `npm.cmd run test:shared` passed, 19 tests.
+- `npm.cmd run launch:workbench --silent` reported the expected blocked state with specific external blockers and shell-specific preflight commands.
+- `$env:TALABIX_PREFLIGHT_PHP_VERSION='8.3.30'; npm.cmd run launch:preflight` remained blocked as expected because no production-traffic evidence row is ready yet.
+- `npx.cmd prettier --check README.md docs/continuous-improvement-log.md scripts/launch-workbench.mjs scripts/launch-workbench.test.mjs` passed.
+- `git diff --check -- README.md docs/continuous-improvement-log.md scripts/launch-workbench.mjs scripts/launch-workbench.test.mjs` passed; Git still emitted existing LF-to-CRLF warnings for README and the continuous improvement log.
+
+### Risks And Follow-Up Items
+
+- This is operator tooling only; it does not replace the staging deploy, monitoring setup, provider dashboard alerts, restore drill, dispatch SLA drill, or incident walkthrough.
+- The next launch step still requires staging credentials/provider access and real drill evidence before any row can move to `Ready`.
+
+## 2026-04-20 - Launch evidence blocker triage
+
+### Issues Found
+
+- The launch workbench still classified several launch evidence rows as local evidence gaps because the required table left their concrete missing dependencies blank.
+- The incident drill was listed as a production-traffic blocker, but the evidence file did not yet provide a structured place to capture the walkthrough result.
+
+### Fixes Implemented
+
+- Converted the staging deployment, baseline monitoring, dispatch SLA alerting, MySQL restore drill, and incident drill rows from vague `Pending` states to explicit `Blocked` states with the missing staging, monitoring, backup, and incident-tool dependencies named.
+- Assigned the blocked rows to Ops so the evidence owner is clear before staging credentials and provider access are introduced.
+- Added an incident drill evidence table for roles, impact classification, mitigation/rollback decisions, communications timing, smoke-check result, and follow-up issue tracking.
+
+### Validation Completed
+
+- `npm.cmd run launch:workbench` reported the launch workbench as blocked and classified the evidence rows as external-access blockers instead of anonymous local gaps.
+- `TALABIX_PREFLIGHT_PHP_VERSION=8.3.30 npm.cmd run launch:preflight` remained blocked as expected because no production-traffic evidence row is ready yet.
+- `npx.cmd prettier --check docs/ops/launch-evidence.md docs/continuous-improvement-log.md` passed.
+- `git diff --check -- docs/ops/launch-evidence.md docs/continuous-improvement-log.md` passed; Git still emitted its existing LF-to-CRLF warning for the continuous improvement log.
+
+### Risks And Follow-Up Items
+
+- This was an evidence hygiene pass; it does not replace the real staging deployment, monitoring setup, restore drill, maps provider alert drill, dispatch SLA drill, or incident walkthrough.
+- The next launch step still requires staging credentials/provider access and real drill evidence before any row can move to `Ready`.
+
+## 2026-04-20 - Local launch readiness workbench
+
+### Issues Found
+
+- Launch preflight correctly blocked production promotion, but it did not give operators a local workbench view that separates repo-local evidence gaps from external staging access blockers.
+- Maps provider drill evidence could be marked blocked locally, but operators still had to inspect the evidence file by hand to understand which blockers were local versus external.
+
+### Fixes Implemented
+
+- Added `scripts/launch-workbench.mjs` and `npm run launch:workbench`.
+- Classified launch evidence rows as `Ready`, `Pending`, or `Blocked`.
+- Categorized non-ready rows as `local-evidence`, `external-access`, or `unknown`.
+- Added safe output redaction for Google Maps keys and credential-bearing DSNs.
+- Wired workbench coverage into `npm run test:shared`.
+
+### Validation Completed
+
+- Red phase: `node scripts/launch-workbench.test.mjs` failed before `scripts/launch-workbench.mjs` existed.
+- Green phase: `node scripts/launch-workbench.test.mjs` passed.
+- `npm run test:shared` passed.
+- `npm run launch:workbench` reported the current local launch state as blocked with pending local evidence and external maps-provider access blockers.
+- `TALABIX_PREFLIGHT_PHP_VERSION=8.3.30 npm run launch:preflight` remained blocked as expected because launch evidence rows are not all ready.
+
+### Risks And Follow-Up Items
+
+- The workbench is a local reporting tool; it does not replace real staging provider dashboard, log-drain, restore, or incident drills.
+- The next local slice should fill more evidence rows with safe local proof before live/staging access is introduced.
+
+## 2026-04-20 - Launch preflight evidence gate
+
+### Issues Found
+
+- The launch runbooks now describe the required maps, dispatch SLA, and MySQL restore drills, but there was no single repo command that summarized whether the evidence record was still blocking production promotion.
+- The remaining launch gaps depend on staging secrets, monitoring access, and backup-host access, so local automation needed a safe way to keep those blockers explicit instead of implying the drills were complete.
+- API verification still depends on a PHP `>=8.3` runtime, but local process spawning is constrained enough that a Node-based preflight should not shell out to `php -v`.
+
+### Fixes Implemented
+
+- Added `scripts/launch-preflight.mjs`, a filesystem-only preflight that parses `docs/ops/launch-evidence.md`, verifies required runbooks exist, and enforces the API PHP runtime gate from `apps/api/composer.json` when `TALABIX_PREFLIGHT_PHP_VERSION` is supplied.
+- Added `npm run launch:preflight` as the operator-facing command.
+- Added unit coverage for launch evidence parsing, pending-evidence blockers, missing or unsupported PHP version blocking, ready-state reporting, and raw PHP version parsing.
+- Wired the new test into the existing single-process shared test runner to avoid the local `node --test` child-process restriction.
+
+### Enhancements Implemented
+
+- Updated the README, production readiness runbook, launch evidence record, and engineering alignment backlog so production promotion includes the preflight after staging evidence rows are filled.
+- Kept the preflight intentionally evidence-focused: it reports pending or missing launch proof, but it does not replace the actual staging provider, restore, or SLA alert drills.
+
+### Files Changed
+
+- `README.md`
+- `package.json`
+- `scripts/launch-preflight.mjs`
+- `scripts/launch-preflight.test.mjs`
+- `scripts/run-shared-tests.mjs`
+- `docs/ops/launch-evidence.md`
+- `docs/ops/production-readiness.md`
+- `docs/talabix-engineering-pack-alignment.md`
+- `docs/continuous-improvement-log.md`
+
+### Validation Completed
+
+- Red phase: `node scripts/launch-preflight.test.mjs` failed because `scripts/launch-preflight.mjs` did not exist yet.
+- Green phase: `node scripts/launch-preflight.test.mjs` passed, 6 tests.
+- `npm.cmd run test:shared` passed, 13 tests.
+
+### Risks And Follow-Up Items
+
+- `npm run launch:preflight` currently reports expected blockers because the staging deployment, monitoring, maps provider, dispatch SLA, MySQL restore, and incident evidence rows remain `Pending`.
+- The command relies on `TALABIX_PREFLIGHT_PHP_VERSION` for the runtime check because this workstation blocks Node child-process spawning.
+- The actual staging drills still require monitoring credentials, Google Maps provider access, backup storage, and a maintenance database target.
+
+## 2026-04-20 - Admin-managed Google Maps readiness
+
+### Issues Found
+
+- Google Maps was selected as the launch maps provider, but the API only read credentials from environment config.
+- Ops users had no admin surface to add or rotate the Google Maps API key later without exposing it back to the portal.
+- The shared API contract did not describe masked maps-provider readiness state for the portal.
+
+### Fixes Implemented
+
+- Added encrypted `maps_provider_settings` storage and an ops-only maps provider configuration API.
+- Updated `MapsProviderService` to prefer the admin-stored Google Maps key and provider settings before falling back to environment config.
+- Added shared validation/client contracts and an ops portal panel for Google Maps provider, region, location bias, timeout, fallback, and key rotation.
+- Kept API keys write-only in UI/API responses by returning only configured state, source, and a masked preview.
+
+### Files Changed
+
+- `apps/api/app/Models/MapsProviderSetting.php`
+- `apps/api/app/Modules/Shared/Controllers/MapsProviderConfigurationController.php`
+- `apps/api/app/Modules/Shared/Requests/UpdateMapsProviderConfigurationRequest.php`
+- `apps/api/app/Modules/Shared/Services/MapsProviderConfigurationService.php`
+- `apps/api/app/Modules/Shared/Services/MapsProviderService.php`
+- `apps/api/database/migrations/2026_04_20_000100_create_maps_provider_settings_table.php`
+- `apps/api/routes/api/ops.php`
+- `apps/portal-web/src/features/ops/OpsConfigurationBoard.jsx`
+- `apps/portal-web/src/portal-api.js`
+- `packages/shared/src/api/client.js`
+- `packages/shared/src/validation/schemas.js`
+
+### Validation Completed
+
+- Red phase: shared schema and portal Google Maps credential tests failed before implementation.
+- `node scripts/run-shared-tests.mjs` passed.
+- `npm.cmd --workspace @talabix/portal-web run test -- --run src/App.test.jsx` passed, 21 tests.
+- `php -l` passed for all new and changed PHP maps-provider files.
+- `npx.cmd prettier --check packages/shared/src/validation/schemas.js packages/shared/src/api/client.js packages/shared/src/contracts/enums.js apps/portal-web/src/features/ops/OpsConfigurationBoard.jsx apps/portal-web/src/portal-api.js apps/portal-web/src/App.test.jsx` passed.
+- `git diff --check` passed.
+
+### Risks And Follow-Up Items
+
+- Laravel feature/unit tests are still blocked locally because Composer requires PHP `>=8.3.0` and this workstation is running PHP `8.2.12`.
+- Run the new migration and API tests in a PHP 8.3+ environment before staging.
+- Add the staging Google Maps key through the ops configuration panel, then run the maps provider alert drill.
+
+## 2026-04-20 - Customer notification feedback test stability
+
+### Issues Found
+
+- Customer notification mark-read tests emitted React `act(...)` warnings from `CustomerNotificationsScreen` after successful mutations.
+- The warning came from a local `setFeedback` call inside the TanStack Query mutation `onSuccess` callback, even though the cache updates were already routed through the test harness scheduler.
+- The worktree already contained broad uncommitted launch-readiness, dispatch, GPS address, notification, and delivery-exception changes from prior runs; this run preserved those changes and only touched the customer notification stability slice.
+
+### Fixes Implemented
+
+- Replaced customer notification feedback local state with feedback derived from the mutation result/error state.
+- Kept the existing cache reconciliation behavior for unread-only and unfiltered notification lists.
+- Added a regression test that fails when the customer notification mark-read flow emits React `act(...)` warnings.
+
+### Enhancements Implemented
+
+- Made the customer notification test suite pristine for this flow by removing warning noise that could hide future regressions.
+- Preserved the existing user-facing success and error feedback copy while reducing one extra component state update.
+
+### Files Changed
+
+- `apps/customer-app/src/screens/CustomerNotificationsScreen.js`
+- `apps/customer-app/__tests__/customer-app.test.js`
+- `docs/continuous-improvement-log.md`
+
+### Migrations Added
+
+- None.
+
+### Validation Completed
+
+- Red phase: `npm.cmd --workspace @talabix/customer-app run test -- --runTestsByPath __tests__/customer-app.test.js --testNamePattern "without React act warnings"` failed because one `CustomerNotificationsScreen` `act(...)` warning was emitted.
+- Green phase: the same targeted regression passed after deriving notification feedback from mutation state.
+- `npm.cmd --workspace @talabix/customer-app run test -- --runTestsByPath __tests__/customer-app.test.js --testNamePattern "customer notification"` passed, 4 tests.
+- `npm.cmd run test:customer` passed, 35 tests.
+- `npm.cmd run test:rider` passed, 16 tests.
+- `npm.cmd run lint -- --max-warnings=0` passed.
+- `npx.cmd prettier --check apps/customer-app/__tests__/customer-app.test.js apps/customer-app/src/screens/CustomerNotificationsScreen.js` passed.
+- `git diff --check` passed.
+
+### Risks And Follow-Up Items
+
+- Portal Vitest remains locally constrained by the previously documented Vite/esbuild `spawn EPERM` blocker.
+- API feature tests still require a PHP 8.3+ runtime; this workstation is documented as PHP 8.2.12 in prior entries.
+- The rider notification warning did not reproduce under an isolated red test in this run, so rider production code was not changed.
+
+### Recommended Next Priorities
+
+- Re-run portal notification and dispatch board tests in an environment that allows Vite/esbuild child-process spawning.
+- Continue converting remaining mutation feedback in mobile screens to cache or mutation-derived state where it reduces duplicate UI state.
+- Validate the launch evidence and dispatch SLA drill in staging once monitoring credentials and backup-host access are available.
+
+## 2026-04-20 - Maps provider fallback alert drill
+
+### Issues Found
+
+- The production readiness gap still called out maps provider dashboard alerts, but the repository did not have a dedicated drill for validating provider quota/error alerts or app-level fallback alerts.
+- `MapsProviderService` logged Google Maps fallback events with a readable warning message, but the log context did not include a stable `event` field for log-drain matching.
+- The engineering alignment doc still listed native GPS permission handling as missing even though the customer address flow now has an Expo foreground-location helper and regression coverage.
+
+### Fixes Implemented
+
+- Added a stable `google_maps_provider_fallback_activated` log event with provider, fallback provider, operation, and error context.
+- Extended the maps provider unit coverage to assert the structured fallback log contract when Distance Matrix falls back to demo estimates.
+- Added `docs/ops/maps-provider-alert-drill.md` with provider dashboard alert setup, log-drain rule setup, a staging fallback drill, evidence expectations, and escalation guidance.
+- Added maps provider alert evidence fields to the launch evidence record.
+- Updated production readiness and engineering alignment docs so maps hardening now points at live provider credentials, dashboard alerts, and the staging fallback alert drill instead of the already-implemented customer GPS flow.
+- Linked the maps provider alert drill from the root README runbook list.
+
+### Enhancements Implemented
+
+- Split maps monitoring into provider-side alerts for quota/billing/API errors and app-side log alerts for fallback behavior.
+- Documented a one-off `php artisan tinker` drill that produces fallback telemetry without changing persistent staging configuration.
+
+### Files Changed
+
+- `README.md`
+- `apps/api/app/Modules/Shared/Services/MapsProviderService.php`
+- `apps/api/tests/Unit/Shared/MapsProviderServiceTest.php`
+- `docs/ops/maps-provider-alert-drill.md`
+- `docs/ops/launch-evidence.md`
+- `docs/ops/production-readiness.md`
+- `docs/talabix-engineering-pack-alignment.md`
+- `docs/continuous-improvement-log.md`
+
+### Migrations Added
+
+- None.
+
+### Validation Completed
+
+- Red phase attempt: `php artisan test tests/Unit/Shared/MapsProviderServiceTest.php --filter "falls back to demo estimates"` is blocked before test discovery because local PHP is 8.2.12 and Composer requires PHP 8.3+.
+- `php -l app\Modules\Shared\Services\MapsProviderService.php` passed.
+- `php -l tests\Unit\Shared\MapsProviderServiceTest.php` passed.
+- `npx.cmd prettier --write docs/ops/maps-provider-alert-drill.md docs/ops/production-readiness.md` formatted the new/updated Markdown.
+- `npx.cmd prettier --check README.md docs/ops/maps-provider-alert-drill.md docs/ops/launch-evidence.md docs/ops/production-readiness.md docs/talabix-engineering-pack-alignment.md docs/continuous-improvement-log.md` passed.
+- `git diff --check` passed.
+
+### Risks And Follow-Up Items
+
+- The new maps provider unit expectation still needs to run in CI or a local PHP 8.3+ environment.
+- Staging still needs live Google Maps credentials, provider dashboard alerts, the fallback log-drain rule, and drill evidence before the maps launch gap can be closed.
+- The staging-only dispatch SLA and MySQL restore drills remain blocked locally until monitoring, database, backup-disk, and maintenance-host access are available.
+
+## 2026-04-19 - Launch evidence record for SLA and restore drills
+
+### Issues Found
+
+- The dispatch SLA and MySQL restore drill runbooks both required evidence to be attached to a launch record, but the repository did not yet have a concrete launch evidence file.
+- The dispatch SLA alert drill described the event fields, but staging operators still had to infer the monitor rule name, window, severity routing, and evidence fields.
+- The restore drill evidence table did not capture archive size, checksum, extract/import status, or cleanup verification.
+
+### Fixes Implemented
+
+- Added `docs/ops/launch-evidence.md` as the central pre-launch evidence record for staging deployment, baseline monitoring, dispatch SLA alerting, MySQL restore verification, and incident drills.
+- Added concrete dispatch SLA log-monitor setup guidance with the minimum rule fields, alert window, severity handling, notification route, and evidence expectations.
+- Expanded MySQL restore evidence capture to include archive size/checksum, extract/import results, and cleanup verification.
+- Linked the launch evidence record from the production readiness runbook, root README, and engineering alignment backlog.
+
+### Enhancements Implemented
+
+- Added explicit evidence hygiene rules so secrets, DSNs, object-storage keys, customer data, and full backup contents stay out of git.
+- Kept the monitoring guidance provider-neutral so it can be applied to Datadog, New Relic, Sentry logs, a VM log drain, or another selected staging monitor.
+
+### Files Changed
+
+- `README.md`
+- `docs/ops/launch-evidence.md`
+- `docs/ops/dispatch-sla-alert-drill.md`
+- `docs/ops/mysql-backup-restore-drill.md`
+- `docs/ops/production-readiness.md`
+- `docs/talabix-engineering-pack-alignment.md`
+- `docs/continuous-improvement-log.md`
+
+### Migrations Added
+
+- None.
+
+### Validation Completed
+
+- `npx.cmd prettier --check README.md docs/ops/launch-evidence.md docs/ops/dispatch-sla-alert-drill.md docs/ops/mysql-backup-restore-drill.md docs/ops/production-readiness.md docs/talabix-engineering-pack-alignment.md docs/continuous-improvement-log.md` passed.
+- `git diff --check` passed.
+
+### Risks And Follow-Up Items
+
+- Staging monitoring still must be configured in the selected provider before the dispatch SLA drill can be marked passing.
+- The first staging MySQL restore drill still requires staging database, backup-disk, and maintenance-host access.
+
+## 2026-04-19 - Customer address GPS permission handling
+
+### Issues Found
+
+- The customer address form only supported typed coordinates or map-search suggestions, so customers had no native current-location action in the saved-address flow.
+- The mobile shell did not isolate Expo foreground-location permission checks from address form state, making denied GPS permission and disabled/unavailable location services easy to mishandle.
+- The worktree already contained unrelated backup, deploy, dispatch, and delivery-exception changes; this slice preserved those edits and only added the customer GPS address-flow changes.
+
+### Fixes Implemented
+
+- Added a safe customer location helper around `expo-location` foreground permissions, device location-service availability, and `getCurrentPositionAsync`.
+- Configured the customer Expo app with the `expo-location` config plugin and a foreground-location permission purpose string.
+- Added a "Use current location" action to `AddressBookScreen` that fills only latitude and longitude while preserving manual address fields.
+- Added localized English and Arabic feedback for finding location, permission denied, unavailable location, and successful coordinate capture.
+- Added coordinate test IDs so the customer address flow can be regression-tested without coupling to implementation details.
+
+### Enhancements Implemented
+
+- Added `expo-location` to the customer Expo app dependencies using the SDK 54 bundled version.
+- Added focused helper tests for permission, disabled-services, and current-position failure paths.
+- Added customer screen tests covering coordinate fill, manual-entry preservation, Arabic denied copy, and unavailable fallback copy.
+
+### Files Changed
+
+- `apps/customer-app/package.json`
+- `package-lock.json`
+- `apps/customer-app/app.json`
+- `apps/customer-app/src/location.js`
+- `apps/customer-app/src/screens/AddressBookScreen.js`
+- `apps/customer-app/__tests__/location.test.js`
+- `apps/customer-app/__tests__/customer-app.test.js`
+- `packages/shared/src/i18n/index.js`
+- `docs/continuous-improvement-log.md`
+
+### Migrations Added
+
+- None.
+
+### Validation Completed
+
+- Red phase: `npm.cmd --workspace @talabix/customer-app run test -- location.test.js customer-app.test.js -t "requestCurrentLocation|fills current GPS|localized Arabic|current location is unavailable"` failed because `src/location.js`, the current-location action, and coordinate test IDs were not implemented yet.
+- Green phase: `npm.cmd --workspace @talabix/customer-app run test -- location.test.js customer-app.test.js -t "requestCurrentLocation|fills current GPS|localized Arabic|current location is unavailable"` passed, 7 tests.
+- `npm.cmd --workspace @talabix/customer-app run test` passed, 34 tests; the suite still prints pre-existing React `act(...)` warnings from `CustomerNotificationsScreen`.
+- `npm.cmd run i18n:audit` passed.
+- `npm.cmd run lint -- --max-warnings=0` passed.
+
+### Risks And Follow-Up Items
+
+- The full customer Jest suite is passing but still not pristine because of existing notification-screen `act(...)` warnings unrelated to the GPS address flow.
+- Expo native permission prompts still require manual simulator/device verification before mobile release because Jest mocks the helper boundary.
+
+## 2026-04-19 - Dispatch SLA alert wiring
+
+### Issues Found
+
+- Dispatch pickup and delivery-exception SLA breaches were visible in API/UI payloads, but there was no scheduled operational signal for monitoring tools to alert on.
+- The launch runbook listed the dispatch SLA drill as an open gap without a concrete command, log event, or evidence checklist.
+
+### Fixes Implemented
+
+- Added an `ops:dispatch-sla-alerts` Artisan command that snapshots breached pickup assignments and unresolved breached delivery exceptions.
+- Scheduled the command every five minutes with overlap protection.
+- Added `DISPATCH_SLA_ALERT_THRESHOLD` so staging and production can tune when the structured warning log should alert.
+- Added a dispatch SLA alert drill runbook covering staging setup, log-drain matching, alert confirmation, and evidence capture.
+- Updated production readiness monitoring guidance to include the new `dispatch_sla_breach_window_exceeded` signal.
+
+### Enhancements Implemented
+
+- Added feature coverage for the scheduler entry and structured warning context expected by log-based monitoring.
+- Included sample order UUIDs and oldest breach ages in the alert snapshot so ops can triage from the first alert page.
+
+### Files Changed
+
+- `apps/api/.env.example`
+- `apps/api/app/Modules/Dispatch/Services/DispatchSlaBreachMonitor.php`
+- `apps/api/config/services.php`
+- `apps/api/routes/console.php`
+- `apps/api/tests/Feature/Ops/DispatchSlaAlertTest.php`
+- `docs/ops/dispatch-sla-alert-drill.md`
+- `docs/ops/production-readiness.md`
+- `docs/continuous-improvement-log.md`
+
+### Migrations Added
+
+- None.
+
+### Validation Completed
+
+- Red phase attempt: `php artisan test tests/Feature/Ops/DispatchSlaAlertTest.php` is blocked before test discovery because local PHP is 8.2.12 and Composer requires PHP 8.3+.
+- `php -l` passed for `apps/api/app/Modules/Dispatch/Services/DispatchSlaBreachMonitor.php`, `apps/api/routes/console.php`, `apps/api/config/services.php`, and `apps/api/tests/Feature/Ops/DispatchSlaAlertTest.php`.
+- `npx.cmd prettier --check docs/continuous-improvement-log.md docs/ops/production-readiness.md docs/ops/dispatch-sla-alert-drill.md` passed.
+- `git diff --check` passed.
+- Post-implementation `php artisan test tests/Feature/Ops/DispatchSlaAlertTest.php` remains blocked locally by the PHP 8.2.12 runtime.
+
+### Risks And Follow-Up Items
+
+- The log signal still needs to be connected in the selected staging/production monitoring tool.
+- Run the dispatch SLA alert drill in staging and attach evidence before launch.
+- Laravel feature tests need a PHP 8.3+ local or CI runtime to execute the new command coverage.
+
+## 2026-04-19 - Delivery exception SLA timeout visibility
+
+### Issues Found
+
+- Rider delivery exceptions stayed open for support/reassignment, but the payload did not expose whether the exception response window was still healthy, due soon, or breached.
+- Ops dispatch cards could show the delivery issue reason and note, but not the response timeout or required escalation action.
+- The shared test command used `node --test` with multiple file paths, which triggers the workstation's `spawn EPERM` policy even when the individual test files can run in-process.
+
+### Fixes Implemented
+
+- Added a shared API `DeliveryExceptionSla` snapshot helper with configurable response target and warning windows.
+- Added `response_sla` to active delivery exception payloads returned to rider/current-order views and ops dispatch projections.
+- Added env knobs for `DELIVERY_EXCEPTION_RESPONSE_SLA_MINUTES` and `DELIVERY_EXCEPTION_RESPONSE_WARNING_MINUTES`.
+- Extended shared validation contracts so customer/rider/portal clients preserve the nested exception timeout payload.
+- Updated the ops dispatch board to show the exception response SLA label, elapsed/target window, and escalation action guidance.
+- Replaced the shared test command with a single-process runner so the shared i18n and schema tests can run despite the local child-process spawn restriction.
+
+### Enhancements Implemented
+
+- Added API feature expectations for breached exception response windows on rider assignment and ops dispatch payloads.
+- Added a shared schema regression test proving exception SLA snapshots are not stripped by contract parsing.
+- Added portal regression coverage for the visible exception response timeout copy.
+
+### Files Changed
+
+- `package.json`
+- `scripts/run-shared-tests.mjs`
+- `apps/api/.env.example`
+- `apps/api/app/Modules/Dispatch/Services/DispatchRouteProjectionService.php`
+- `apps/api/app/Modules/Orders/Resources/OrderResource.php`
+- `apps/api/app/Modules/Orders/Support/DeliveryExceptionSla.php`
+- `apps/api/config/services.php`
+- `apps/api/lang/ar/messages.php`
+- `apps/api/lang/en/messages.php`
+- `apps/api/tests/Feature/Dispatch/DispatchTest.php`
+- `apps/api/tests/Feature/Orders/RiderDeliveryFlowTest.php`
+- `apps/portal-web/src/App.test.jsx`
+- `apps/portal-web/src/features/ops/DispatchBoard.jsx`
+- `apps/portal-web/src/sample-data.js`
+- `packages/shared/src/validation/schemas.js`
+- `packages/shared/src/validation/schemas.test.js`
+- `docs/ops/production-readiness.md`
+- `docs/talabix-engineering-pack-alignment.md`
+- `docs/continuous-improvement-log.md`
+
+### Migrations Added
+
+- None.
+
+### Validation Completed
+
+- Red phase: `node packages/shared/src/validation/schemas.test.js` failed because `response_sla` was stripped from delivery exception schemas.
+- `node scripts/run-shared-tests.mjs` passed, 6 tests.
+- `npm.cmd run test:shared` passed, 6 tests.
+- `php -l` passed for `apps/api/app/Modules/Orders/Support/DeliveryExceptionSla.php`, `apps/api/app/Modules/Dispatch/Services/DispatchRouteProjectionService.php`, and `apps/api/app/Modules/Orders/Resources/OrderResource.php`.
+- `php -l` passed for `apps/api/config/services.php`, `apps/api/lang/en/messages.php`, `apps/api/lang/ar/messages.php`, `apps/api/tests/Feature/Dispatch/DispatchTest.php`, and `apps/api/tests/Feature/Orders/RiderDeliveryFlowTest.php`.
+- `npm.cmd run lint -- --max-warnings=0` passed.
+- `npm.cmd run i18n:audit` passed.
+- `npx.cmd prettier --check package.json scripts/run-shared-tests.mjs apps/portal-web/src/App.test.jsx apps/portal-web/src/features/ops/DispatchBoard.jsx apps/portal-web/src/sample-data.js packages/shared/src/validation/schemas.js packages/shared/src/validation/schemas.test.js docs/continuous-improvement-log.md docs/ops/production-readiness.md docs/talabix-engineering-pack-alignment.md` passed.
+- `git diff --check` passed.
+
+### Risks And Follow-Up Items
+
+- `npm.cmd --workspace @talabix/portal-web run test -- --run src/App.test.jsx -t "renders dispatch actions"` is still blocked locally by Vite/esbuild `spawn EPERM`.
+- `php artisan test tests/Feature/Orders/RiderDeliveryFlowTest.php --filter "delivery exception"` is still blocked locally because PHP is 8.2.12 and Composer requires PHP 8.3+.
+- The next launch-hardening slice should wire monitoring/alerts for breached exception SLA counts and run the first staging restore drill.
+
+## 2026-04-19 - MySQL backup verification baseline
+
+### Issues Found
+
+- The backup package dependency was present, but the backup config and scheduler slice was still uncommitted.
+- The scheduler only had cleanup and a generic backup run; it did not run backup health monitoring.
+- The published backup config still used placeholder notification routing and did not enable archive verification.
+- MySQL and MariaDB dump settings did not request single-transaction dumps, which is safer for InnoDB production traffic.
+- Restore-drill evidence was still only described as an open launch gap.
+
+### Fixes Implemented
+
+- Added `apps/api/config/backup.php` as the Talabix backup config with env-driven backup disks, notification email, retention thresholds, health-check thresholds, and archive verification enabled.
+- Scheduled daily backup cleanup at 01:00, DB-only backup creation at 01:30, and backup health monitoring at 10:00, each with overlap protection.
+- Configured MySQL and MariaDB dumps to use single-transaction mode by default.
+- Added backup operation tests covering schedule registration, DB-only backup execution, archive verification, notification placeholder removal, monitored destination alignment, and dump safety.
+- Added a MySQL restore-drill runbook with the evidence table expected before launch and quarterly afterward.
+
+### Enhancements Implemented
+
+- Added backup environment variables to `apps/api/.env.example`.
+- Linked the restore-drill runbook from the root README and production readiness runbook.
+- Updated the deploy documentation to call out backup variables inside the encoded API env file.
+- Reframed the remaining launch gap from "implement backup verification" to "run the first staging restore drill and attach evidence."
+
+### Files Changed
+
+- `README.md`
+- `apps/api/.env.example`
+- `apps/api/config/backup.php`
+- `apps/api/config/database.php`
+- `apps/api/routes/console.php`
+- `apps/api/tests/Feature/Ops/BackupOperationsTest.php`
+- `deploy/README.md`
+- `docs/ops/mysql-backup-restore-drill.md`
+- `docs/ops/production-readiness.md`
+- `docs/talabix-engineering-pack-alignment.md`
+- `docs/continuous-improvement-log.md`
+
+### Migrations Added
+
+- None.
+
+### Validation Completed
+
+- `php -l` passed for `apps/api/routes/console.php`, `apps/api/config/backup.php`, `apps/api/config/database.php`, and `apps/api/tests/Feature/Ops/BackupOperationsTest.php`.
+- `composer validate --no-check-publish` passed.
+- `composer install --dry-run --no-interaction --ignore-platform-req=php --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-posix` passed.
+- `npx.cmd prettier --check README.md deploy/README.md docs/ops/production-readiness.md docs/ops/mysql-backup-restore-drill.md docs/talabix-engineering-pack-alignment.md` passed.
+- `git diff --check` passed.
+- `php artisan test tests/Feature/Ops/BackupOperationsTest.php` is blocked locally because PHP is 8.2.12 and Composer requires PHP 8.3+ before Laravel can boot.
+
+### Risks And Follow-Up Items
+
+- Run `php artisan test tests/Feature/Ops/BackupOperationsTest.php` in a PHP 8.3+ environment or CI before committing this slice.
+- Configure staging `BACKUP_DISKS`, `BACKUP_NOTIFICATION_EMAIL`, `BACKUP_ARCHIVE_PASSWORD`, object storage credentials, and retention thresholds in `apps/api/.env`.
+- Run the first staging restore drill and attach the evidence table to the launch record.
+- The previously published `apps/api/lang/vendor/backup` translation files remain uncommitted and should either be intentionally committed for notification copy overrides or removed before finalizing the slice.
+
 ## 2026-04-19 - Readiness checks, Docker VM deploy target, and maps fallback hardening
 
 ### Issues Found

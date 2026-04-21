@@ -45,16 +45,17 @@ The production deployment must run these processes independently so they can be 
 
 Set these values per environment and store them in the deployment platform secret manager, not in git.
 
-| Area            | Required values                                                                                                        |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Laravel runtime | `APP_ENV`, `APP_KEY`, `APP_DEBUG=false`, `APP_URL`, `APP_LOCALE`, `APP_FALLBACK_LOCALE`                                |
-| Database        | `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, optional TLS settings                               |
-| Redis           | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `CACHE_STORE=redis`, `QUEUE_CONNECTION=redis`                            |
-| Reverb          | `BROADCAST_CONNECTION=reverb`, `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET`, public host/port/scheme         |
-| Notifications   | mailer credentials, SMS provider credentials, push provider credentials, retry/backoff settings                        |
-| Maps            | `MAPS_PROVIDER`, `GOOGLE_MAPS_API_KEY`, average speed fallback settings                                                |
-| Security        | `SESSION_DOMAIN`, CORS/domain policy, `SCRIBE_AUTH_KEY`, `READINESS_CHECK_KEY`, `SENTRY_LARAVEL_DSN`, log drain tokens |
-| Storage         | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `AWS_BUCKET`, optional endpoint                    |
+| Area            | Required values                                                                                                                          |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Laravel runtime | `APP_ENV`, `APP_KEY`, `APP_DEBUG=false`, `APP_URL`, `APP_LOCALE`, `APP_FALLBACK_LOCALE`                                                  |
+| Database        | `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, optional TLS settings                                                 |
+| Redis           | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `CACHE_STORE=redis`, `QUEUE_CONNECTION=redis`                                              |
+| Reverb          | `BROADCAST_CONNECTION=reverb`, `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET`, public host/port/scheme                           |
+| Notifications   | mailer credentials, SMS provider credentials, push provider credentials, retry/backoff settings                                          |
+| Maps            | `MAPS_PROVIDER=google_maps`, optional `GOOGLE_MAPS_API_KEY` env fallback, admin-managed Google Maps key, average speed fallback settings |
+| Security        | `SESSION_DOMAIN`, CORS/domain policy, `SCRIBE_AUTH_KEY`, `READINESS_CHECK_KEY`, `SENTRY_LARAVEL_DSN`, log drain tokens                   |
+| Storage         | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `AWS_BUCKET`, optional endpoint                                      |
+| Backups         | `BACKUP_DISKS`, `BACKUP_NOTIFICATION_EMAIL`, `BACKUP_ARCHIVE_PASSWORD`, backup retention and health-check thresholds                     |
 
 Production must use `LOG_CHANNEL=stack`, `LOG_STACK=stderr`, and `LOG_LEVEL=info` or stricter so platform log drains can collect structured process logs.
 
@@ -82,27 +83,35 @@ Run this sequence for every staging deployment. Use the same sequence for produc
    - Horizon shows active workers with no failed job spike.
    - Reverb websocket accepts a connection.
 9. Exit maintenance mode if it was enabled.
-10. Watch logs, queue depth, notification failures, and API error rates for at least 30 minutes.
+10. Fill or update [launch-evidence.md](./launch-evidence.md), then run `npm run launch:preflight` with `TALABIX_PREFLIGHT_PHP_VERSION` set to the PHP runtime used for API verification.
+11. Watch logs, queue depth, notification failures, and API error rates for at least 30 minutes.
 
 ## Monitoring Baseline
 
 Production monitoring should cover these signals before launch.
 
-| Signal                | Alert condition                                            | Why it matters                                         |
-| --------------------- | ---------------------------------------------------------- | ------------------------------------------------------ |
-| API uptime            | `/up` fails from two regions for 2 minutes                 | Confirms the web process and routing are alive         |
-| API error rate        | 5xx rate exceeds 1 percent for 5 minutes                   | Catches regressions and provider failures              |
-| Queue depth           | Default or notification queue grows for 10 minutes         | Shows workers are lagging or failing                   |
-| Failed jobs           | New failed jobs appear after deployment                    | Surfaces notification, dispatch, and async regressions |
-| Horizon workers       | Worker count below expected value for 2 minutes            | Protects async delivery                                |
-| Scheduler heartbeat   | No scheduled-task heartbeat for 10 minutes                 | Protects maintenance and future recurring jobs         |
-| Reverb health         | Connection failures exceed threshold                       | Protects realtime boards and app updates               |
-| Database              | CPU, connections, disk, replication lag exceed thresholds  | Protects core transactional flows                      |
-| Redis                 | Memory, evictions, connection failures exceed thresholds   | Protects cache, queues, and broadcasts                 |
-| Notification delivery | Failure or retry rate exceeds threshold by channel         | Protects customer/rider/merchant communication         |
-| Maps provider         | Provider failures exceed threshold or fallback rate spikes | Protects discovery, ETA, and dispatch flows            |
+| Signal                | Alert condition                                           | Why it matters                                                 |
+| --------------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+| API uptime            | `/up` fails from two regions for 2 minutes                | Confirms the web process and routing are alive                 |
+| API error rate        | 5xx rate exceeds 1 percent for 5 minutes                  | Catches regressions and provider failures                      |
+| Queue depth           | Default or notification queue grows for 10 minutes        | Shows workers are lagging or failing                           |
+| Failed jobs           | New failed jobs appear after deployment                   | Surfaces notification, dispatch, and async regressions         |
+| Horizon workers       | Worker count below expected value for 2 minutes           | Protects async delivery                                        |
+| Scheduler heartbeat   | No scheduled-task heartbeat for 10 minutes                | Protects maintenance and future recurring jobs                 |
+| Reverb health         | Connection failures exceed threshold                      | Protects realtime boards and app updates                       |
+| Database              | CPU, connections, disk, replication lag exceed thresholds | Protects core transactional flows                              |
+| Redis                 | Memory, evictions, connection failures exceed thresholds  | Protects cache, queues, and broadcasts                         |
+| Notification delivery | Failure or retry rate exceeds threshold by channel        | Protects customer/rider/merchant communication                 |
+| Maps provider         | Provider quota/error alerts fire or fallback logs spike   | Protects discovery, ETA, checkout pricing, and dispatch flows  |
+| Dispatch SLA windows  | `dispatch_sla_breach_window_exceeded` appears in logs     | Protects pickup assignment and delivery-exception ops response |
 
 Until a dedicated observability stack is selected, use platform logs plus provider dashboards as the minimum source of truth. The preferred launch setup is a log drain, uptime monitor, error tracker, and database/Redis provider metrics dashboard.
+
+The maps provider emits `event=google_maps_provider_fallback_activated` when Google Maps calls fail and demo fallback is used. Use [maps-provider-alert-drill.md](./maps-provider-alert-drill.md) to configure provider dashboard alerts for Places API, Distance Matrix API, quota, billing, and fallback log-drain monitoring.
+
+The Laravel scheduler emits the initial dispatch SLA alert signal every five minutes through `php artisan ops:dispatch-sla-alerts`. The log-drain rule should match `event=dispatch_sla_breach_window_exceeded` and open an alert when `breached_total` meets `DISPATCH_SLA_ALERT_THRESHOLD`.
+
+Use [launch-evidence.md](./launch-evidence.md) to record the monitoring provider, alert destination, drill output, provider log event ID, and alert incident ID. A monitoring rule is not launch-ready until the staging drill produces an alert, the synthetic data cleanup or persistent config verification is captured, and `npm run launch:preflight` no longer reports evidence blockers.
 
 ## Backup Policy
 
@@ -116,6 +125,10 @@ MySQL backups are mandatory before production traffic.
 | Object storage backup       | Daily once uploads are live          | Match legal retention policy   | Include catalog media and rider documents |
 
 Run a restore drill before launch and then at least once per quarter. A backup that has not been restored successfully is not considered verified.
+
+The Laravel scheduler runs the initial MySQL backup automation daily: cleanup at 01:00, DB-only backup at 01:30, and backup health monitoring at 10:00. Archive verification must stay enabled with `BACKUP_VERIFY_ARCHIVE=true`, and `BACKUP_DISKS` should point at the production backup destination, such as `s3`, after object storage credentials are available.
+
+Use [mysql-backup-restore-drill.md](./mysql-backup-restore-drill.md) for the staging restore procedure and [launch-evidence.md](./launch-evidence.md) for the evidence table.
 
 ## Rollback Runbook
 
@@ -171,7 +184,8 @@ Use this first-response flow for production incidents.
 
 These items remain open after this runbook and should be handled as concrete follow-up slices.
 
-1. Select monitoring tools and wire alerts for the baseline signals above.
-2. Implement automated MySQL backup verification and document restore evidence.
-3. Complete maps hardening with provider dashboard alerts, native GPS permission handling, and provider-failure copy across real API clients.
-4. Add SLA/timeout handling for dispatch and rider delivery exceptions.
+1. Select monitoring tools and wire alerts for the baseline signals above, then record the provider and destination links in [launch-evidence.md](./launch-evidence.md).
+2. Run the first staging MySQL restore drill and attach evidence in [launch-evidence.md](./launch-evidence.md).
+3. Add staging and production Google Maps keys through ops configuration, then complete provider dashboard alerts and a staging fallback alert drill.
+4. Connect the dispatch SLA log signal to the selected monitoring tool, run [dispatch-sla-alert-drill.md](./dispatch-sla-alert-drill.md) in staging, and attach evidence in [launch-evidence.md](./launch-evidence.md).
+5. Run `npm run launch:preflight` after the evidence rows are updated and resolve any remaining blockers before production traffic.
