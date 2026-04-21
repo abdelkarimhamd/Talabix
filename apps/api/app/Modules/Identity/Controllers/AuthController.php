@@ -12,6 +12,7 @@ use App\Modules\Identity\Requests\RegisterCustomerRequest;
 use App\Modules\Identity\Requests\ResetPasswordRequest;
 use App\Modules\Identity\Requests\UpdateCustomerProfileRequest;
 use App\Modules\Identity\Resources\UserResource;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -148,11 +149,17 @@ class AuthController extends Controller
             ]);
         }
 
-        $token = $this->issueTokenAction->execute(
-            $user,
-            $actor,
-            $request->string('device_name')->toString()
-        );
+        try {
+            $token = $this->issueTokenAction->execute(
+                $user,
+                $actor,
+                $request->string('device_name')->toString()
+            );
+        } catch (AuthenticationException $exception) {
+            throw ValidationException::withMessages([
+                'email' => $exception->getMessage(),
+            ]);
+        }
 
         $user->forceFill(['last_login_at' => now()])->save();
 

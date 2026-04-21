@@ -48,6 +48,16 @@ export const translations = {
       unread: '{count} unread',
     },
     auth: {
+      adminAccess: 'Admin access',
+      loginTitle: 'Sign in to Talabix ops',
+      loginBody:
+        'Use an active ops admin account to open dispatch, support, configuration, and settlement tools.',
+      emailLabel: 'Email address',
+      passwordLabel: 'Password',
+      signIn: 'Sign in',
+      signingIn: 'Signing in...',
+      signOut: 'Sign out',
+      loginFailed: 'Sign-in failed. Check the account and password.',
       accessBlocked: 'Access blocked',
       notAuthorized: 'Not authorized for this route',
       routeScopeHelp:
@@ -393,15 +403,13 @@ export const translations = {
         pageKicker: 'Menu',
         pageTitle: 'Branch menu',
         currentOffer: 'the current offer',
-        highlightedDescription:
-          '{item} is selected from {offer}.',
+        highlightedDescription: '{item} is selected from {offer}.',
         defaultDescription:
           'Modifiers are priced before checkout so every cart line keeps a clear order snapshot.',
         offerSelected: 'Offer selected',
         fastAdd: 'Fast add',
         highlightedTitle: 'Add the offer item to your cart',
-        defaultTitle:
-          'Pick favorites, adjust options, then continue to cart',
+        defaultTitle: 'Pick favorites, adjust options, then continue to cart',
         categories: 'Categories',
         allItems: 'All items',
         itemInSection: '{count} item in this menu section.',
@@ -412,19 +420,16 @@ export const translations = {
         discountBadge: '30% off',
         itemPrice: 'Item price',
         modifierSelectionCount: '{count} modifier selection active',
-        modifierSelectionCount_plural:
-          '{count} modifier selections active',
+        modifierSelectionCount_plural: '{count} modifier selections active',
         offerItem: 'Offer item',
         pickOne: 'pick one',
         pickUpTo: 'pick up to {count}',
         pickUpToMany: 'pick up to many',
         addToCart: 'Add to cart',
-        noItemsDescription:
-          'This branch does not have seeded demo items yet.',
+        noItemsDescription: 'This branch does not have seeded demo items yet.',
         noItemsEyebrow: 'No items',
         noItemsTitle: 'Catalog preview unavailable',
-        cartDescription:
-          'Modifier selections stay attached to each cart line.',
+        cartDescription: 'Modifier selections stay attached to each cart line.',
         cartEyebrow: 'Current cart',
         cartItemCount: '{count} cart item',
         cartItemCount_plural: '{count} cart items',
@@ -441,8 +446,7 @@ export const translations = {
         screenTitle:
           'Notification history stays attached to real order updates.',
         pageKicker: 'Customer inbox',
-        pageTitle:
-          'Notification history stays attached to real order updates.',
+        pageTitle: 'Notification history stays attached to real order updates.',
         updateFailed: 'Notification could not be updated.',
         markedRead: 'Marked {title} as read.',
         unreadFilterDescription:
@@ -533,8 +537,7 @@ export const translations = {
         itemCount_plural: '{count} items',
         searchPlaceholder: 'Search for items or store',
         activeOrderDescription: 'Order {code} is {status}.',
-        noActiveDescription:
-          'Previous purchases stay ready for quick reorder.',
+        noActiveDescription: 'Previous purchases stay ready for quick reorder.',
         latestOrder: 'Latest order',
         noActiveDelivery: 'No active delivery',
         historyDescription:
@@ -946,6 +949,16 @@ export const translations = {
       unread: 'غير مقروء {count}',
     },
     auth: {
+      adminAccess: 'دخول الإدارة',
+      loginTitle: 'تسجيل الدخول إلى عمليات طلبكس',
+      loginBody:
+        'استخدم حساب مدير عمليات نشط لفتح أدوات الإسناد والدعم والإعدادات والتسويات.',
+      emailLabel: 'البريد الإلكتروني',
+      passwordLabel: 'كلمة المرور',
+      signIn: 'تسجيل الدخول',
+      signingIn: 'جار تسجيل الدخول...',
+      signOut: 'تسجيل الخروج',
+      loginFailed: 'تعذر تسجيل الدخول. تحقق من الحساب وكلمة المرور.',
       accessBlocked: 'تم حظر الوصول',
       notAuthorized: 'غير مصرح لهذا المسار',
       routeScopeHelp:
@@ -1283,15 +1296,13 @@ export const translations = {
         pageKicker: 'القائمة',
         pageTitle: 'قائمة الفرع',
         currentOffer: 'العرض الحالي',
-        highlightedDescription:
-          'تم اختيار {item} من {offer}.',
+        highlightedDescription: 'تم اختيار {item} من {offer}.',
         defaultDescription:
           'يتم تسعير الإضافات قبل الدفع حتى يبقى كل سطر في السلة واضحاً.',
         offerSelected: 'عرض محدد',
         fastAdd: 'إضافة سريعة',
         highlightedTitle: 'أضف عنصر العرض إلى السلة',
-        defaultTitle:
-          'اختر مفضلاتك وعدل الإضافات ثم تابع إلى السلة',
+        defaultTitle: 'اختر مفضلاتك وعدل الإضافات ثم تابع إلى السلة',
         categories: 'التصنيفات',
         allItems: 'كل العناصر',
         itemInSection: '{count} عنصر في هذا القسم.',
@@ -1308,12 +1319,10 @@ export const translations = {
         pickUpTo: 'اختر حتى {count}',
         pickUpToMany: 'اختر حتى عدة خيارات',
         addToCart: 'إضافة إلى السلة',
-        noItemsDescription:
-          'لا يحتوي هذا الفرع على عناصر تجريبية بعد.',
+        noItemsDescription: 'لا يحتوي هذا الفرع على عناصر تجريبية بعد.',
         noItemsEyebrow: 'لا توجد عناصر',
         noItemsTitle: 'معاينة الكتالوج غير متاحة',
-        cartDescription:
-          'تبقى اختيارات الإضافات مرتبطة بكل سطر في السلة.',
+        cartDescription: 'تبقى اختيارات الإضافات مرتبطة بكل سطر في السلة.',
         cartEyebrow: 'السلة الحالية',
         cartItemCount: '{count} عنصر في السلة',
         cartItemCount_plural: '{count} عناصر في السلة',
@@ -1400,8 +1409,7 @@ export const translations = {
           },
           'morning-coffee-pack': {
             title: 'عرض عبوة القهوة',
-            description:
-              'أضف قهوة باردة إلى طلب الإفطار أو الماركت بسعر مميز.',
+            description: 'أضف قهوة باردة إلى طلب الإفطار أو الماركت بسعر مميز.',
             discountLabel: 'خصم 8 ر.س',
             itemName: 'عبوة قهوة باردة',
             branchName: 'فرع الماركت السريع',
@@ -1420,8 +1428,7 @@ export const translations = {
         itemCount_plural: '{count} عناصر',
         searchPlaceholder: 'ابحث في الطلبات أو المتجر',
         activeOrderDescription: 'الطلب {code} حالته {status}.',
-        noActiveDescription:
-          'مشترياتك السابقة جاهزة لإعادة الطلب بسرعة.',
+        noActiveDescription: 'مشترياتك السابقة جاهزة لإعادة الطلب بسرعة.',
         latestOrder: 'آخر طلب',
         noActiveDelivery: 'لا يوجد توصيل نشط',
         historyDescription:
@@ -1480,8 +1487,7 @@ export const translations = {
         walletPay: 'دفع',
         walletRewards: 'مكافآت',
         walletVouchers: 'قسائم',
-        accountDescription:
-          'إدارة العناوين والتنبيهات والفواتير والمساعدة.',
+        accountDescription: 'إدارة العناوين والتنبيهات والفواتير والمساعدة.',
         currentAccount: 'الحساب الحالي',
         signedInAccount: 'حساب مسجل',
         roles: 'الأدوار: {roles}',
@@ -1492,8 +1498,7 @@ export const translations = {
         notifications: 'الإشعارات',
         settings: 'الإعدادات',
         help: 'المساعدة والدعم',
-        formDescription:
-          'حافظ على بيانات التواصل جاهزة لتحديثات التوصيل.',
+        formDescription: 'حافظ على بيانات التواصل جاهزة لتحديثات التوصيل.',
         profileForm: 'نموذج الملف',
         editNamePhone: 'تعديل الاسم والهاتف',
         fullName: 'الاسم الكامل',

@@ -1,4 +1,4 @@
-import { createApiClient } from '@talabix/shared/api/client';
+import { createApiClient, createOpsApi } from '@talabix/shared/api/client';
 import {
   actorNotificationQuerySchema,
   branchFeeBandInputSchema,
@@ -129,6 +129,29 @@ let state = createInitialState();
 
 export function resetPortalApiState() {
   state = createInitialState();
+}
+
+export function resolvePortalApiBaseUrl() {
+  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
+  if (configuredBaseUrl) {
+    return configuredBaseUrl.replace(/\/$/, '');
+  }
+
+  if (typeof window === 'undefined') {
+    return 'http://localhost:8000/api/v1';
+  }
+
+  const basePath = import.meta.env.BASE_URL || '/';
+  const normalizedBasePath = basePath.endsWith('/') ? basePath : `${basePath}/`;
+
+  return new URL(`${normalizedBasePath}api/v1`, window.location.origin)
+    .toString()
+    .replace(/\/$/, '');
+}
+
+export function loginOpsAdmin(payload) {
+  return createOpsApi({ baseURL: resolvePortalApiBaseUrl() }).login(payload);
 }
 
 function createUuid() {
@@ -1085,12 +1108,16 @@ function nextNotificationEntries(order, notificationType, title, body) {
 
 export function createPortalApi(session) {
   const client = createApiClient({
+    baseURL: resolvePortalApiBaseUrl(),
     actor: session.actor,
     token: session.token,
   });
 
   return {
     client,
+    async logout() {
+      await client.post('auth/logout');
+    },
     async listManagedMerchants() {
       return state.managedMerchants.map((merchant) =>
         managedMerchantSchema.parse(merchant)

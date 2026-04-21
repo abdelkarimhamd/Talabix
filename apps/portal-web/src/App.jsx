@@ -23,13 +23,16 @@ import { OpsConfigurationBoard } from './features/ops/OpsConfigurationBoard.jsx'
 import { PromotionOffersBoard } from './features/ops/PromotionOffersBoard.jsx';
 import { SettlementBoard } from './features/ops/SettlementBoard.jsx';
 import { SupportConsole } from './features/ops/SupportConsole.jsx';
-import { createPortalApi } from './portal-api.js';
+import { createPortalApi, loginOpsAdmin } from './portal-api.js';
 import { I18nProvider } from './i18n-provider.jsx';
 import { useI18n } from './use-i18n.js';
 import {
-  defaultOpsSession,
+  buildAuthenticatedOpsSession,
+  clearStoredOpsSession,
   getPortalDemoSession,
   portalSessionActorStorageKey,
+  readStoredOpsSession,
+  storeOpsSession,
 } from './session-defaults.js';
 import { SessionProvider } from './session-context.jsx';
 import { useSession } from './use-session.js';
@@ -105,7 +108,12 @@ const navItems = [
   },
 ];
 
-export function App({ initialSession, initialEntries, initialLocale }) {
+export function App({
+  initialSession,
+  initialEntries,
+  initialLocale,
+  loginAdmin = loginOpsAdmin,
+}) {
   const [activeSession, setActiveSession] = useState(() =>
     resolveInitialSession(initialSession)
   );
@@ -120,7 +128,31 @@ export function App({ initialSession, initialEntries, initialLocale }) {
         },
       })
   );
-  const api = useMemo(() => createPortalApi(activeSession), [activeSession]);
+  const api = useMemo(
+    () => (activeSession ? createPortalApi(activeSession) : null),
+    [activeSession]
+  );
+  const handleLoginSuccess = useCallback(
+    (authSession) => {
+      const nextSession = buildAuthenticatedOpsSession(authSession);
+
+      storeOpsSession(authSession);
+      queryClient.clear();
+      setActiveSession(nextSession);
+    },
+    [queryClient]
+  );
+  const logout = useCallback(async () => {
+    try {
+      if (activeSession?.isAuthenticated && api?.logout) {
+        await api.logout();
+      }
+    } finally {
+      clearStoredOpsSession();
+      queryClient.clear();
+      setActiveSession(null);
+    }
+  }, [activeSession, api, queryClient]);
   const switchActor = useCallback((actor) => {
     const nextSession = getPortalDemoSession(actor);
 
@@ -133,6 +165,17 @@ export function App({ initialSession, initialEntries, initialLocale }) {
     }
   }, []);
 
+  if (!activeSession) {
+    return (
+      <I18nProvider initialLocale={initialLocale}>
+        <AdminLoginScreen
+          loginAdmin={loginAdmin}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      </I18nProvider>
+    );
+  }
+
   const RouterComponent = initialEntries ? MemoryRouter : BrowserRouter;
   const routerProps = initialEntries
     ? { initialEntries }
@@ -142,6 +185,7 @@ export function App({ initialSession, initialEntries, initialLocale }) {
     <I18nProvider initialLocale={initialLocale}>
       <SessionProvider
         api={api}
+        logout={logout}
         session={activeSession}
         switchActor={switchActor}
       >
@@ -278,28 +322,146 @@ export function App({ initialSession, initialEntries, initialLocale }) {
   );
 }
 
+function AdminLoginScreen({ loginAdmin, onLoginSuccess }) {
+  const { locale, setLocale, t } = useI18n();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    try {
+      const authSession = await loginAdmin({
+        email,
+        password,
+        device_name: 'portal-web',
+      });
+
+      onLoginSuccess(authSession);
+    } catch (error) {
+      setErrorMessage(readAuthErrorMessage(error) ?? t('auth.loginFailed'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="login-shell">
+      <section
+        className="login-panel panel"
+        aria-labelledby="admin-login-title"
+      >
+        <div className="login-brand">
+          <span className="brand-mark">{t('portal.brandMark')}</span>
+          <div>
+            <span className="eyebrow">{t('auth.adminAccess')}</span>
+            <h1 id="admin-login-title">{t('auth.loginTitle')}</h1>
+          </div>
+        </div>
+        <p>{t('auth.loginBody')}</p>
+
+        <form className="login-form" onSubmit={handleSubmit}>
+          <label className="field-stack">
+            <span>{t('auth.emailLabel')}</span>
+            <input
+              autoComplete="email"
+              autoFocus
+              inputMode="email"
+              onChange={(event) => setEmail(event.target.value)}
+              required
+              type="email"
+              value={email}
+            />
+          </label>
+          <label className="field-stack">
+            <span>{t('auth.passwordLabel')}</span>
+            <input
+              autoComplete="current-password"
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              type="password"
+              value={password}
+            />
+          </label>
+
+          {errorMessage ? (
+            <p className="form-error" role="alert">
+              {errorMessage}
+            </p>
+          ) : null}
+
+          <button
+            className="action-button"
+            disabled={isSubmitting}
+            type="submit"
+          >
+            {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
+          </button>
+        </form>
+
+        <div
+          aria-label={t('common.language.switcherLabel')}
+          className="language-switcher login-language"
+          role="group"
+        >
+          <button
+            aria-label={t('common.language.englishNative')}
+            aria-pressed={locale === 'en'}
+            className={locale === 'en' ? 'active' : ''}
+            onClick={() => setLocale('en')}
+            translate="no"
+            type="button"
+          >
+            {t('common.language.englishNative')}
+          </button>
+          <button
+            aria-label={`${t('common.language.arabicNative')} Arabic`}
+            aria-pressed={locale === 'ar'}
+            className={locale === 'ar' ? 'active' : ''}
+            onClick={() => setLocale('ar')}
+            translate="no"
+            type="button"
+          >
+            {t('common.language.arabicNative')}
+          </button>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function readAuthErrorMessage(error) {
+  const responseMessage = error?.response?.data?.message;
+  const emailMessages = error?.response?.data?.errors?.email;
+
+  if (Array.isArray(emailMessages) && emailMessages.length > 0) {
+    return emailMessages[0];
+  }
+
+  return typeof responseMessage === 'string' ? responseMessage : null;
+}
+
 function resolveInitialSession(initialSession) {
   if (initialSession) {
     return initialSession;
   }
 
-  if (typeof window !== 'undefined') {
-    return getPortalDemoSession(
-      window.localStorage.getItem(portalSessionActorStorageKey)
-    );
-  }
-
-  return defaultOpsSession;
+  return readStoredOpsSession();
 }
 
 function PortalLayout() {
-  const { session, switchActor } = useSession();
+  const { logout, session, switchActor } = useSession();
   const { locale, setLocale, t } = useI18n();
   const navigate = useNavigate();
   const visibleNav = navItems.filter((item) =>
     item.actors.includes(session.actor)
   );
-  const activeAbilities = actorAbilities[session.actor] ?? [];
+  const activeAbilities =
+    session.permissions ?? actorAbilities[session.actor] ?? [];
   const handleActorSwitch = (actor) => {
     switchActor(actor);
     navigate(actor === 'merchant' ? '/merchant/orders' : '/ops/dashboard', {
@@ -378,30 +540,42 @@ function PortalLayout() {
             </div>
           </div>
 
-          <div
-            aria-label={t('portal.actorSwitcher')}
-            className="actor-switcher"
-            role="group"
-          >
+          {session.isAuthenticated ? (
             <button
-              aria-label={t('portal.switchToMerchantSession')}
-              aria-pressed={session.actor === 'merchant'}
-              className={session.actor === 'merchant' ? 'active' : ''}
-              onClick={() => handleActorSwitch('merchant')}
+              className="action-button secondary sidebar-action"
+              onClick={() => {
+                void logout();
+              }}
               type="button"
             >
-              {t('portal.merchantSession')}
+              {t('auth.signOut')}
             </button>
-            <button
-              aria-label={t('portal.switchToOpsSession')}
-              aria-pressed={session.actor === 'ops'}
-              className={session.actor === 'ops' ? 'active' : ''}
-              onClick={() => handleActorSwitch('ops')}
-              type="button"
+          ) : (
+            <div
+              aria-label={t('portal.actorSwitcher')}
+              className="actor-switcher"
+              role="group"
             >
-              {t('portal.opsSession')}
-            </button>
-          </div>
+              <button
+                aria-label={t('portal.switchToMerchantSession')}
+                aria-pressed={session.actor === 'merchant'}
+                className={session.actor === 'merchant' ? 'active' : ''}
+                onClick={() => handleActorSwitch('merchant')}
+                type="button"
+              >
+                {t('portal.merchantSession')}
+              </button>
+              <button
+                aria-label={t('portal.switchToOpsSession')}
+                aria-pressed={session.actor === 'ops'}
+                className={session.actor === 'ops' ? 'active' : ''}
+                onClick={() => handleActorSwitch('ops')}
+                type="button"
+              >
+                {t('portal.opsSession')}
+              </button>
+            </div>
+          )}
         </aside>
 
         <main className="content" id="portal-main" tabIndex="-1">

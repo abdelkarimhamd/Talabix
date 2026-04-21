@@ -17,6 +17,7 @@ import {
   dispatchReassignmentInputSchema,
   deliveryProofSchema,
   ledgerEntrySchema,
+  loginSchema,
   managedMerchantSchema,
   mapsProviderConfigurationSchema,
   merchantSalesReportQuerySchema,
@@ -504,6 +505,32 @@ export function createOpsApi({ baseURL, token } = {}) {
 
   return {
     client,
+    setToken(nextToken) {
+      if (nextToken) {
+        client.defaults.headers.Authorization = `Bearer ${nextToken}`;
+        return;
+      }
+
+      delete client.defaults.headers.Authorization;
+    },
+    async login(payload) {
+      const parsedPayload = loginSchema.parse(payload);
+      const data = unwrapData(await client.post('auth/login', parsedPayload));
+      const session = authSessionSchema.parse(data);
+
+      client.defaults.headers.Authorization = `Bearer ${session.token}`;
+
+      return session;
+    },
+    async getMe() {
+      const data = unwrapData(await client.get('auth/me'));
+
+      return userSchema.parse(data);
+    },
+    async logout() {
+      await client.post('auth/logout');
+      delete client.defaults.headers.Authorization;
+    },
     async getDashboardOverview(query = {}) {
       const parsedQuery = opsDashboardQuerySchema.parse(compactParams(query));
       const data = unwrapData(

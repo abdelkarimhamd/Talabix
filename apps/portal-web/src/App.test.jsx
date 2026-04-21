@@ -6,17 +6,75 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App.jsx';
 import { resetPortalApiState } from './portal-api.js';
 import {
   defaultMerchantSession,
   defaultOpsSession,
+  portalAuthStorageKey,
 } from './session-defaults.js';
 
 describe('portal routing', () => {
   beforeEach(() => {
     resetPortalApiState();
+    window.localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it('renders the admin login screen when no portal token is stored', () => {
+    render(<App initialEntries={['/ops/dashboard']} />);
+
+    expect(
+      screen.getByRole('heading', { name: /sign in to talabix ops/i })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+  });
+
+  it('stores the ops Sanctum token after admin login', async () => {
+    const loginAdmin = vi.fn().mockResolvedValue({
+      token: 'live-ops-token',
+      user: {
+        uuid: '4d491f47-d784-4fa0-bb3a-52b68c3ed9fc',
+        name: 'Talabix Owner',
+        email: 'owner@talabix.test',
+        phone: null,
+        account_status: 'active',
+        roles: ['ops_admin'],
+        abilities: [
+          'ops:dashboard.read',
+          'ops:merchants.manage',
+          'ops:dispatch.manage',
+          'ops:settlements.read',
+          'ops:settlements.manage',
+          'ops:support.manage',
+          'ops:users.manage',
+        ],
+      },
+    });
+
+    render(<App initialEntries={['/ops/dashboard']} loginAdmin={loginAdmin} />);
+
+    fireEvent.change(screen.getByLabelText(/email address/i), {
+      target: { value: 'owner@talabix.test' },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: 'secret' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(
+      await screen.findByText(/marketplace kpi view across orders/i)
+    ).toBeInTheDocument();
+    expect(loginAdmin).toHaveBeenCalledWith({
+      email: 'owner@talabix.test',
+      password: 'secret',
+      device_name: 'portal-web',
+    });
+    expect(window.localStorage.getItem(portalAuthStorageKey)).toContain(
+      'live-ops-token'
+    );
   });
 
   it('blocks merchant sessions from ops routes', async () => {
