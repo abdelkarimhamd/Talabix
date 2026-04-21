@@ -2,11 +2,18 @@
 
 namespace App\Modules\Catalog\Resources;
 
+use App\Models\CatalogItemModifierGroup;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin CatalogItemModifierGroup
+ */
 class CatalogModifierGroupResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
