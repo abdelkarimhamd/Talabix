@@ -4,7 +4,10 @@ import { getRiderEarningsReport } from '../rider-api';
 import {
   ActionPill,
   InfoCard,
+  MetricTile,
   ScreenFrame,
+  SectionHeader,
+  colors,
   screenStyles,
 } from '../ui';
 
@@ -31,12 +34,41 @@ export function RiderEarningsScreen() {
 
   return (
     <ScreenFrame
+      activeTab="earnings"
       description="Rider earnings are now read from the same ledger-backed reporting shape used by the API, scoped to the signed-in rider only."
       eyebrow="Rider earnings"
+      preserveHeaderText={false}
+      showHeader={false}
       title="Track completed deliveries and COD earnings."
     >
+      <View style={screenStyles.section}>
+        <Text style={screenStyles.pageKicker}>Rider earnings</Text>
+        <Text style={screenStyles.compactTitle}>
+          Track completed deliveries and COD earnings.
+        </Text>
+      </View>
+
+      <View style={screenStyles.metricRail}>
+        <MetricTile
+          label="Delivered orders"
+          tone="yellow"
+          value={report ? report.summary.deliveries_count : '...'}
+        />
+        <MetricTile
+          label="Average per delivery"
+          value={
+            report
+              ? formatMoney(
+                  report.summary.average_per_delivery_minor,
+                  report.summary.currency
+                )
+              : '...'
+          }
+        />
+      </View>
+
       <InfoCard
-        accent="#26a69a"
+        accent={colors.primary}
         description={report ? `${report.rider.name} - ${report.rider.availability}` : 'Loading rider ledger'}
         eyebrow="Earnings this period"
         title={report ? formatMoney(report.summary.earnings_minor, report.summary.currency) : '...'}
@@ -56,8 +88,12 @@ export function RiderEarningsScreen() {
         </View>
       </InfoCard>
 
+      <View style={screenStyles.section}>
+        <SectionHeader title="Daily activity" />
+      </View>
+
       <InfoCard
-        accent="#d9b675"
+        accent={colors.green}
         description="Only days with completed deliveries are highlighted so the rider can scan earning activity quickly."
         eyebrow="Daily activity"
         title="Delivery days"
@@ -84,7 +120,7 @@ export function RiderEarningsScreen() {
       <View style={screenStyles.stacked}>
         {(report?.orders ?? []).map((order) => (
           <InfoCard
-            accent="#112134"
+            accent={colors.dark}
             description={`${order.branch_name} - ${formatDate(order.delivered_at)}`}
             eyebrow="Paid delivery"
             key={order.order_uuid}

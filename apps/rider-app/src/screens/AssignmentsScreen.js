@@ -6,7 +6,11 @@ import {
   AccentButton,
   ActionPill,
   InfoCard,
+  MetricTile,
+  RouteStopCard,
   ScreenFrame,
+  SectionHeader,
+  colors,
   screenStyles,
 } from '../ui';
 
@@ -37,14 +41,36 @@ export function AssignmentsScreen() {
 
   return (
     <ScreenFrame
+      activeTab="assignments"
       description="Assignments surface the same operational facts the dispatch board uses: zone coverage, active load, and current rider state."
       eyebrow="Assignment queue"
+      preserveHeaderText={false}
+      showHeader={false}
       title="Accept or decline the next order"
     >
+      <View style={screenStyles.section}>
+        <Text style={screenStyles.pageKicker}>Assignment queue</Text>
+        <Text style={screenStyles.compactTitle}>
+          Accept or decline the next order
+        </Text>
+      </View>
+
+      <View style={screenStyles.metricRail}>
+        <MetricTile
+          label="Open assignments"
+          tone="yellow"
+          value={assignments.length}
+        />
+        <MetricTile
+          label="Rider load"
+          value={assignments.length ? '1 active' : 'Clear'}
+        />
+      </View>
+
       <View style={screenStyles.stacked}>
         {assignments.length === 0 ? (
           <InfoCard
-            accent="#7fc7bc"
+            accent={colors.green}
             description="Once dispatch assigns an order, it will appear here with the next required rider action."
             eyebrow="No active assignments"
             title="Dispatch queue is clear"
@@ -58,21 +84,31 @@ export function AssignmentsScreen() {
 
         {assignments.map((assignment) => (
           <InfoCard
-            accent="#26a69a"
+            accent={colors.primary}
             description={`Pickup from ${assignment.branch_name ?? 'assigned branch'}`}
             eyebrow="Dispatch candidate"
             key={assignment.uuid}
             title={assignment.customer_name ?? 'Assigned customer'}
           >
-            <Text style={screenStyles.statValue}>
-              {assignment.delivery_address_snapshot?.line_1 ??
-                'Drop-off loading'}
-            </Text>
-            <Text style={screenStyles.muted}>
-              {assignment.delivery_address_snapshot?.delivery_notes ??
-                'No extra drop-off notes saved yet.'}
-            </Text>
+            <RouteStopCard
+              accent={colors.primary}
+              description={
+                assignment.delivery_address_snapshot?.delivery_notes ??
+                'No extra drop-off notes saved yet.'
+              }
+              eyebrow="Drop-off"
+              meta={assignment.delivery_address_snapshot?.city ?? 'Riyadh'}
+              title={
+                assignment.delivery_address_snapshot?.line_1 ??
+                'Drop-off loading'
+              }
+            />
             <ActionPill
+              tone={
+                assignment.delivery_assignment?.accepted_at
+                  ? 'success'
+                  : 'warning'
+              }
               label={
                 assignment.delivery_assignment?.accepted_at
                   ? 'Assignment accepted'
@@ -99,6 +135,14 @@ export function AssignmentsScreen() {
         {feedback ? (
           <Text style={screenStyles.helperText}>{feedback}</Text>
         ) : null}
+      </View>
+
+      <View style={screenStyles.section}>
+        <SectionHeader title="Dispatch context" />
+        <Text style={screenStyles.muted}>
+          Assignments surface the same operational facts the dispatch board uses:
+          zone coverage, active load, and current rider state.
+        </Text>
       </View>
     </ScreenFrame>
   );

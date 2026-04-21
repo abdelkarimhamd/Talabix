@@ -1,5 +1,6 @@
 import {
   actorNotificationQuerySchema,
+  deliveryExceptionInputSchema,
   deliveryProofSchema,
   navigationHandoffSchema,
   notificationDeliverySchema,
@@ -49,7 +50,9 @@ function nowIso() {
 
 function compactQuery(query = {}) {
   return Object.fromEntries(
-    Object.entries(query).filter(([, value]) => value !== undefined && value !== '')
+    Object.entries(query).filter(
+      ([, value]) => value !== undefined && value !== ''
+    )
   );
 }
 
@@ -63,7 +66,9 @@ function riderActionsFor(order) {
   }
 
   if (order.status === 'assigned') {
-    return order.delivery_assignment?.accepted_at ? ['confirm_pickup'] : ['accept_assignment'];
+    return order.delivery_assignment?.accepted_at
+      ? ['confirm_pickup']
+      : ['accept_assignment'];
   }
 
   if (order.status === 'picked_up') {
@@ -82,7 +87,10 @@ function parseRiderOrder(order) {
     ...order,
     item_count:
       order.item_count ??
-      order.items.reduce((count, item) => count + Number(item.quantity ?? 0), 0),
+      order.items.reduce(
+        (count, item) => count + Number(item.quantity ?? 0),
+        0
+      ),
     rider_actions: riderActionsFor(order),
   });
 }
@@ -101,7 +109,10 @@ function syncOrder(nextOrder) {
   const parsedOrder = parseRiderOrder(nextOrder);
 
   state.currentOrder = parsedOrder;
-  state.orders = [parsedOrder, ...state.orders.filter((order) => order.uuid !== parsedOrder.uuid)];
+  state.orders = [
+    parsedOrder,
+    ...state.orders.filter((order) => order.uuid !== parsedOrder.uuid),
+  ];
 
   return parsedOrder;
 }
@@ -142,7 +153,9 @@ function dropoffLabel(order) {
 
   const address = order.delivery_address_snapshot;
 
-  return [address.line_1, address.building, address.city].filter(Boolean).join(' - ');
+  return [address.line_1, address.building, address.city]
+    .filter(Boolean)
+    .join(' - ');
 }
 
 function nextActionLabel(order) {
@@ -160,8 +173,18 @@ function nextActionLabel(order) {
   }
 }
 
+function deliveryExceptionReasonLabel(reasonCode) {
+  return reasonCode
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 function riderOriginFor(order) {
-  if (order?.pickup_branch_snapshot?.latitude && order?.pickup_branch_snapshot?.longitude) {
+  if (
+    order?.pickup_branch_snapshot?.latitude &&
+    order?.pickup_branch_snapshot?.longitude
+  ) {
     return {
       latitude: order.pickup_branch_snapshot.latitude - 0.01,
       longitude: order.pickup_branch_snapshot.longitude - 0.008,
@@ -183,9 +206,13 @@ export async function getRiderOverview() {
     pickupBranch: order?.branch_name ?? 'Dispatch queue',
     dropoffArea: dropoffLabel(order),
     customerName: order?.customer_name ?? 'No assigned customer',
-    proofCaptureMode: order?.delivery_assignment?.proof_metadata?.proof_type ?? 'recipient_confirmation',
+    proofCaptureMode:
+      order?.delivery_assignment?.proof_metadata?.proof_type ??
+      'recipient_confirmation',
     activeStops: currentOrderIsActive(order) ? 1 : 0,
-    assignmentStatus: order?.delivery_assignment?.accepted_at ? 'accepted' : order?.status ?? 'idle',
+    assignmentStatus: order?.delivery_assignment?.accepted_at
+      ? 'accepted'
+      : (order?.status ?? 'idle'),
     nextActionLabel: nextActionLabel(order),
   };
 }
@@ -208,9 +235,16 @@ export async function getRiderNotifications(query = {}) {
   const parsedQuery = actorNotificationQuerySchema.parse(compactQuery(query));
 
   const data = state.notifications
-    .filter((entry) => (parsedQuery.order_uuid ? entry.order_uuid === parsedQuery.order_uuid : true))
+    .filter((entry) =>
+      parsedQuery.order_uuid
+        ? entry.order_uuid === parsedQuery.order_uuid
+        : true
+    )
     .filter((entry) => (parsedQuery.unread_only ? !entry.read_at : true))
-    .sort((left, right) => new Date(right.created_at ?? 0) - new Date(left.created_at ?? 0))
+    .sort(
+      (left, right) =>
+        new Date(right.created_at ?? 0) - new Date(left.created_at ?? 0)
+    )
     .map((entry) => notificationDeliverySchema.parse(entry));
 
   return {
@@ -238,7 +272,9 @@ export async function markRiderNotificationRead(notificationId) {
       : entry
   );
 
-  const notification = state.notifications.find((entry) => entry.id === notificationId);
+  const notification = state.notifications.find(
+    (entry) => entry.id === notificationId
+  );
 
   if (!notification) {
     throw new Error('Notification not found for this rider.');
@@ -255,14 +291,18 @@ export async function getRiderNavigationPlan(orderUuid) {
   const order = lookupOrder(orderUuid ?? state.currentOrder?.uuid);
 
   if (!order) {
-    throw new Error('Navigation plan is not available without an active order.');
+    throw new Error(
+      'Navigation plan is not available without an active order.'
+    );
   }
 
   const pickupLocation = order.pickup_branch_snapshot;
   const dropoffLocation = order.delivery_address_snapshot;
 
   if (!pickupLocation || !dropoffLocation) {
-    throw new Error('Navigation plan is missing pickup or drop-off coordinates.');
+    throw new Error(
+      'Navigation plan is missing pickup or drop-off coordinates.'
+    );
   }
 
   const [pickupEstimate, dropoffEstimate] = await Promise.all([
@@ -285,7 +325,9 @@ export async function getRiderNavigationPlan(orderUuid) {
   return {
     pickup: {
       label: pickupLocation.label ?? order.branch_name ?? 'Pickup branch',
-      address: [pickupLocation.line_1, pickupLocation.city].filter(Boolean).join(', '),
+      address: [pickupLocation.line_1, pickupLocation.city]
+        .filter(Boolean)
+        .join(', '),
       estimate: routeEstimateSchema.parse(pickupEstimate),
       handoff: navigationHandoffSchema.parse({
         label: 'Open pickup navigation',
@@ -301,7 +343,11 @@ export async function getRiderNavigationPlan(orderUuid) {
     },
     dropoff: {
       label: dropoffLocation.label ?? order.customer_name ?? 'Drop-off',
-      address: [dropoffLocation.line_1, dropoffLocation.building, dropoffLocation.city]
+      address: [
+        dropoffLocation.line_1,
+        dropoffLocation.building,
+        dropoffLocation.city,
+      ]
         .filter(Boolean)
         .join(', '),
       estimate: routeEstimateSchema.parse(dropoffEstimate),
@@ -430,6 +476,57 @@ export async function completeRiderDelivery(orderUuid, payload) {
   });
 }
 
+export async function reportRiderDeliveryException(orderUuid, payload) {
+  const parsedPayload = deliveryExceptionInputSchema.parse(payload);
+
+  return patchCurrentOrder((order) => {
+    if (order.uuid !== orderUuid) {
+      throw new Error('Order not found.');
+    }
+
+    if (!['assigned', 'picked_up'].includes(order.status)) {
+      throw new Error(
+        'Only active delivery orders can receive delivery issues.'
+      );
+    }
+
+    if (!order.delivery_assignment?.accepted_at) {
+      throw new Error(
+        'Accept the assignment before reporting a delivery issue.'
+      );
+    }
+
+    const timestamp = nowIso();
+    const exception = {
+      reason_code: parsedPayload.reason_code,
+      reason_label: deliveryExceptionReasonLabel(parsedPayload.reason_code),
+      note: parsedPayload.note ?? null,
+      reported_at: timestamp,
+      reported_by: 'rider',
+    };
+
+    order.active_delivery_exception = exception;
+    order.delivery_assignment = {
+      ...order.delivery_assignment,
+      status: 'exception_reported',
+    };
+    appendTimeline(order, {
+      event_type: 'delivery_exception_reported',
+      from_status: order.status,
+      to_status: order.status,
+      metadata: {
+        reason_code: exception.reason_code,
+        reason_label: exception.reason_label,
+        note: exception.note,
+        reported_by: exception.reported_by,
+      },
+      created_at: timestamp,
+    });
+
+    return order;
+  });
+}
+
 function appendEarningForOrder(order, timestamp) {
   const alreadyRecorded = state.earningsReport.orders.some(
     (entry) => entry.order_uuid === order.uuid
@@ -454,14 +551,15 @@ function appendEarningForOrder(order, timestamp) {
     },
     ...state.earningsReport.orders,
   ];
-  state.earningsReport.daily_earnings = state.earningsReport.daily_earnings.map((point) =>
-    point.date === date
-      ? {
-          ...point,
-          deliveries_count: point.deliveries_count + 1,
-          earnings_minor: point.earnings_minor + earningMinor,
-        }
-      : point
+  state.earningsReport.daily_earnings = state.earningsReport.daily_earnings.map(
+    (point) =>
+      point.date === date
+        ? {
+            ...point,
+            deliveries_count: point.deliveries_count + 1,
+            earnings_minor: point.earnings_minor + earningMinor,
+          }
+        : point
   );
   state.earningsReport.summary = {
     ...state.earningsReport.summary,

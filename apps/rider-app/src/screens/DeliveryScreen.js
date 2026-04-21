@@ -7,15 +7,21 @@ import {
   confirmRiderPickup,
   getCurrentRiderOrder,
   getRiderNavigationPlan,
+  reportRiderDeliveryException,
 } from '../rider-api';
 import { useI18n } from '../i18n';
 import {
   AccentButton,
   ActionPill,
   InfoCard,
+  MetricTile,
+  RouteStopCard,
   ScreenFrame,
+  SectionHeader,
   SecondaryButton,
   TextField,
+  TimelineEventRow,
+  colors,
   screenStyles,
 } from '../ui';
 
@@ -29,6 +35,8 @@ export function DeliveryScreen({
   const [recipientName, setRecipientName] = useState('');
   const [proofNotes, setProofNotes] = useState('');
   const [proofReference, setProofReference] = useState('');
+  const [exceptionReason, setExceptionReason] = useState('address_issue');
+  const [exceptionNote, setExceptionNote] = useState('');
   const [pendingNavigationKey, setPendingNavigationKey] = useState(null);
   const pendingNavigationRef = useRef(null);
   const { data: order } = useQuery({
@@ -111,21 +119,78 @@ export function DeliveryScreen({
     },
   });
 
+  const exceptionMutation = useMutation({
+    mutationFn: (orderUuid) =>
+      reportRiderDeliveryException(orderUuid, {
+        reason_code: exceptionReason,
+        note: exceptionNote || null,
+      }),
+    onSuccess: (nextOrder) => {
+      refreshQueries();
+      const reasonCode =
+        nextOrder.active_delivery_exception?.reason_code ?? exceptionReason;
+      setFeedback(
+        `Delivery issue reported: ${labelForEnum(
+          'deliveryExceptionReason',
+          reasonCode
+        )}.`
+      );
+    },
+    onError: (error) => {
+      setFeedback(error.message ?? 'Delivery issue could not be reported.');
+    },
+  });
+
   const proofMetadata = order?.delivery_assignment?.proof_metadata;
+  const activeException = order?.active_delivery_exception;
+  const activeExceptionReasonLabel = activeException
+    ? labelForEnum('deliveryExceptionReason', activeException.reason_code)
+    : null;
   const selectedProofTypeLabel = labelForEnum('proofType', proofType);
+  const exceptionReasons = [
+    'customer_unreachable',
+    'address_issue',
+    'merchant_delay',
+    'vehicle_issue',
+    'safety_issue',
+    'other',
+  ];
   const acceptDisabled = acceptMutation.isPending;
   const pickupDisabled = pickupMutation.isPending;
   const deliveryDisabled = deliveryMutation.isPending;
+  const exceptionDisabled = exceptionMutation.isPending || !order?.uuid;
 
   return (
     <ScreenFrame
+      activeTab="delivery"
       description="Pickup, delivery, and proof capture map directly to rider-scoped endpoints and order lifecycle transitions."
       eyebrow="Delivery detail"
+      preserveHeaderText={false}
+      showHeader={false}
       title="Complete the order and capture proof"
     >
+      <View style={screenStyles.section}>
+        <Text style={screenStyles.pageKicker}>Delivery detail</Text>
+        <Text style={screenStyles.compactTitle}>
+          Complete the order and capture proof
+        </Text>
+      </View>
+
+      <View style={screenStyles.metricRail}>
+        <MetricTile
+          label="Order status"
+          tone="yellow"
+          value={order ? labelForEnum('orderStatus', order.status) : '...'}
+        />
+        <MetricTile
+          label="Stops"
+          value={order ? `${order.item_count ?? 0} items` : '...'}
+        />
+      </View>
+
       <View style={screenStyles.stacked}>
         <InfoCard
-          accent="#26a69a"
+          accent={colors.primary}
           description={order?.branch_name ?? 'Assigned branch'}
           eyebrow="Current order"
           title={order?.customer_name ?? 'Waiting for assignment'}
@@ -138,6 +203,13 @@ export function DeliveryScreen({
               'No landmark saved yet for this delivery.'}
           </Text>
           <ActionPill
+            tone={
+              order?.status === 'delivered'
+                ? 'success'
+                : order?.rider_actions?.[0]
+                  ? 'warning'
+                  : 'neutral'
+            }
             label={
               order?.status === 'delivered'
                 ? 'Delivered'
@@ -169,7 +241,63 @@ export function DeliveryScreen({
         </InfoCard>
 
         <InfoCard
-          accent="#112134"
+          accent={colors.orange}
+          description="Report a delivery issue while keeping the order open for support, reassignment, or final proof capture."
+          eyebrow="Delivery issue"
+          title={
+            activeException
+              ? activeExceptionReasonLabel
+              : 'Report delivery issue'
+          }
+        >
+          <View style={screenStyles.form}>
+            <View style={screenStyles.buttonRow}>
+              {exceptionReasons.map((reasonCode) => (
+                <SecondaryButton
+                  active={exceptionReason === reasonCode}
+                  key={reasonCode}
+                  label={labelForEnum('deliveryExceptionReason', reasonCode)}
+                  onPress={() => setExceptionReason(reasonCode)}
+                  testID={`delivery-exception-${reasonCode.replaceAll('_', '-')}`}
+                />
+              ))}
+            </View>
+            <Text style={screenStyles.muted}>
+              Selected issue:{' '}
+              {labelForEnum('deliveryExceptionReason', exceptionReason)}
+            </Text>
+            <TextField
+              label="Issue note"
+              multiline
+              onChangeText={setExceptionNote}
+              placeholder="Customer unreachable, address blocked, vehicle issue"
+              testID="delivery-exception-note"
+              value={exceptionNote}
+            />
+            {['assigned', 'picked_up'].includes(order?.status) &&
+            order?.delivery_assignment?.accepted_at ? (
+              <AccentButton
+                disabled={exceptionDisabled}
+                label={
+                  exceptionMutation.isPending
+                    ? 'Reporting issue'
+                    : 'Report delivery issue'
+                }
+                onPress={() => exceptionMutation.mutate(order.uuid)}
+                testID="report-delivery-exception"
+              />
+            ) : null}
+          </View>
+          {activeException ? (
+            <Text style={screenStyles.muted}>
+              {activeExceptionReasonLabel}:{' '}
+              {activeException.note ?? 'No note added.'}
+            </Text>
+          ) : null}
+        </InfoCard>
+
+        <InfoCard
+          accent={colors.dark}
           description="Proof metadata is kept structured so the same fields can later back real file uploads and support review tools."
           eyebrow="Proof capture"
           title={
@@ -179,16 +307,19 @@ export function DeliveryScreen({
           <View style={screenStyles.form}>
             <View style={screenStyles.buttonRow}>
               <SecondaryButton
+                active={proofType === 'recipient_confirmation'}
                 label={labelForEnum('proofType', 'recipient_confirmation')}
                 onPress={() => setProofType('recipient_confirmation')}
                 testID="proof-type-recipient"
               />
               <SecondaryButton
+                active={proofType === 'photo'}
                 label={labelForEnum('proofType', 'photo')}
                 onPress={() => setProofType('photo')}
                 testID="proof-type-photo"
               />
               <SecondaryButton
+                active={proofType === 'handoff_code'}
                 label={labelForEnum('proofType', 'handoff_code')}
                 onPress={() => setProofType('handoff_code')}
                 testID="proof-type-handoff"
@@ -243,75 +374,86 @@ export function DeliveryScreen({
         </InfoCard>
 
         <InfoCard
-          accent="#d9b675"
+          accent={colors.primaryDeep}
           description="Navigation handoff stays provider-agnostic in the shared layer, then resolves to an external Google Maps URL for this demo shell."
           eyebrow="Navigation"
           title="Pickup and drop-off routing"
         >
           <View style={screenStyles.stacked}>
-            <View style={screenStyles.inlinePanel}>
-              <Text style={screenStyles.inlineTitle}>
-                {navigationPlan?.pickup.label ?? 'Pickup branch'}
-              </Text>
-              <Text style={screenStyles.muted}>
-                {navigationPlan?.pickup.address ??
-                  'Waiting for pickup coordinates.'}
-              </Text>
-              <Text style={screenStyles.muted}>
-                {navigationPlan?.pickup.estimate
+            <RouteStopCard
+              accent={colors.primary}
+              action={
+                navigationPlan?.pickup.handoff ? (
+                  <SecondaryButton
+                    disabled={Boolean(pendingNavigationKey)}
+                    label={
+                      pendingNavigationKey === 'pickup'
+                        ? 'Opening navigation'
+                        : navigationPlan.pickup.handoff.label
+                    }
+                    onPress={() =>
+                      handleNavigation(navigationPlan.pickup.handoff, 'pickup')
+                    }
+                    testID="open-pickup-navigation"
+                  />
+                ) : null
+              }
+              description={
+                navigationPlan?.pickup.address ??
+                'Waiting for pickup coordinates.'
+              }
+              eyebrow="Pickup"
+              meta={
+                navigationPlan?.pickup.estimate
                   ? `${navigationPlan.pickup.estimate.duration_minutes} min to pickup`
-                  : 'Pickup ETA unavailable.'}
-              </Text>
-              {navigationPlan?.pickup.handoff ? (
-                <SecondaryButton
-                  disabled={Boolean(pendingNavigationKey)}
-                  label={
-                    pendingNavigationKey === 'pickup'
-                      ? 'Opening navigation'
-                      : navigationPlan.pickup.handoff.label
-                  }
-                  onPress={() =>
-                    handleNavigation(navigationPlan.pickup.handoff, 'pickup')
-                  }
-                  testID="open-pickup-navigation"
-                />
-              ) : null}
-            </View>
+                  : 'Pickup ETA unavailable.'
+              }
+              title={navigationPlan?.pickup.label ?? 'Pickup branch'}
+            />
 
-            <View style={screenStyles.inlinePanel}>
-              <Text style={screenStyles.inlineTitle}>
-                {navigationPlan?.dropoff.label ?? 'Drop-off address'}
-              </Text>
-              <Text style={screenStyles.muted}>
-                {navigationPlan?.dropoff.address ??
-                  'Waiting for drop-off coordinates.'}
-              </Text>
-              <Text style={screenStyles.muted}>
-                {navigationPlan?.dropoff.estimate
+            <RouteStopCard
+              accent={colors.green}
+              action={
+                navigationPlan?.dropoff.handoff ? (
+                  <SecondaryButton
+                    disabled={Boolean(pendingNavigationKey)}
+                    label={
+                      pendingNavigationKey === 'dropoff'
+                        ? 'Opening navigation'
+                        : navigationPlan.dropoff.handoff.label
+                    }
+                    onPress={() =>
+                      handleNavigation(
+                        navigationPlan.dropoff.handoff,
+                        'dropoff'
+                      )
+                    }
+                    testID="open-dropoff-navigation"
+                  />
+                ) : null
+              }
+              description={
+                navigationPlan?.dropoff.address ??
+                'Waiting for drop-off coordinates.'
+              }
+              eyebrow="Drop-off"
+              meta={
+                navigationPlan?.dropoff.estimate
                   ? `${navigationPlan.dropoff.estimate.duration_minutes} min to drop-off`
-                  : 'Drop-off ETA unavailable.'}
-              </Text>
-              {navigationPlan?.dropoff.handoff ? (
-                <SecondaryButton
-                  disabled={Boolean(pendingNavigationKey)}
-                  label={
-                    pendingNavigationKey === 'dropoff'
-                      ? 'Opening navigation'
-                      : navigationPlan.dropoff.handoff.label
-                  }
-                  onPress={() =>
-                    handleNavigation(navigationPlan.dropoff.handoff, 'dropoff')
-                  }
-                  testID="open-dropoff-navigation"
-                />
-              ) : null}
-            </View>
+                  : 'Drop-off ETA unavailable.'
+              }
+              title={navigationPlan?.dropoff.label ?? 'Drop-off address'}
+            />
           </View>
         </InfoCard>
 
+        <View style={screenStyles.section}>
+          <SectionHeader title="Order timeline" />
+        </View>
+
         {(order?.timeline ?? []).map((step) => (
           <InfoCard
-            accent="#7fc7bc"
+            accent={colors.green}
             description={
               step.metadata?.recipient_name
                 ? `Recipient: ${step.metadata.recipient_name}`
@@ -321,16 +463,24 @@ export function DeliveryScreen({
             }
             eyebrow="Timeline event"
             key={`${step.event_type}-${step.created_at}`}
-            title={labelForEnum('orderTimelineEventType', step.event_type)}
+            title={
+              step.created_at
+                ? new Date(step.created_at).toLocaleString()
+                : 'Recorded event'
+            }
           >
-            <Text style={screenStyles.muted}>
-              {step.from_status
-                ? `${labelForEnum('orderStatus', step.from_status)} -> ${labelForEnum(
-                    'orderStatus',
-                    step.to_status
-                  )}`
-                : 'Order event recorded'}
-            </Text>
+            <TimelineEventRow
+              description={
+                step.from_status
+                  ? `${labelForEnum('orderStatus', step.from_status)} -> ${labelForEnum(
+                      'orderStatus',
+                      step.to_status
+                    )}`
+                  : 'Order event recorded'
+              }
+              label={step.actor_role ?? 'System event'}
+              title={labelForEnum('orderTimelineEventType', step.event_type)}
+            />
           </InfoCard>
         ))}
       </View>

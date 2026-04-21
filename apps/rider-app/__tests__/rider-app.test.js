@@ -314,6 +314,45 @@ describe('rider app shell', () => {
     expect(screen.getByText(/delivered to sara al-qahtani/i)).toBeTruthy();
   });
 
+  it('reports a delivery exception without completing the order', async () => {
+    renderWithProviders(<DeliveryScreen />, { locale: 'ar' });
+
+    fireEvent.press(await screen.findByTestId('delivery-accept-assignment'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('confirm-pickup')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('confirm-pickup'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('complete-delivery')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('delivery-exception-address-issue'));
+    fireEvent.changeText(
+      screen.getByTestId('delivery-exception-note'),
+      'Customer moved to the side entrance and needs support.'
+    );
+    fireEvent.press(screen.getByTestId('report-delivery-exception'));
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByText(
+          new RegExp(
+            labelForEnum('deliveryExceptionReason', 'address_issue', 'ar')
+          )
+        ).length
+      ).toBeGreaterThan(0);
+    });
+
+    expect(screen.queryByText(/^Address issue$/i)).toBeNull();
+    expect(
+      screen.getByText(/customer moved to the side entrance/i)
+    ).toBeTruthy();
+    expect(screen.getByTestId('complete-delivery')).toBeTruthy();
+  });
+
   it('prevents duplicate navigation handoffs while pending', async () => {
     let releaseNavigation;
     const pendingNavigation = new Promise((resolve) => {

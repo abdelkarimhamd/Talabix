@@ -11,9 +11,13 @@ import {
 import {
   AccentButton,
   ActionPill,
+  MetricTile,
   InfoCard,
+  RiderTopBar,
   ScreenFrame,
+  SectionHeader,
   SecondaryButton,
+  colors,
   screenStyles,
 } from '../ui';
 
@@ -48,15 +52,50 @@ export function RiderHomeScreen({ actions = null }) {
 
   return (
     <ScreenFrame
+      activeTab="home"
       description={t('rider.home.description')}
       eyebrow={t('rider.home.eyebrow')}
+      preserveHeaderText={false}
+      showHeader={false}
       title={t('rider.home.title')}
     >
       <Text testID="rider-locale-direction" style={{ height: 0, opacity: 0 }}>
         {dir}
       </Text>
+      <RiderTopBar
+        meta={data?.pickupBranch ?? 'Riyadh delivery run'}
+        name={notificationInbox?.data[0]?.recipient_name ?? 'Reem Al-Shehri'}
+        status={t('rider.home.availability')}
+      />
+
+      <View style={screenStyles.section}>
+        <Text style={screenStyles.pageKicker}>
+          {t('rider.home.eyebrow')}
+        </Text>
+        <Text style={screenStyles.compactTitle}>{t('rider.home.title')}</Text>
+      </View>
+
+      <View style={screenStyles.metricRail}>
+        <MetricTile
+          label={t('rider.home.activeAssignment')}
+          tone="yellow"
+          value={data ? tp('rider.home.activeStops', data.activeStops) : '...'}
+        />
+        <MetricTile
+          label={t('rider.home.inbox')}
+          value={
+            notificationInbox
+              ? tp(
+                  'rider.home.unreadNotifications',
+                  notificationInbox.meta.unread_count
+                )
+              : '...'
+          }
+        />
+      </View>
+
       <InfoCard
-        accent="#26a69a"
+        accent={colors.primary}
         description={data?.pickupBranch}
         eyebrow={t('rider.home.activeAssignment')}
         title={
@@ -78,13 +117,14 @@ export function RiderHomeScreen({ actions = null }) {
         </Text>
         {data ? (
           <ActionPill
+            tone="warning"
             label={t('rider.home.nextAction', { action: data.nextActionLabel })}
           />
         ) : null}
       </InfoCard>
 
       <InfoCard
-        accent="#7fc7bc"
+        accent={colors.green}
         description={t('rider.home.inboxDescription')}
         eyebrow={t('rider.home.inbox')}
         title={
@@ -98,11 +138,13 @@ export function RiderHomeScreen({ actions = null }) {
       >
         <View style={screenStyles.row}>
           <ActionPill
+            tone="warning"
             label={t('common.total', {
               count: notificationInbox?.meta.total ?? 0,
             })}
           />
           <ActionPill
+            tone="success"
             label={t('common.unread', {
               count: notificationInbox?.meta.unread_count ?? 0,
             })}
@@ -116,7 +158,7 @@ export function RiderHomeScreen({ actions = null }) {
       </InfoCard>
 
       <InfoCard
-        accent="#112134"
+        accent={colors.dark}
         description={t('rider.home.availabilityDescription')}
         eyebrow={t('rider.home.availability')}
         title={
@@ -155,14 +197,15 @@ export function RiderHomeScreen({ actions = null }) {
         ) : null}
       </InfoCard>
 
-      <InfoCard
-        accent="#7fc7bc"
-        description={t('rider.home.nextStepsDescription')}
-        eyebrow={t('rider.home.nextSteps')}
-        title={t('rider.home.riderActions')}
-      >
-        <View style={screenStyles.row}>{actions}</View>
-      </InfoCard>
+      {actions ? (
+        <View style={screenStyles.section}>
+          <SectionHeader title={t('rider.home.riderActions')} />
+          <Text style={screenStyles.muted}>
+            {t('rider.home.nextStepsDescription')}
+          </Text>
+          <View style={screenStyles.buttonRow}>{actions}</View>
+        </View>
+      ) : null}
     </ScreenFrame>
   );
 }
