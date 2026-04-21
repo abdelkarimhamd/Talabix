@@ -35,6 +35,8 @@ class User extends Authenticatable
 
     protected $guarded = [];
 
+    protected string $guard_name = 'web';
+
     protected function casts(): array
     {
         return [
