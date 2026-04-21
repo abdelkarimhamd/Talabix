@@ -208,7 +208,8 @@ textarea:focus-visible,
   transform: translateX(2px);
 }
 
-.language-switcher {
+.language-switcher,
+.actor-switcher {
   display: flex;
   gap: 8px;
   padding: 6px;
@@ -216,7 +217,8 @@ textarea:focus-visible,
   background: rgba(17, 33, 52, 0.06);
 }
 
-.language-switcher button {
+.language-switcher button,
+.actor-switcher button {
   flex: 1;
   min-height: 38px;
   border: 0;
@@ -230,12 +232,14 @@ textarea:focus-visible,
     box-shadow 160ms ease;
 }
 
-.language-switcher button:hover {
+.language-switcher button:hover,
+.actor-switcher button:hover {
   color: #112134;
   background: rgba(255, 255, 255, 0.56);
 }
 
-.language-switcher button.active {
+.language-switcher button.active,
+.actor-switcher button.active {
   color: #112134;
   background: rgba(255, 255, 255, 0.82);
   box-shadow: 0 8px 18px rgba(17, 33, 52, 0.08);
@@ -600,7 +604,16 @@ textarea:focus-visible,
 }
 
 .insight-strip .panel {
+  align-content: start;
+  display: grid;
+  gap: 8px;
   padding: 18px;
+}
+
+.insight-strip .panel > strong {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1.2;
 }
 
 .empty-state,

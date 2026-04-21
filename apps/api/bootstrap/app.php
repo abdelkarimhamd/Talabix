@@ -10,6 +10,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withProviders([
@@ -31,7 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SetLocale::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        \Sentry\Laravel\Integration::handles($exceptions);
+        Integration::handles($exceptions);
 
         $exceptions->render(function (ValidationException $exception, Request $request) {
             if (! $request->expectsJson()) {

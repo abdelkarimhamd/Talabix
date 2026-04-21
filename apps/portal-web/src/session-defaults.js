@@ -15,3 +15,14 @@ export const defaultMerchantSession = {
   permissions: actorAbilities.merchant,
   token: 'merchant-demo-token',
 };
+
+export const portalSessionActorStorageKey = 'talabix.portal.actor';
+
+export const portalDemoSessions = {
+  merchant: defaultMerchantSession,
+  ops: defaultOpsSession,
+};
+
+export function getPortalDemoSession(actor) {
+  return portalDemoSessions[actor] ?? defaultOpsSession;
+}

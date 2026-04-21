@@ -264,7 +264,8 @@ export const merchantOrders = [
       order_uuid: '4aa0f507-77b6-459c-adbe-ef8658cbdc51',
       status: 'investigating',
       issue_type: 'customer_request',
-      summary: 'Customer wants a pre-arrival call before the rider reaches the tower.',
+      summary:
+        'Customer wants a pre-arrival call before the rider reaches the tower.',
       cancellation_reason_code: null,
       resolution_type: null,
       resolution_notes: null,
@@ -425,6 +426,21 @@ export const dispatchAssignments = [
       longitude: 46.681,
     },
     mapsProvider: 'google-maps-demo',
+    exception: {
+      reason_code: 'address_issue',
+      reason_label: 'Address issue',
+      note: 'Rider reported the side entrance is required for handoff.',
+      reported_at: '2026-04-14T09:18:00Z',
+      reported_by: 'rider',
+      response_sla: {
+        level: 'breached',
+        label: 'Exception response breached',
+        target_minutes: 10,
+        elapsed_minutes: 15,
+        minutes_remaining: -5,
+        escalation_action: 'support_reassignment_required',
+      },
+    },
     sla: {
       level: 'breached',
       label: 'SLA breached',

@@ -17,6 +17,7 @@ export const orderTimelineEventTypes = [
   'rider_assigned',
   'rider_reassigned',
   'picked_up',
+  'delivery_exception_reported',
   'delivered',
   'cancelled',
   'support_note_added',
@@ -32,6 +33,15 @@ export const dispatchReassignmentReasonCodes = [
   'customer_request',
   'load_balance',
   'ops_override',
+  'other',
+];
+
+export const deliveryExceptionReasonCodes = [
+  'customer_unreachable',
+  'address_issue',
+  'merchant_delay',
+  'vehicle_issue',
+  'safety_issue',
   'other',
 ];
 
@@ -51,6 +61,7 @@ export const auditActionTypes = [
   'permission_changed',
   'support_case_updated',
   'support_note_added',
+  'maps_configuration_updated',
 ];
 
 export const notificationChannels = ['in_app', 'email', 'push', 'sms'];
@@ -59,7 +70,13 @@ export const notificationDeliveryStatuses = ['queued', 'sent', 'failed'];
 
 export const notificationTypes = ['order_status_updated', 'support_note_added'];
 
-export const notificationProviders = ['internal', 'mail', 'log', 'sms-log', 'failing'];
+export const notificationProviders = [
+  'internal',
+  'mail',
+  'log',
+  'sms-log',
+  'failing',
+];
 
 export const supportCaseStatuses = ['open', 'investigating', 'resolved'];
 

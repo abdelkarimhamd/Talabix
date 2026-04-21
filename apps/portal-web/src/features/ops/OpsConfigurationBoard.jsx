@@ -8,8 +8,12 @@ function zoneFormFromBranch(branch, zone) {
     name: zone?.name ?? '',
     city: zone?.city ?? branch?.city ?? 'Riyadh',
     postal_code: zone?.postal_code ?? '',
-    center_latitude: String(zone?.center_latitude ?? branch?.latitude ?? 24.7136),
-    center_longitude: String(zone?.center_longitude ?? branch?.longitude ?? 46.6753),
+    center_latitude: String(
+      zone?.center_latitude ?? branch?.latitude ?? 24.7136
+    ),
+    center_longitude: String(
+      zone?.center_longitude ?? branch?.longitude ?? 46.6753
+    ),
     radius_meters: String(zone?.radius_meters ?? 5000),
     is_active: zone?.is_active ?? true,
   };
@@ -35,6 +39,15 @@ export function OpsConfigurationBoard() {
   const [branchAcceptsOrders, setBranchAcceptsOrders] = useState(true);
   const [zoneForm, setZoneForm] = useState(zoneFormFromBranch());
   const [feeBandForm, setFeeBandForm] = useState(feeBandFormFromValue());
+  const [mapsApiKey, setMapsApiKey] = useState('');
+  const [mapsForm, setMapsForm] = useState({
+    provider: 'google_maps',
+    region: 'sa',
+    location_bias: 'circle:50000@24.7136,46.6753',
+    timeout_seconds: '2.5',
+    fallback_to_demo: true,
+    clearApiKey: false,
+  });
   const [feedback, setFeedback] = useState('');
 
   const { data: merchants = [] } = useQuery({
@@ -42,11 +55,20 @@ export function OpsConfigurationBoard() {
     queryFn: () => api.listMerchantConfigurations(),
   });
 
-  const selectedMerchant = merchants.find((merchant) => merchant.uuid === selectedMerchantUuid) ?? merchants[0];
+  const { data: mapsProviderConfiguration } = useQuery({
+    queryKey: ['ops-maps-provider-configuration'],
+    queryFn: () => api.getMapsProviderConfiguration(),
+  });
+
+  const selectedMerchant =
+    merchants.find((merchant) => merchant.uuid === selectedMerchantUuid) ??
+    merchants[0];
   const selectedBranch =
-    selectedMerchant?.branches.find((branch) => branch.uuid === selectedBranchUuid)
-    ?? selectedMerchant?.branches[0]
-    ?? null;
+    selectedMerchant?.branches.find(
+      (branch) => branch.uuid === selectedBranchUuid
+    ) ??
+    selectedMerchant?.branches[0] ??
+    null;
 
   useEffect(() => {
     if (!selectedMerchantUuid && merchants[0]) {
@@ -55,12 +77,31 @@ export function OpsConfigurationBoard() {
   }, [merchants, selectedMerchantUuid]);
 
   useEffect(() => {
+    if (!mapsProviderConfiguration) {
+      return;
+    }
+
+    setMapsForm({
+      provider: mapsProviderConfiguration.provider,
+      region: mapsProviderConfiguration.google_maps.region,
+      location_bias: mapsProviderConfiguration.google_maps.location_bias ?? '',
+      timeout_seconds: String(
+        mapsProviderConfiguration.google_maps.timeout_seconds
+      ),
+      fallback_to_demo: mapsProviderConfiguration.google_maps.fallback_to_demo,
+      clearApiKey: false,
+    });
+  }, [mapsProviderConfiguration]);
+
+  useEffect(() => {
     if (selectedMerchant && selectedMerchant.uuid !== selectedMerchantUuid) {
       setSelectedMerchantUuid(selectedMerchant.uuid);
     }
 
     if (selectedMerchant?.branches.length) {
-      const branchStillExists = selectedMerchant.branches.some((branch) => branch.uuid === selectedBranchUuid);
+      const branchStillExists = selectedMerchant.branches.some(
+        (branch) => branch.uuid === selectedBranchUuid
+      );
 
       if (!branchStillExists) {
         setSelectedBranchUuid(selectedMerchant.branches[0].uuid);
@@ -88,6 +129,36 @@ export function OpsConfigurationBoard() {
     setFeeBandForm(feeBandFormFromValue());
   }, [selectedBranch]);
 
+  const mapsMutation = useMutation({
+    mutationFn: () =>
+      api.updateMapsProviderConfiguration({
+        provider: mapsForm.provider,
+        google_maps_api_key: mapsApiKey.trim() || undefined,
+        clear_google_maps_api_key: mapsForm.clearApiKey,
+        google_maps_region: mapsForm.region,
+        google_maps_location_bias: mapsForm.location_bias || null,
+        google_maps_timeout_seconds: Number(mapsForm.timeout_seconds),
+        google_maps_fallback_to_demo: mapsForm.fallback_to_demo,
+      }),
+    onSuccess: (configuration) => {
+      queryClient.setQueryData(
+        ['ops-maps-provider-configuration'],
+        configuration
+      );
+      setMapsApiKey('');
+      setMapsForm((current) => ({
+        ...current,
+        clearApiKey: false,
+      }));
+      setFeedback('Google Maps configuration saved.');
+    },
+    onError: (error) => {
+      setFeedback(
+        error.message ?? 'Google Maps configuration could not be saved.'
+      );
+    },
+  });
+
   const merchantMutation = useMutation({
     mutationFn: () =>
       api.updateMerchantConfiguration(selectedMerchant.uuid, {
@@ -96,10 +167,14 @@ export function OpsConfigurationBoard() {
       }),
     onSuccess: (merchant) => {
       queryClient.invalidateQueries({ queryKey: ['ops-configuration'] });
-      setFeedback(`${merchant.name} commission saved at ${(merchant.platform_commission_bps / 100).toFixed(2)}%.`);
+      setFeedback(
+        `${merchant.name} commission saved at ${(merchant.platform_commission_bps / 100).toFixed(2)}%.`
+      );
     },
     onError: (error) => {
-      setFeedback(error.message ?? 'Merchant configuration could not be saved.');
+      setFeedback(
+        error.message ?? 'Merchant configuration could not be saved.'
+      );
     },
   });
 
@@ -162,7 +237,9 @@ export function OpsConfigurationBoard() {
     },
     onSuccess: (feeBand) => {
       queryClient.invalidateQueries({ queryKey: ['ops-configuration'] });
-      setFeedback(`Fee band ${feeBand.min_distance_meters}-${feeBand.max_distance_meters} meters saved.`);
+      setFeedback(
+        `Fee band ${feeBand.min_distance_meters}-${feeBand.max_distance_meters} meters saved.`
+      );
       setFeeBandForm(feeBandFormFromValue());
     },
     onError: (error) => {
@@ -175,7 +252,10 @@ export function OpsConfigurationBoard() {
       <section className="board panel empty-state">
         <span className="eyebrow">Ops configuration</span>
         <h2>No merchant configuration loaded</h2>
-        <p>Create merchants and branches before configuring zones, fees, and commission rules.</p>
+        <p>
+          Create merchants and branches before configuring zones, fees, and
+          commission rules.
+        </p>
       </section>
     );
   }
@@ -185,12 +265,166 @@ export function OpsConfigurationBoard() {
       <div className="board-header">
         <div>
           <span className="eyebrow">Ops configuration</span>
-          <h2>Control commissions, branch order-taking, service zones, and fees</h2>
+          <h2>
+            Control commissions, branch order-taking, service zones, and fees
+          </h2>
         </div>
         <span className="status-pill" data-tone="info">
           {merchants.length} merchants
         </span>
       </div>
+
+      <section className="catalog-panel panel">
+        <div className="board-header">
+          <div>
+            <span className="eyebrow">Maps provider</span>
+            <h3>Google Maps provider</h3>
+          </div>
+          <span
+            className="status-pill"
+            data-tone={
+              mapsProviderConfiguration?.runtime.ready ? 'success' : 'warning'
+            }
+          >
+            {mapsProviderConfiguration?.google_maps.api_key_source === 'admin'
+              ? 'Configured via admin'
+              : mapsProviderConfiguration?.google_maps.api_key_source === 'env'
+                ? 'Configured via environment'
+                : 'API key not configured'}
+          </span>
+        </div>
+
+        <div className="summary-pairs">
+          <div>
+            <span className="eyebrow">Provider</span>
+            <strong>
+              {mapsProviderConfiguration?.provider ?? 'google_maps'}
+            </strong>
+          </div>
+          <div>
+            <span className="eyebrow">Key preview</span>
+            <strong>
+              {mapsProviderConfiguration?.google_maps.api_key_preview ??
+                'Not stored'}
+            </strong>
+          </div>
+          <div>
+            <span className="eyebrow">Runtime</span>
+            <strong>
+              {mapsProviderConfiguration?.runtime.message ??
+                'Loading maps configuration.'}
+            </strong>
+          </div>
+        </div>
+
+        <div className="field-grid">
+          <label className="field-stack">
+            <span>Maps provider</span>
+            <select
+              aria-label="Maps provider"
+              onChange={(event) =>
+                setMapsForm((current) => ({
+                  ...current,
+                  provider: event.target.value,
+                }))
+              }
+              value={mapsForm.provider}
+            >
+              <option value="google_maps">google_maps</option>
+              <option value="demo">demo</option>
+            </select>
+          </label>
+          <label className="field-stack">
+            <span>Google Maps API key</span>
+            <input
+              aria-label="Google Maps API key"
+              autoComplete="off"
+              onChange={(event) => setMapsApiKey(event.target.value)}
+              placeholder="Paste key when ready"
+              type="password"
+              value={mapsApiKey}
+            />
+          </label>
+          <label className="field-stack">
+            <span>Google Maps region</span>
+            <input
+              aria-label="Google Maps region"
+              onChange={(event) =>
+                setMapsForm((current) => ({
+                  ...current,
+                  region: event.target.value,
+                }))
+              }
+              value={mapsForm.region}
+            />
+          </label>
+          <label className="field-stack">
+            <span>Location bias</span>
+            <input
+              aria-label="Google Maps location bias"
+              onChange={(event) =>
+                setMapsForm((current) => ({
+                  ...current,
+                  location_bias: event.target.value,
+                }))
+              }
+              value={mapsForm.location_bias}
+            />
+          </label>
+          <label className="field-stack">
+            <span>Timeout seconds</span>
+            <input
+              aria-label="Google Maps timeout seconds"
+              onChange={(event) =>
+                setMapsForm((current) => ({
+                  ...current,
+                  timeout_seconds: event.target.value,
+                }))
+              }
+              value={mapsForm.timeout_seconds}
+            />
+          </label>
+          <label className="checkbox-row">
+            <input
+              aria-label="Google Maps fallback to demo"
+              checked={mapsForm.fallback_to_demo}
+              onChange={(event) =>
+                setMapsForm((current) => ({
+                  ...current,
+                  fallback_to_demo: event.target.checked,
+                }))
+              }
+              type="checkbox"
+            />
+            <span>Use demo fallback when Google Maps fails</span>
+          </label>
+          <label className="checkbox-row">
+            <input
+              aria-label="Clear stored maps key"
+              checked={mapsForm.clearApiKey}
+              onChange={(event) =>
+                setMapsForm((current) => ({
+                  ...current,
+                  clearApiKey: event.target.checked,
+                }))
+              }
+              type="checkbox"
+            />
+            <span>Clear stored API key</span>
+          </label>
+        </div>
+
+        <div className="card-actions">
+          <button
+            className="action-button"
+            disabled={mapsMutation.isPending}
+            onClick={() => mapsMutation.mutate()}
+            type="button"
+          >
+            Save maps provider configuration
+          </button>
+        </div>
+      </section>
 
       <div className="catalog-layout">
         <aside className="catalog-sidebar">
@@ -200,7 +434,9 @@ export function OpsConfigurationBoard() {
               <span>Select merchant</span>
               <select
                 aria-label="Select merchant configuration"
-                onChange={(event) => setSelectedMerchantUuid(event.target.value)}
+                onChange={(event) =>
+                  setSelectedMerchantUuid(event.target.value)
+                }
                 value={selectedMerchant.uuid}
               >
                 {merchants.map((merchant) => (
@@ -232,7 +468,12 @@ export function OpsConfigurationBoard() {
                 </div>
                 <div>
                   <span className="eyebrow">Commission</span>
-                  <strong>{(selectedMerchant.platform_commission_bps / 100).toFixed(2)}%</strong>
+                  <strong>
+                    {(selectedMerchant.platform_commission_bps / 100).toFixed(
+                      2
+                    )}
+                    %
+                  </strong>
                 </div>
                 <div>
                   <span className="eyebrow">Branch status</span>
@@ -240,7 +481,9 @@ export function OpsConfigurationBoard() {
                 </div>
                 <div>
                   <span className="eyebrow">Accepting orders</span>
-                  <strong>{selectedBranch.accepts_orders ? 'Yes' : 'No'}</strong>
+                  <strong>
+                    {selectedBranch.accepts_orders ? 'Yes' : 'No'}
+                  </strong>
                 </div>
               </div>
             </div>
@@ -248,7 +491,11 @@ export function OpsConfigurationBoard() {
 
           <section className="catalog-panel panel">
             <span className="eyebrow">Current rules</span>
-            <p>{selectedBranch.service_zones.length} active zone entries and {selectedBranch.fee_bands.length} fee bands shape this branch’s delivery coverage.</p>
+            <p>
+              {selectedBranch.service_zones.length} active zone entries and{' '}
+              {selectedBranch.fee_bands.length} fee bands shape this branch’s
+              delivery coverage.
+            </p>
           </section>
         </aside>
 
@@ -301,7 +548,10 @@ export function OpsConfigurationBoard() {
                 <span className="eyebrow">Branch controls</span>
                 <h3>{selectedBranch.name}</h3>
               </div>
-              <span className="status-pill" data-tone={selectedBranch.accepts_orders ? 'success' : 'alert'}>
+              <span
+                className="status-pill"
+                data-tone={selectedBranch.accepts_orders ? 'success' : 'alert'}
+              >
                 {selectedBranch.accepts_orders ? 'accepting orders' : 'paused'}
               </span>
             </div>
@@ -322,7 +572,9 @@ export function OpsConfigurationBoard() {
                 <input
                   aria-label="Branch accepts orders"
                   checked={branchAcceptsOrders}
-                  onChange={(event) => setBranchAcceptsOrders(event.target.checked)}
+                  onChange={(event) =>
+                    setBranchAcceptsOrders(event.target.checked)
+                  }
                   type="checkbox"
                 />
                 <span>Accept orders for this branch</span>
@@ -346,7 +598,9 @@ export function OpsConfigurationBoard() {
                 <span className="eyebrow">Service zones</span>
                 <h3>Delivery coverage for {selectedBranch.name}</h3>
               </div>
-              <span className="status-pill">{selectedBranch.service_zones.length} zones</span>
+              <span className="status-pill">
+                {selectedBranch.service_zones.length} zones
+              </span>
             </div>
 
             <div className="board-grid">
@@ -357,7 +611,10 @@ export function OpsConfigurationBoard() {
                       <span className="eyebrow">{zone.city}</span>
                       <h3>{zone.name}</h3>
                     </div>
-                    <span className="status-pill" data-tone={zone.is_active ? 'success' : 'muted'}>
+                    <span
+                      className="status-pill"
+                      data-tone={zone.is_active ? 'success' : 'muted'}
+                    >
                       {zone.is_active ? 'active' : 'inactive'}
                     </span>
                   </header>
@@ -365,7 +622,9 @@ export function OpsConfigurationBoard() {
                   <footer className="card-actions">
                     <button
                       className="action-button secondary"
-                      onClick={() => setZoneForm(zoneFormFromBranch(selectedBranch, zone))}
+                      onClick={() =>
+                        setZoneForm(zoneFormFromBranch(selectedBranch, zone))
+                      }
                       type="button"
                     >
                       Edit zone
@@ -380,7 +639,12 @@ export function OpsConfigurationBoard() {
                 <span>Service zone name</span>
                 <input
                   aria-label="Service zone name"
-                  onChange={(event) => setZoneForm((current) => ({ ...current, name: event.target.value }))}
+                  onChange={(event) =>
+                    setZoneForm((current) => ({
+                      ...current,
+                      name: event.target.value,
+                    }))
+                  }
                   value={zoneForm.name}
                 />
               </label>
@@ -388,7 +652,12 @@ export function OpsConfigurationBoard() {
                 <span>Service zone city</span>
                 <input
                   aria-label="Service zone city"
-                  onChange={(event) => setZoneForm((current) => ({ ...current, city: event.target.value }))}
+                  onChange={(event) =>
+                    setZoneForm((current) => ({
+                      ...current,
+                      city: event.target.value,
+                    }))
+                  }
                   value={zoneForm.city}
                 />
               </label>
@@ -396,7 +665,12 @@ export function OpsConfigurationBoard() {
                 <span>Postal code</span>
                 <input
                   aria-label="Service zone postal code"
-                  onChange={(event) => setZoneForm((current) => ({ ...current, postal_code: event.target.value }))}
+                  onChange={(event) =>
+                    setZoneForm((current) => ({
+                      ...current,
+                      postal_code: event.target.value,
+                    }))
+                  }
                   value={zoneForm.postal_code}
                 />
               </label>
@@ -404,7 +678,12 @@ export function OpsConfigurationBoard() {
                 <span>Center latitude</span>
                 <input
                   aria-label="Service zone center latitude"
-                  onChange={(event) => setZoneForm((current) => ({ ...current, center_latitude: event.target.value }))}
+                  onChange={(event) =>
+                    setZoneForm((current) => ({
+                      ...current,
+                      center_latitude: event.target.value,
+                    }))
+                  }
                   value={zoneForm.center_latitude}
                 />
               </label>
@@ -412,7 +691,12 @@ export function OpsConfigurationBoard() {
                 <span>Center longitude</span>
                 <input
                   aria-label="Service zone center longitude"
-                  onChange={(event) => setZoneForm((current) => ({ ...current, center_longitude: event.target.value }))}
+                  onChange={(event) =>
+                    setZoneForm((current) => ({
+                      ...current,
+                      center_longitude: event.target.value,
+                    }))
+                  }
                   value={zoneForm.center_longitude}
                 />
               </label>
@@ -420,7 +704,12 @@ export function OpsConfigurationBoard() {
                 <span>Radius meters</span>
                 <input
                   aria-label="Service zone radius meters"
-                  onChange={(event) => setZoneForm((current) => ({ ...current, radius_meters: event.target.value }))}
+                  onChange={(event) =>
+                    setZoneForm((current) => ({
+                      ...current,
+                      radius_meters: event.target.value,
+                    }))
+                  }
                   value={zoneForm.radius_meters}
                 />
               </label>
@@ -428,7 +717,12 @@ export function OpsConfigurationBoard() {
                 <input
                   aria-label="Service zone active"
                   checked={zoneForm.is_active}
-                  onChange={(event) => setZoneForm((current) => ({ ...current, is_active: event.target.checked }))}
+                  onChange={(event) =>
+                    setZoneForm((current) => ({
+                      ...current,
+                      is_active: event.target.checked,
+                    }))
+                  }
                   type="checkbox"
                 />
                 <span>Zone is active</span>
@@ -446,7 +740,9 @@ export function OpsConfigurationBoard() {
               {zoneForm.uuid ? (
                 <button
                   className="action-button secondary"
-                  onClick={() => setZoneForm(zoneFormFromBranch(selectedBranch))}
+                  onClick={() =>
+                    setZoneForm(zoneFormFromBranch(selectedBranch))
+                  }
                   type="button"
                 >
                   New zone
@@ -461,7 +757,9 @@ export function OpsConfigurationBoard() {
                 <span className="eyebrow">Fee bands</span>
                 <h3>Distance-based delivery pricing</h3>
               </div>
-              <span className="status-pill">{selectedBranch.fee_bands.length} bands</span>
+              <span className="status-pill">
+                {selectedBranch.fee_bands.length} bands
+              </span>
             </div>
 
             <div className="board-grid">
@@ -471,7 +769,8 @@ export function OpsConfigurationBoard() {
                     <div>
                       <span className="eyebrow">Distance</span>
                       <h3>
-                        {feeBand.min_distance_meters}-{feeBand.max_distance_meters}m
+                        {feeBand.min_distance_meters}-
+                        {feeBand.max_distance_meters}m
                       </h3>
                     </div>
                     <span className="status-pill" data-tone="warm">
@@ -481,7 +780,9 @@ export function OpsConfigurationBoard() {
                   <footer className="card-actions">
                     <button
                       className="action-button secondary"
-                      onClick={() => setFeeBandForm(feeBandFormFromValue(feeBand))}
+                      onClick={() =>
+                        setFeeBandForm(feeBandFormFromValue(feeBand))
+                      }
                       type="button"
                     >
                       Edit fee band
@@ -496,7 +797,12 @@ export function OpsConfigurationBoard() {
                 <span>Fee band min distance</span>
                 <input
                   aria-label="Fee band minimum distance meters"
-                  onChange={(event) => setFeeBandForm((current) => ({ ...current, min_distance_meters: event.target.value }))}
+                  onChange={(event) =>
+                    setFeeBandForm((current) => ({
+                      ...current,
+                      min_distance_meters: event.target.value,
+                    }))
+                  }
                   value={feeBandForm.min_distance_meters}
                 />
               </label>
@@ -504,7 +810,12 @@ export function OpsConfigurationBoard() {
                 <span>Fee band max distance</span>
                 <input
                   aria-label="Fee band maximum distance meters"
-                  onChange={(event) => setFeeBandForm((current) => ({ ...current, max_distance_meters: event.target.value }))}
+                  onChange={(event) =>
+                    setFeeBandForm((current) => ({
+                      ...current,
+                      max_distance_meters: event.target.value,
+                    }))
+                  }
                   value={feeBandForm.max_distance_meters}
                 />
               </label>
@@ -512,7 +823,12 @@ export function OpsConfigurationBoard() {
                 <span>Fee amount (minor)</span>
                 <input
                   aria-label="Fee band fee minor"
-                  onChange={(event) => setFeeBandForm((current) => ({ ...current, fee_minor: event.target.value }))}
+                  onChange={(event) =>
+                    setFeeBandForm((current) => ({
+                      ...current,
+                      fee_minor: event.target.value,
+                    }))
+                  }
                   value={feeBandForm.fee_minor}
                 />
               </label>

@@ -295,6 +295,12 @@ describe('portal routing', () => {
     expect(
       await screen.findByText(/order ready for pickup/i)
     ).toBeInTheDocument();
+    expect(
+      await screen.findByText(/^Order status updated$/)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/^order_status_updated$/)
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /mark read/i }));
 
@@ -367,7 +373,7 @@ describe('portal routing', () => {
       )
     ).toBeInTheDocument();
     expect(await screen.findByText(/payout exposure/i)).toBeInTheDocument();
-    expect(await screen.findByText(/yousef al-anzi/i)).toBeInTheDocument();
+    expect(await screen.findByText(/available riders/i)).toBeInTheDocument();
   });
 
   it('exposes keyboard-friendly portal chrome controls', async () => {
@@ -396,6 +402,29 @@ describe('portal routing', () => {
         /marketplace KPI view across orders, finance, and rider earnings/i
       )
     ).toBeInTheDocument();
+  });
+
+  it('switches portal actor sessions from the sidebar controls', async () => {
+    render(
+      <App
+        initialEntries={['/ops/dashboard']}
+        initialSession={defaultOpsSession}
+      />
+    );
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /switch to merchant session/i })
+    );
+
+    expect(
+      await screen.findByRole('link', { name: /merchant orders/i })
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(/fulfillment from placed to pickup-ready/i)
+    ).toBeInTheDocument();
+    expect(window.localStorage.getItem('talabix.portal.actor')).toBe(
+      'merchant'
+    );
   });
 
   it('renders Arabic RTL portal chrome and can switch back to English', async () => {
@@ -457,6 +486,18 @@ describe('portal routing', () => {
       (await screen.findAllByRole('button', { name: /manual reassign/i }))
         .length
     ).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByText(/delivery issue/i)).length
+    ).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByText(/address issue/i)).length
+    ).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByText(/exception response breached/i)).length
+    ).toBeGreaterThan(0);
+    expect(
+      await screen.findByText(/response window 15\/10 min/i)
+    ).toBeInTheDocument();
   });
 
   it('lets ops users reassign a dispatch order with an SLA reason', async () => {
@@ -580,6 +621,40 @@ describe('portal routing', () => {
     });
   });
 
+  it('lets ops users prepare Google Maps credentials without exposing the key', async () => {
+    render(
+      <App
+        initialEntries={['/ops/configuration']}
+        initialSession={defaultOpsSession}
+      />
+    );
+
+    expect(
+      await screen.findByText(/google maps provider/i)
+    ).toBeInTheDocument();
+    expect(screen.getByText(/api key not configured/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/google maps api key/i), {
+      target: { value: 'AIzaSyPortalOnly1234' },
+    });
+    fireEvent.change(screen.getByLabelText(/google maps region/i), {
+      target: { value: 'sa' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: /save maps provider configuration/i })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/google maps configuration saved/i)
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/configured via admin/i)).toBeInTheDocument();
+    expect(screen.getByText(/••••••••1234/)).toBeInTheDocument();
+    expect(screen.queryByText(/AIzaSyPortalOnly1234/)).not.toBeInTheDocument();
+  });
+
   it('lets ops users manage promo-code and auto-apply promotion offers', async () => {
     render(
       <App
@@ -614,7 +689,9 @@ describe('portal routing', () => {
     fireEvent.click(screen.getByRole('button', { name: /create promotion/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/burger promo promotion saved/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/burger promo promotion saved/i)
+      ).toBeInTheDocument();
     });
     expect(screen.getByText(/BURGER10/)).toBeInTheDocument();
 
@@ -629,14 +706,20 @@ describe('portal routing', () => {
     fireEvent.click(screen.getByRole('button', { name: /save promotion/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/free delivery promo promotion saved/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/free delivery promo promotion saved/i)
+      ).toBeInTheDocument();
     });
     expect(screen.getByText(/auto-apply/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /delete free delivery promo/i }));
+    fireEvent.click(
+      screen.getByRole('button', { name: /delete free delivery promo/i })
+    );
 
     await waitFor(() => {
-      expect(screen.getByText(/free delivery promo promotion deleted/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/free delivery promo promotion deleted/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -780,7 +863,15 @@ describe('portal routing', () => {
         /the push notification transport is configured to fail/i
       )
     ).toBeInTheDocument();
-
+    expect(
+      await screen.findByText(/Support updated your order - Push/i)
+    ).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText(/Customer - Sara Al-Qahtani/i)).length
+    ).toBeGreaterThan(0);
+    expect(
+      await screen.findByText(/Failed via failing - attempt 2 - 4AA0F507/i)
+    ).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', { name: /retry notification/i })
     );

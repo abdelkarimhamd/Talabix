@@ -1,11 +1,8 @@
 import React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useI18n } from '../../use-i18n.js';
 import { useSession } from '../../use-session.js';
-
-function humanize(value) {
-  return value.replaceAll('_', ' ');
-}
 
 function applyReadState(
   currentInbox,
@@ -32,6 +29,7 @@ function applyReadState(
 
 export function MerchantNotificationsBoard() {
   const { api } = useSession();
+  const { formatDateTime, labelForEnum } = useI18n();
   const queryClient = useQueryClient();
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [feedback, setFeedback] = useState('');
@@ -131,10 +129,15 @@ export function MerchantNotificationsBoard() {
               </header>
 
               <div className="board-meta">
-                <span>{humanize(notification.notification_type)}</span>
+                <span>
+                  {labelForEnum(
+                    'notificationType',
+                    notification.notification_type
+                  )}
+                </span>
                 <span>
                   {notification.created_at
-                    ? new Date(notification.created_at).toLocaleString()
+                    ? formatDateTime(notification.created_at)
                     : 'Queued'}
                 </span>
               </div>

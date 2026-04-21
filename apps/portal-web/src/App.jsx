@@ -1,7 +1,7 @@
 import React from 'react';
 // i18n-audit: strict
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   BrowserRouter,
   MemoryRouter,
@@ -10,6 +10,7 @@ import {
   Outlet,
   Route,
   Routes,
+  useNavigate,
 } from 'react-router-dom';
 import { actorAbilities } from '@talabix/shared/contracts/abilities';
 import { MerchantCatalogManager } from './features/merchant/MerchantCatalogManager.jsx';
@@ -25,7 +26,11 @@ import { SupportConsole } from './features/ops/SupportConsole.jsx';
 import { createPortalApi } from './portal-api.js';
 import { I18nProvider } from './i18n-provider.jsx';
 import { useI18n } from './use-i18n.js';
-import { defaultOpsSession } from './session-defaults.js';
+import {
+  defaultOpsSession,
+  getPortalDemoSession,
+  portalSessionActorStorageKey,
+} from './session-defaults.js';
 import { SessionProvider } from './session-context.jsx';
 import { useSession } from './use-session.js';
 
@@ -67,6 +72,12 @@ const navItems = [
     badgeKey: 'navigation.badges.kpi',
   },
   {
+    labelKey: 'navigation.dispatchBoard',
+    path: '/ops/dispatch',
+    actors: ['ops'],
+    badgeKey: 'navigation.badges.ops',
+  },
+  {
     labelKey: 'navigation.opsConfiguration',
     path: '/ops/configuration',
     actors: ['ops'],
@@ -79,10 +90,10 @@ const navItems = [
     badgeKey: 'navigation.badges.offers',
   },
   {
-    labelKey: 'navigation.dispatchBoard',
-    path: '/ops/dispatch',
+    labelKey: 'navigation.settlementLedger',
+    path: '/ops/settlements',
     actors: ['ops'],
-    badgeKey: 'navigation.badges.ops',
+    badgeKey: 'navigation.badges.finance',
   },
   {
     labelKey: 'navigation.supportConsole',
@@ -90,19 +101,16 @@ const navItems = [
     actors: ['ops'],
     badgeKey: 'navigation.badges.audit',
   },
-  {
-    labelKey: 'navigation.settlementLedger',
-    path: '/ops/settlements',
-    actors: ['ops'],
-    badgeKey: 'navigation.badges.finance',
-  },
 ];
 
 export function App({
-  initialSession = defaultOpsSession,
+  initialSession,
   initialEntries,
   initialLocale,
 }) {
+  const [activeSession, setActiveSession] = useState(() =>
+    resolveInitialSession(initialSession)
+  );
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -114,13 +122,26 @@ export function App({
         },
       })
   );
+  const api = useMemo(() => createPortalApi(activeSession), [activeSession]);
+  const switchActor = useCallback((actor) => {
+    const nextSession = getPortalDemoSession(actor);
+
+    setActiveSession(nextSession);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(portalSessionActorStorageKey, nextSession.actor);
+    }
+  }, []);
 
   const RouterComponent = initialEntries ? MemoryRouter : BrowserRouter;
   const routerProps = initialEntries ? { initialEntries } : {};
 
   return (
     <I18nProvider initialLocale={initialLocale}>
-      <SessionProvider session={initialSession} api={createPortalApi(initialSession)}>
+      <SessionProvider
+        api={api}
+        session={activeSession}
+        switchActor={switchActor}
+      >
         <QueryClientProvider client={queryClient}>
           <RouterComponent {...routerProps}>
             <Routes>
@@ -254,11 +275,32 @@ export function App({
   );
 }
 
+function resolveInitialSession(initialSession) {
+  if (initialSession) {
+    return initialSession;
+  }
+
+  if (typeof window !== 'undefined') {
+    return getPortalDemoSession(
+      window.localStorage.getItem(portalSessionActorStorageKey)
+    );
+  }
+
+  return defaultOpsSession;
+}
+
 function PortalLayout() {
-  const { session } = useSession();
+  const { session, switchActor } = useSession();
   const { locale, setLocale, t } = useI18n();
+  const navigate = useNavigate();
   const visibleNav = navItems.filter((item) => item.actors.includes(session.actor));
   const activeAbilities = actorAbilities[session.actor] ?? [];
+  const handleActorSwitch = (actor) => {
+    switchActor(actor);
+    navigate(actor === 'merchant' ? '/merchant/orders' : '/ops/dashboard', {
+      replace: true,
+    });
+  };
 
   return (
     <div className="portal-shell">
@@ -327,6 +369,31 @@ function PortalLayout() {
                 </span>
               ))}
             </div>
+          </div>
+
+          <div
+            aria-label={t('portal.actorSwitcher')}
+            className="actor-switcher"
+            role="group"
+          >
+            <button
+              aria-label={t('portal.switchToMerchantSession')}
+              aria-pressed={session.actor === 'merchant'}
+              className={session.actor === 'merchant' ? 'active' : ''}
+              onClick={() => handleActorSwitch('merchant')}
+              type="button"
+            >
+              {t('portal.merchantSession')}
+            </button>
+            <button
+              aria-label={t('portal.switchToOpsSession')}
+              aria-pressed={session.actor === 'ops'}
+              className={session.actor === 'ops' ? 'active' : ''}
+              onClick={() => handleActorSwitch('ops')}
+              type="button"
+            >
+              {t('portal.opsSession')}
+            </button>
           </div>
         </aside>
 

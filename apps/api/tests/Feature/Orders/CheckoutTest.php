@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\PromotionOffer;
-use Laravel\Sanctum\Sanctum;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\Sanctum;
 use Tests\Support\CreatesDomainData;
 
 uses(CreatesDomainData::class);

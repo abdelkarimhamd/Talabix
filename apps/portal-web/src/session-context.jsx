@@ -3,9 +3,9 @@ import { createContext } from 'react';
 
 const SessionContext = createContext(null);
 
-export function SessionProvider({ children, session, api }) {
+export function SessionProvider({ api, children, session, switchActor }) {
   return (
-    <SessionContext.Provider value={{ session, api }}>
+    <SessionContext.Provider value={{ api, session, switchActor }}>
       {children}
     </SessionContext.Provider>
   );

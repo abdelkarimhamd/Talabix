@@ -9,6 +9,7 @@ import {
   dispatchReassignmentInputSchema,
   ledgerEntrySchema,
   managedMerchantSchema,
+  mapsProviderConfigurationSchema,
   merchantSalesReportQuerySchema,
   merchantSalesReportSchema,
   merchantCatalogModifierGroupInputSchema,
@@ -38,6 +39,7 @@ import {
   supportOrderSchema,
   supportSearchQuerySchema,
   updateBranchConfigurationSchema,
+  updateMapsProviderConfigurationSchema,
   updateMerchantConfigurationSchema,
 } from '@talabix/shared/validation/schemas';
 import {
@@ -75,9 +77,28 @@ function createInitialState() {
     managedMerchants: clone(seedManagedMerchants).map((merchant) =>
       managedMerchantSchema.parse(merchant)
     ),
-    merchantConfigurations: clone(seedOpsMerchantConfigurations).map((merchant) =>
-      opsMerchantConfigurationSchema.parse(merchant)
+    merchantConfigurations: clone(seedOpsMerchantConfigurations).map(
+      (merchant) => opsMerchantConfigurationSchema.parse(merchant)
     ),
+    mapsProviderApiKey: '',
+    mapsProviderConfiguration: mapsProviderConfigurationSchema.parse({
+      provider: 'google_maps',
+      google_maps: {
+        api_key_configured: false,
+        api_key_source: 'none',
+        api_key_preview: null,
+        region: 'sa',
+        location_bias: 'circle:50000@24.7136,46.6753',
+        timeout_seconds: 2.5,
+        fallback_to_demo: true,
+      },
+      runtime: {
+        ready: false,
+        fallback_active: true,
+        message:
+          'Google Maps is selected and will use demo fallback until an API key is configured.',
+      },
+    }),
     merchantCatalogItems: clone(seedMerchantCatalogItems).map((item) =>
       merchantCatalogItemSchema.parse(item)
     ),
@@ -95,7 +116,9 @@ function createInitialState() {
       dispatchAssignmentSchema.parse(assignment)
     ),
     opsRiders: clone(seedOpsRiders),
-    settlementEntries: clone(seedSettlementEntries).map((entry) => ledgerEntrySchema.parse(entry)),
+    settlementEntries: clone(seedSettlementEntries).map((entry) =>
+      ledgerEntrySchema.parse(entry)
+    ),
     notificationDeliveries: clone(seedNotificationDeliveries).map((entry) =>
       notificationDeliverySchema.parse(entry)
     ),
@@ -109,21 +132,49 @@ export function resetPortalApiState() {
 }
 
 function createUuid() {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
     return crypto.randomUUID();
   }
 
-  const segment = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).slice(1);
+  const segment = () =>
+    Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .slice(1);
 
   return `${segment()}${segment()}-${segment()}-4${segment().slice(1)}-a${segment().slice(1)}-${segment()}${segment()}${segment()}`;
+}
+
+function maskGoogleMapsKey(apiKey) {
+  return `••••••••${apiKey.slice(-4)}`;
+}
+
+function buildMapsProviderRuntime(provider, apiKeyConfigured) {
+  const ready = provider === 'google_maps' && apiKeyConfigured;
+
+  return {
+    ready,
+    fallback_active: !ready,
+    message: ready
+      ? 'Google Maps is ready for live traffic.'
+      : provider === 'demo'
+        ? 'Demo maps provider is active.'
+        : 'Google Maps is selected and will use demo fallback until an API key is configured.',
+  };
 }
 
 function buildSettlementMeta(entries) {
   return {
     total_entries: entries.length,
-    total_amount_minor: entries.reduce((sum, entry) => sum + entry.amount_minor, 0),
+    total_amount_minor: entries.reduce(
+      (sum, entry) => sum + entry.amount_minor,
+      0
+    ),
     entry_type_totals: entries.reduce((totals, entry) => {
-      totals[entry.entry_type] = (totals[entry.entry_type] ?? 0) + entry.amount_minor;
+      totals[entry.entry_type] =
+        (totals[entry.entry_type] ?? 0) + entry.amount_minor;
       return totals;
     }, {}),
   };
@@ -167,7 +218,11 @@ function createDateBuckets(startsAt, endsAt, template) {
 
 function filterSettlementEntries(entries, query = {}) {
   const parsedQuery = settlementLedgerQuerySchema.parse(
-    Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''))
+    Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== ''
+      )
+    )
   );
 
   return entries.filter((entry) => {
@@ -193,7 +248,11 @@ function filterSettlementEntries(entries, query = {}) {
 
 function buildMerchantSalesReport(query = {}) {
   const parsedQuery = merchantSalesReportQuerySchema.parse(
-    Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''))
+    Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== ''
+      )
+    )
   );
   const { startsAt, endsAt } = resolveRangeBounds(parsedQuery.range_days ?? 7);
   const orders = state.reportOrders.filter(
@@ -201,10 +260,18 @@ function buildMerchantSalesReport(query = {}) {
       order.merchant_uuid === parsedQuery.merchant_uuid &&
       isWithinRange(order.placed_at, startsAt, endsAt)
   );
-  const nonCancelledOrders = orders.filter((order) => order.status !== 'cancelled');
-  const deliveredOrders = orders.filter((order) => order.status === 'delivered');
-  const cancelledOrders = orders.filter((order) => order.status === 'cancelled');
-  const activeOrders = orders.filter((order) => !['delivered', 'cancelled'].includes(order.status));
+  const nonCancelledOrders = orders.filter(
+    (order) => order.status !== 'cancelled'
+  );
+  const deliveredOrders = orders.filter(
+    (order) => order.status === 'delivered'
+  );
+  const cancelledOrders = orders.filter(
+    (order) => order.status === 'cancelled'
+  );
+  const activeOrders = orders.filter(
+    (order) => !['delivered', 'cancelled'].includes(order.status)
+  );
   const dailySales = createDateBuckets(startsAt, endsAt, {
     orders_count: 0,
     delivered_orders: 0,
@@ -283,7 +350,9 @@ function buildMerchantSalesReport(query = {}) {
     .sort((left, right) => right.quantity_sold - left.quantity_sold)
     .slice(0, 5);
 
-  const merchant = state.managedMerchants.find((entry) => entry.uuid === parsedQuery.merchant_uuid);
+  const merchant = state.managedMerchants.find(
+    (entry) => entry.uuid === parsedQuery.merchant_uuid
+  );
 
   return merchantSalesReportSchema.parse({
     merchant: merchant
@@ -309,14 +378,25 @@ function buildMerchantSalesReport(query = {}) {
       active_orders: activeOrders.length,
       delivered_orders: deliveredOrders.length,
       cancelled_orders: cancelledOrders.length,
-      gross_sales_minor: nonCancelledOrders.reduce((sum, order) => sum + order.subtotal_minor, 0),
-      completed_sales_minor: deliveredOrders.reduce((sum, order) => sum + order.subtotal_minor, 0),
-      delivery_fees_minor: nonCancelledOrders.reduce((sum, order) => sum + order.delivery_fee_minor, 0),
+      gross_sales_minor: nonCancelledOrders.reduce(
+        (sum, order) => sum + order.subtotal_minor,
+        0
+      ),
+      completed_sales_minor: deliveredOrders.reduce(
+        (sum, order) => sum + order.subtotal_minor,
+        0
+      ),
+      delivery_fees_minor: nonCancelledOrders.reduce(
+        (sum, order) => sum + order.delivery_fee_minor,
+        0
+      ),
       average_order_value_minor:
         nonCancelledOrders.length > 0
           ? Math.round(
-              nonCancelledOrders.reduce((sum, order) => sum + order.subtotal_minor, 0) /
-                nonCancelledOrders.length
+              nonCancelledOrders.reduce(
+                (sum, order) => sum + order.subtotal_minor,
+                0
+              ) / nonCancelledOrders.length
             )
           : 0,
       currency: orders[0]?.currency ?? 'SAR',
@@ -329,10 +409,16 @@ function buildMerchantSalesReport(query = {}) {
 
 function buildOpsDashboardOverview(query = {}) {
   const parsedQuery = opsDashboardQuerySchema.parse(
-    Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''))
+    Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== ''
+      )
+    )
   );
   const { startsAt, endsAt } = resolveRangeBounds(parsedQuery.range_days ?? 7);
-  const orders = state.reportOrders.filter((order) => isWithinRange(order.placed_at, startsAt, endsAt));
+  const orders = state.reportOrders.filter((order) =>
+    isWithinRange(order.placed_at, startsAt, endsAt)
+  );
   const ledgerEntries = state.settlementEntries.filter((entry) =>
     isWithinRange(entry.occurred_at, startsAt, endsAt)
   );
@@ -394,12 +480,16 @@ function buildOpsDashboardOverview(query = {}) {
     }, {})
   ).sort((left, right) => right.gross_sales_minor - left.gross_sales_minor);
 
-  const riderEntries = ledgerEntries.filter((entry) => entry.entry_type === 'rider_earning');
+  const riderEntries = ledgerEntries.filter(
+    (entry) => entry.entry_type === 'rider_earning'
+  );
   const riderRows = Object.values(
     riderEntries.reduce((accumulator, entry) => {
       const key = String(entry.rider_profile_id ?? 'unknown');
       const current = accumulator[key] ?? {
-        rider_uuid: state.opsRiders.find((rider) => rider.name === entry.rider_name)?.uuid ?? null,
+        rider_uuid:
+          state.opsRiders.find((rider) => rider.name === entry.rider_name)
+            ?.uuid ?? null,
         rider_name: entry.rider_name ?? 'Unknown rider',
         deliveries_count: 0,
         earnings_minor: 0,
@@ -422,12 +512,15 @@ function buildOpsDashboardOverview(query = {}) {
       deliveries_count: row.order_uuids.size,
       earnings_minor: row.earnings_minor,
       average_per_delivery_minor:
-        row.order_uuids.size > 0 ? Math.round(row.earnings_minor / row.order_uuids.size) : 0,
+        row.order_uuids.size > 0
+          ? Math.round(row.earnings_minor / row.order_uuids.size)
+          : 0,
     }))
     .sort((left, right) => right.earnings_minor - left.earnings_minor);
 
   const totalsByEntryType = ledgerEntries.reduce((accumulator, entry) => {
-    accumulator[entry.entry_type] = (accumulator[entry.entry_type] ?? 0) + entry.amount_minor;
+    accumulator[entry.entry_type] =
+      (accumulator[entry.entry_type] ?? 0) + entry.amount_minor;
     return accumulator;
   }, {});
 
@@ -439,9 +532,13 @@ function buildOpsDashboardOverview(query = {}) {
     },
     kpis: {
       total_orders: orders.length,
-      active_orders: orders.filter((order) => !['delivered', 'cancelled'].includes(order.status)).length,
-      delivered_orders: orders.filter((order) => order.status === 'delivered').length,
-      cancelled_orders: orders.filter((order) => order.status === 'cancelled').length,
+      active_orders: orders.filter(
+        (order) => !['delivered', 'cancelled'].includes(order.status)
+      ).length,
+      delivered_orders: orders.filter((order) => order.status === 'delivered')
+        .length,
+      cancelled_orders: orders.filter((order) => order.status === 'cancelled')
+        .length,
       gross_sales_minor: orders
         .filter((order) => order.status !== 'cancelled')
         .reduce((sum, order) => sum + order.subtotal_minor, 0),
@@ -451,20 +548,31 @@ function buildOpsDashboardOverview(query = {}) {
       delivery_fees_minor: orders
         .filter((order) => order.status !== 'cancelled')
         .reduce((sum, order) => sum + order.delivery_fee_minor, 0),
-      active_merchants: state.managedMerchants.filter((merchant) => merchant.status === 'active').length,
+      active_merchants: state.managedMerchants.filter(
+        (merchant) => merchant.status === 'active'
+      ).length,
       accepting_branches: state.merchantConfigurations
         .flatMap((merchant) => merchant.branches)
-        .filter((branch) => branch.status === 'active' && branch.accepts_orders).length,
-      available_riders: state.opsRiders.filter((rider) => rider.availability === 'available').length,
-      busy_riders: state.opsRiders.filter((rider) => rider.availability === 'busy').length,
-      offline_riders: state.opsRiders.filter((rider) => ['offline', 'paused'].includes(rider.availability)).length,
+        .filter((branch) => branch.status === 'active' && branch.accepts_orders)
+        .length,
+      available_riders: state.opsRiders.filter(
+        (rider) => rider.availability === 'available'
+      ).length,
+      busy_riders: state.opsRiders.filter(
+        (rider) => rider.availability === 'busy'
+      ).length,
+      offline_riders: state.opsRiders.filter((rider) =>
+        ['offline', 'paused'].includes(rider.availability)
+      ).length,
     },
     financials: {
       merchant_receivable_minor: totalsByEntryType.merchant_receivable ?? 0,
       platform_commission_minor: totalsByEntryType.platform_commission ?? 0,
       rider_earning_minor: totalsByEntryType.rider_earning ?? 0,
       adjustment_minor: totalsByEntryType.adjustment ?? 0,
-      net_platform_minor: (totalsByEntryType.platform_commission ?? 0) + (totalsByEntryType.adjustment ?? 0),
+      net_platform_minor:
+        (totalsByEntryType.platform_commission ?? 0) +
+        (totalsByEntryType.adjustment ?? 0),
       currency: ledgerEntries[0]?.currency ?? orders[0]?.currency ?? 'SAR',
     },
     order_status_breakdown: [
@@ -483,8 +591,14 @@ function buildOpsDashboardOverview(query = {}) {
     daily_orders: Object.values(dailyOrders),
     merchant_sales: merchantSales,
     rider_earnings: {
-      total_earnings_minor: riderRows.reduce((sum, row) => sum + row.earnings_minor, 0),
-      total_deliveries: riderRows.reduce((sum, row) => sum + row.deliveries_count, 0),
+      total_earnings_minor: riderRows.reduce(
+        (sum, row) => sum + row.earnings_minor,
+        0
+      ),
+      total_deliveries: riderRows.reduce(
+        (sum, row) => sum + row.deliveries_count,
+        0
+      ),
       average_per_delivery_minor:
         riderRows.reduce((sum, row) => sum + row.deliveries_count, 0) > 0
           ? Math.round(
@@ -555,8 +669,8 @@ function transitionMerchantOrderState(order, action) {
     status: transition.nextStatus,
     accepted_at:
       transition.nextStatus === 'accepted'
-        ? order.accepted_at ?? timestamp
-        : order.accepted_at ?? null,
+        ? (order.accepted_at ?? timestamp)
+        : (order.accepted_at ?? null),
     merchant_actions: merchantActionsForStatus(transition.nextStatus),
     timeline: [
       ...order.timeline,
@@ -581,7 +695,11 @@ function dispatchReasonLabel(reasonCode) {
 
 function searchSupportOrders(orders, query = {}) {
   const parsedQuery = supportSearchQuerySchema.parse(
-    Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''))
+    Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== ''
+      )
+    )
   );
   const term = parsedQuery.q?.toLowerCase();
 
@@ -590,14 +708,24 @@ function searchSupportOrders(orders, query = {}) {
   }
 
   return orders.filter((order) =>
-    [order.uuid, order.customer_name, order.merchant_name, order.branch_name, order.support_case?.summary]
+    [
+      order.uuid,
+      order.customer_name,
+      order.merchant_name,
+      order.branch_name,
+      order.support_case?.summary,
+    ]
       .filter(Boolean)
       .some((value) => value.toLowerCase().includes(term))
   );
 }
 
 function supportCaseOrderId(orderUuid) {
-  return 9000 + state.merchantOrders.findIndex((entry) => entry.uuid === orderUuid) + 1;
+  return (
+    9000 +
+    state.merchantOrders.findIndex((entry) => entry.uuid === orderUuid) +
+    1
+  );
 }
 
 function buildSupportCase(order, payload, existingCase) {
@@ -615,21 +743,21 @@ function buildSupportCase(order, payload, existingCase) {
     cancellation_reason_code:
       payload.cancellation_reason_code !== undefined
         ? payload.cancellation_reason_code
-        : existingCase?.cancellation_reason_code ?? null,
+        : (existingCase?.cancellation_reason_code ?? null),
     resolution_type:
       payload.resolution_type !== undefined
         ? payload.resolution_type
-        : existingCase?.resolution_type ?? null,
+        : (existingCase?.resolution_type ?? null),
     resolution_notes:
       payload.resolution_notes !== undefined
         ? payload.resolution_notes
-        : existingCase?.resolution_notes ?? null,
+        : (existingCase?.resolution_notes ?? null),
     opened_by_user_id: existingCase?.opened_by_user_id ?? 901,
     opened_by_name: existingCase?.opened_by_name ?? 'Huda Support',
     resolved_by_user_id: isResolved ? 901 : null,
     resolved_by_name: isResolved ? 'Huda Support' : null,
     opened_at: existingCase?.opened_at ?? timestamp,
-    resolved_at: isResolved ? existingCase?.resolved_at ?? timestamp : null,
+    resolved_at: isResolved ? (existingCase?.resolved_at ?? timestamp) : null,
     created_at: existingCase?.created_at ?? timestamp,
     updated_at: timestamp,
   });
@@ -637,7 +765,11 @@ function buildSupportCase(order, payload, existingCase) {
 
 function listNotificationDeliveries(deliveries, query = {}) {
   const parsedQuery = opsNotificationQuerySchema.parse(
-    Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''))
+    Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== ''
+      )
+    )
   );
 
   return deliveries.filter((entry) => {
@@ -645,7 +777,10 @@ function listNotificationDeliveries(deliveries, query = {}) {
       return false;
     }
 
-    if (parsedQuery.recipient_actor && entry.recipient_actor !== parsedQuery.recipient_actor) {
+    if (
+      parsedQuery.recipient_actor &&
+      entry.recipient_actor !== parsedQuery.recipient_actor
+    ) {
       return false;
     }
 
@@ -661,7 +796,10 @@ function listNotificationDeliveries(deliveries, query = {}) {
       return false;
     }
 
-    if (parsedQuery.notification_type && entry.notification_type !== parsedQuery.notification_type) {
+    if (
+      parsedQuery.notification_type &&
+      entry.notification_type !== parsedQuery.notification_type
+    ) {
       return false;
     }
 
@@ -671,7 +809,11 @@ function listNotificationDeliveries(deliveries, query = {}) {
 
 function listActorNotificationDeliveries(deliveries, actor, query = {}) {
   const parsedQuery = actorNotificationQuerySchema.parse(
-    Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''))
+    Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== ''
+      )
+    )
   );
 
   return deliveries.filter((entry) => {
@@ -693,7 +835,11 @@ function listActorNotificationDeliveries(deliveries, actor, query = {}) {
 
 function listMerchantCatalogItems(items, query = {}) {
   const parsedQuery = merchantCatalogListQuerySchema.parse(
-    Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''))
+    Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== ''
+      )
+    )
   );
 
   return items
@@ -703,7 +849,9 @@ function listMerchantCatalogItems(items, query = {}) {
 }
 
 function findMerchantConfiguration(merchantUuid) {
-  return state.merchantConfigurations.find((merchant) => merchant.uuid === merchantUuid);
+  return state.merchantConfigurations.find(
+    (merchant) => merchant.uuid === merchantUuid
+  );
 }
 
 function findBranchConfiguration(branchUuid) {
@@ -719,7 +867,11 @@ function findBranchConfiguration(branchUuid) {
 }
 
 function findCatalogItem(catalogItemUuid) {
-  return state.merchantCatalogItems.find((entry) => entry.uuid === catalogItemUuid) ?? null;
+  return (
+    state.merchantCatalogItems.find(
+      (entry) => entry.uuid === catalogItemUuid
+    ) ?? null
+  );
 }
 
 function buildPromotionOffer(payload, existingOffer = {}) {
@@ -739,20 +891,30 @@ function buildPromotionOffer(payload, existingOffer = {}) {
   }
 
   if (catalogItem && catalogItem.merchant_uuid !== branchScope.merchant.uuid) {
-    throw new Error('Catalog item does not belong to the selected branch merchant.');
+    throw new Error(
+      'Catalog item does not belong to the selected branch merchant.'
+    );
   }
 
-  const promoCode = String(parsedPayload.code ?? '').trim().toUpperCase();
+  const promoCode = String(parsedPayload.code ?? '')
+    .trim()
+    .toUpperCase();
 
   if (parsedPayload.requires_promo_code && promoCode.length === 0) {
     throw new Error('Promo-code offers need a code.');
   }
 
-  if (parsedPayload.discount_type === 'item_percent' && !parsedPayload.percent) {
+  if (
+    parsedPayload.discount_type === 'item_percent' &&
+    !parsedPayload.percent
+  ) {
     throw new Error('Percent discounts need a percent value.');
   }
 
-  if (parsedPayload.discount_type === 'item_fixed' && !parsedPayload.amount_minor) {
+  if (
+    parsedPayload.discount_type === 'item_fixed' &&
+    !parsedPayload.amount_minor
+  ) {
     throw new Error('Fixed discounts need an amount.');
   }
 
@@ -769,9 +931,13 @@ function buildPromotionOffer(payload, existingOffer = {}) {
     discount_label: parsedPayload.discount_label.trim(),
     discount_type: parsedPayload.discount_type,
     percent:
-      parsedPayload.discount_type === 'item_percent' ? parsedPayload.percent ?? null : null,
+      parsedPayload.discount_type === 'item_percent'
+        ? (parsedPayload.percent ?? null)
+        : null,
     amount_minor:
-      parsedPayload.discount_type === 'item_fixed' ? parsedPayload.amount_minor ?? null : null,
+      parsedPayload.discount_type === 'item_fixed'
+        ? (parsedPayload.amount_minor ?? null)
+        : null,
     min_spend_minor: parsedPayload.min_spend_minor ?? 0,
     requires_promo_code: parsedPayload.requires_promo_code,
     is_active: parsedPayload.is_active,
@@ -806,7 +972,10 @@ function deriveManagedMerchants() {
 
 function nextNotificationEntries(order, notificationType, title, body) {
   const timestamp = new Date().toISOString();
-  const baseId = Math.max(0, ...state.notificationDeliveries.map((entry) => entry.id));
+  const baseId = Math.max(
+    0,
+    ...state.notificationDeliveries.map((entry) => entry.id)
+  );
   const templates = [
     {
       recipient_user_id: 301,
@@ -877,7 +1046,10 @@ function nextNotificationEntries(order, notificationType, title, body) {
   return templates.map((template, index) =>
     notificationDeliverySchema.parse({
       id: baseId + index + 1,
-      order_id: 9000 + state.merchantOrders.findIndex((entry) => entry.uuid === order.uuid) + 1,
+      order_id:
+        9000 +
+        state.merchantOrders.findIndex((entry) => entry.uuid === order.uuid) +
+        1,
       order_uuid: order.uuid,
       recipient_user_id: template.recipient_user_id,
       recipient_actor: template.recipient_actor,
@@ -892,7 +1064,7 @@ function nextNotificationEntries(order, notificationType, title, body) {
           ? `mail:${baseId + index + 1}`
           : template.provider === 'sms-log'
             ? `sms-log:${baseId + index + 1}`
-          : `internal:${order.uuid}`),
+            : `internal:${order.uuid}`),
       status: template.status,
       attempt_count: template.attempt_count,
       title,
@@ -920,7 +1092,9 @@ export function createPortalApi(session) {
   return {
     client,
     async listManagedMerchants() {
-      return state.managedMerchants.map((merchant) => managedMerchantSchema.parse(merchant));
+      return state.managedMerchants.map((merchant) =>
+        managedMerchantSchema.parse(merchant)
+      );
     },
     async getMerchantSalesReport(query) {
       return buildMerchantSalesReport(query);
@@ -933,9 +1107,63 @@ export function createPortalApi(session) {
         opsMerchantConfigurationSchema.parse(merchant)
       );
     },
+    async getMapsProviderConfiguration() {
+      return mapsProviderConfigurationSchema.parse(
+        clone(state.mapsProviderConfiguration)
+      );
+    },
+    async updateMapsProviderConfiguration(payload) {
+      const parsedPayload = updateMapsProviderConfigurationSchema.parse(
+        Object.fromEntries(
+          Object.entries(payload).filter(
+            ([, value]) => value !== undefined && value !== ''
+          )
+        )
+      );
+      const existing = state.mapsProviderConfiguration;
+
+      if (parsedPayload.clear_google_maps_api_key) {
+        state.mapsProviderApiKey = '';
+      } else if (parsedPayload.google_maps_api_key) {
+        state.mapsProviderApiKey = parsedPayload.google_maps_api_key;
+      }
+
+      const apiKeyConfigured = state.mapsProviderApiKey.length > 0;
+      const provider = parsedPayload.provider ?? existing.provider;
+
+      state.mapsProviderConfiguration = mapsProviderConfigurationSchema.parse({
+        provider,
+        google_maps: {
+          api_key_configured: apiKeyConfigured,
+          api_key_source: apiKeyConfigured ? 'admin' : 'none',
+          api_key_preview: apiKeyConfigured
+            ? maskGoogleMapsKey(state.mapsProviderApiKey)
+            : null,
+          region:
+            parsedPayload.google_maps_region ?? existing.google_maps.region,
+          location_bias:
+            parsedPayload.google_maps_location_bias === undefined
+              ? (existing.google_maps.location_bias ?? null)
+              : parsedPayload.google_maps_location_bias,
+          timeout_seconds:
+            parsedPayload.google_maps_timeout_seconds ??
+            existing.google_maps.timeout_seconds,
+          fallback_to_demo:
+            parsedPayload.google_maps_fallback_to_demo ??
+            existing.google_maps.fallback_to_demo,
+        },
+        runtime: buildMapsProviderRuntime(provider, apiKeyConfigured),
+      });
+
+      return mapsProviderConfigurationSchema.parse(
+        clone(state.mapsProviderConfiguration)
+      );
+    },
     async updateMerchantConfiguration(merchantUuid, payload) {
       const parsedPayload = updateMerchantConfigurationSchema.parse(
-        Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined))
+        Object.fromEntries(
+          Object.entries(payload).filter(([, value]) => value !== undefined)
+        )
       );
       const existingMerchant = findMerchantConfiguration(merchantUuid);
 
@@ -955,7 +1183,9 @@ export function createPortalApi(session) {
     },
     async updateBranchConfiguration(branchUuid, payload) {
       const parsedPayload = updateBranchConfigurationSchema.parse(
-        Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined))
+        Object.fromEntries(
+          Object.entries(payload).filter(([, value]) => value !== undefined)
+        )
       );
       const existingMerchant = state.merchantConfigurations.find((merchant) =>
         merchant.branches.some((branch) => branch.uuid === branchUuid)
@@ -1003,8 +1233,8 @@ export function createPortalApi(session) {
         branch.uuid === branchUuid
           ? opsConfigBranchSchema.parse({
               ...branch,
-              service_zones: [...branch.service_zones, nextServiceZone].sort((left, right) =>
-                left.name.localeCompare(right.name)
+              service_zones: [...branch.service_zones, nextServiceZone].sort(
+                (left, right) => left.name.localeCompare(right.name)
               ),
             })
           : branch
@@ -1023,7 +1253,9 @@ export function createPortalApi(session) {
       const parsedPayload = branchServiceZoneInputSchema.parse(payload);
       const existingMerchant = state.merchantConfigurations.find((merchant) =>
         merchant.branches.some((branch) =>
-          branch.service_zones.some((serviceZone) => serviceZone.uuid === serviceZoneUuid)
+          branch.service_zones.some(
+            (serviceZone) => serviceZone.uuid === serviceZoneUuid
+          )
         )
       );
 
@@ -1081,7 +1313,8 @@ export function createPortalApi(session) {
           ? opsConfigBranchSchema.parse({
               ...branch,
               fee_bands: [...branch.fee_bands, nextFeeBand].sort(
-                (left, right) => left.min_distance_meters - right.min_distance_meters
+                (left, right) =>
+                  left.min_distance_meters - right.min_distance_meters
               ),
             })
           : branch
@@ -1125,7 +1358,10 @@ export function createPortalApi(session) {
 
               return updatedFeeBand;
             })
-            .sort((left, right) => left.min_distance_meters - right.min_distance_meters),
+            .sort(
+              (left, right) =>
+                left.min_distance_meters - right.min_distance_meters
+            ),
         })
       );
 
@@ -1183,8 +1419,8 @@ export function createPortalApi(session) {
       return { uuid: promotionOfferUuid };
     },
     async listCatalogItems(query = {}) {
-      return listMerchantCatalogItems(state.merchantCatalogItems, query).map((item) =>
-        merchantCatalogItemSchema.parse(item)
+      return listMerchantCatalogItems(state.merchantCatalogItems, query).map(
+        (item) => merchantCatalogItemSchema.parse(item)
       );
     },
     async createCatalogItem(payload) {
@@ -1211,7 +1447,9 @@ export function createPortalApi(session) {
     },
     async updateCatalogItem(catalogItemUuid, payload) {
       const parsedPayload = merchantCatalogItemInputSchema.parse(payload);
-      const existingItem = state.merchantCatalogItems.find((entry) => entry.uuid === catalogItemUuid);
+      const existingItem = state.merchantCatalogItems.find(
+        (entry) => entry.uuid === catalogItemUuid
+      );
 
       if (!existingItem) {
         throw new Error('Catalog item not found.');
@@ -1237,8 +1475,11 @@ export function createPortalApi(session) {
       return nextItem;
     },
     async createModifierGroup(catalogItemUuid, payload) {
-      const parsedPayload = merchantCatalogModifierGroupInputSchema.parse(payload);
-      const existingItem = state.merchantCatalogItems.find((entry) => entry.uuid === catalogItemUuid);
+      const parsedPayload =
+        merchantCatalogModifierGroupInputSchema.parse(payload);
+      const existingItem = state.merchantCatalogItems.find(
+        (entry) => entry.uuid === catalogItemUuid
+      );
 
       if (!existingItem) {
         throw new Error('Catalog item not found.');
@@ -1268,7 +1509,8 @@ export function createPortalApi(session) {
         ...existingItem,
         modifier_groups: [...existingItem.modifier_groups, nextGroup].sort(
           (left, right) =>
-            left.sort_order - right.sort_order || left.name.localeCompare(right.name)
+            left.sort_order - right.sort_order ||
+            left.name.localeCompare(right.name)
         ),
       });
 
@@ -1279,14 +1521,19 @@ export function createPortalApi(session) {
       return nextGroup;
     },
     async updateModifierGroup(catalogItemUuid, modifierGroupUuid, payload) {
-      const parsedPayload = merchantCatalogModifierGroupInputSchema.parse(payload);
-      const existingItem = state.merchantCatalogItems.find((entry) => entry.uuid === catalogItemUuid);
+      const parsedPayload =
+        merchantCatalogModifierGroupInputSchema.parse(payload);
+      const existingItem = state.merchantCatalogItems.find(
+        (entry) => entry.uuid === catalogItemUuid
+      );
 
       if (!existingItem) {
         throw new Error('Catalog item not found.');
       }
 
-      const existingGroup = existingItem.modifier_groups.find((entry) => entry.uuid === modifierGroupUuid);
+      const existingGroup = existingItem.modifier_groups.find(
+        (entry) => entry.uuid === modifierGroupUuid
+      );
 
       if (!existingGroup) {
         throw new Error('Modifier group not found.');
@@ -1315,8 +1562,14 @@ export function createPortalApi(session) {
       const nextItem = merchantCatalogItemSchema.parse({
         ...existingItem,
         modifier_groups: existingItem.modifier_groups
-          .map((entry) => (entry.uuid === modifierGroupUuid ? nextGroup : entry))
-          .sort((left, right) => left.sort_order - right.sort_order || left.name.localeCompare(right.name)),
+          .map((entry) =>
+            entry.uuid === modifierGroupUuid ? nextGroup : entry
+          )
+          .sort(
+            (left, right) =>
+              left.sort_order - right.sort_order ||
+              left.name.localeCompare(right.name)
+          ),
       });
 
       state.merchantCatalogItems = state.merchantCatalogItems.map((entry) =>
@@ -1333,7 +1586,9 @@ export function createPortalApi(session) {
           is_available: true,
         })
         .parse(payload);
-      const existingItem = state.merchantCatalogItems.find((entry) => entry.uuid === catalogItemUuid);
+      const existingItem = state.merchantCatalogItems.find(
+        (entry) => entry.uuid === catalogItemUuid
+      );
 
       if (!existingItem) {
         throw new Error('Catalog item not found.');
@@ -1358,9 +1613,13 @@ export function createPortalApi(session) {
       const nextItem = merchantCatalogItemSchema.parse({
         ...existingItem,
         branch_overrides: [
-          ...existingItem.branch_overrides.filter((entry) => entry.branch_uuid !== branch.uuid),
+          ...existingItem.branch_overrides.filter(
+            (entry) => entry.branch_uuid !== branch.uuid
+          ),
           nextOverride,
-        ].sort((left, right) => (left.branch_name ?? '').localeCompare(right.branch_name ?? '')),
+        ].sort((left, right) =>
+          (left.branch_name ?? '').localeCompare(right.branch_name ?? '')
+        ),
       });
 
       state.merchantCatalogItems = state.merchantCatalogItems.map((entry) =>
@@ -1376,11 +1635,16 @@ export function createPortalApi(session) {
     async listMerchantOrders() {
       return state.merchantOrders
         .slice()
-        .sort((left, right) => new Date(right.placed_at ?? 0) - new Date(left.placed_at ?? 0))
+        .sort(
+          (left, right) =>
+            new Date(right.placed_at ?? 0) - new Date(left.placed_at ?? 0)
+        )
         .map((order) => merchantOrderSchema.parse(order));
     },
     async transitionMerchantOrder(orderUuid, action) {
-      const order = state.merchantOrders.find((entry) => entry.uuid === orderUuid);
+      const order = state.merchantOrders.find(
+        (entry) => entry.uuid === orderUuid
+      );
 
       if (!order) {
         throw new Error('Merchant order not found.');
@@ -1394,9 +1658,16 @@ export function createPortalApi(session) {
       return nextOrder;
     },
     async listMerchantNotifications(query = {}) {
-      const data = listActorNotificationDeliveries(state.notificationDeliveries, 'merchant', query)
+      const data = listActorNotificationDeliveries(
+        state.notificationDeliveries,
+        'merchant',
+        query
+      )
         .slice()
-        .sort((left, right) => new Date(right.created_at ?? 0) - new Date(left.created_at ?? 0))
+        .sort(
+          (left, right) =>
+            new Date(right.created_at ?? 0) - new Date(left.created_at ?? 0)
+        )
         .map((entry) => notificationDeliverySchema.parse(entry));
 
       return {
@@ -1409,7 +1680,10 @@ export function createPortalApi(session) {
     },
     async markMerchantNotificationRead(notificationDeliveryId) {
       const delivery = state.notificationDeliveries.find(
-        (entry) => entry.id === notificationDeliveryId && entry.recipient_actor === 'merchant' && entry.channel === 'in_app'
+        (entry) =>
+          entry.id === notificationDeliveryId &&
+          entry.recipient_actor === 'merchant' &&
+          entry.channel === 'in_app'
       );
 
       if (!delivery) {
@@ -1421,8 +1695,8 @@ export function createPortalApi(session) {
         read_at: delivery.read_at ?? new Date().toISOString(),
       });
 
-      state.notificationDeliveries = state.notificationDeliveries.map((entry) =>
-        entry.id === notificationDeliveryId ? nextDelivery : entry
+      state.notificationDeliveries = state.notificationDeliveries.map(
+        (entry) => (entry.id === notificationDeliveryId ? nextDelivery : entry)
       );
 
       return nextDelivery;
@@ -1434,7 +1708,9 @@ export function createPortalApi(session) {
     },
     async reassignDispatchOrder(orderUuid, payload) {
       const parsedPayload = dispatchReassignmentInputSchema.parse(payload);
-      const assignment = state.dispatchAssignments.find((entry) => entry.orderUuid === orderUuid);
+      const assignment = state.dispatchAssignments.find(
+        (entry) => entry.orderUuid === orderUuid
+      );
 
       if (!assignment) {
         throw new Error('Dispatch assignment could not be found.');
@@ -1480,18 +1756,27 @@ export function createPortalApi(session) {
     async searchSupportOrders(query = {}) {
       return searchSupportOrders(state.merchantOrders, query)
         .slice()
-        .sort((left, right) => new Date(right.placed_at ?? 0) - new Date(left.placed_at ?? 0))
+        .sort(
+          (left, right) =>
+            new Date(right.placed_at ?? 0) - new Date(left.placed_at ?? 0)
+        )
         .map((order) => supportOrderSchema.parse(order));
     },
     async createOrUpdateSupportCase(orderUuid, payload) {
       const parsedPayload = supportCaseInputSchema.parse(payload);
-      const order = state.merchantOrders.find((entry) => entry.uuid === orderUuid);
+      const order = state.merchantOrders.find(
+        (entry) => entry.uuid === orderUuid
+      );
 
       if (!order) {
         throw new Error('Support order not found.');
       }
 
-      const nextCase = buildSupportCase(order, parsedPayload, order.support_case ?? null);
+      const nextCase = buildSupportCase(
+        order,
+        parsedPayload,
+        order.support_case ?? null
+      );
       const nextOrder = supportOrderSchema.parse({
         ...order,
         support_case: nextCase,
@@ -1505,15 +1790,23 @@ export function createPortalApi(session) {
     },
     async updateSupportCase(supportCaseUuid, payload) {
       const parsedPayload = supportCaseUpdateSchema.parse(
-        Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined))
+        Object.fromEntries(
+          Object.entries(payload).filter(([, value]) => value !== undefined)
+        )
       );
-      const order = state.merchantOrders.find((entry) => entry.support_case?.uuid === supportCaseUuid);
+      const order = state.merchantOrders.find(
+        (entry) => entry.support_case?.uuid === supportCaseUuid
+      );
 
       if (!order?.support_case) {
         throw new Error('Support case could not be found.');
       }
 
-      const nextCase = buildSupportCase(order, parsedPayload, order.support_case);
+      const nextCase = buildSupportCase(
+        order,
+        parsedPayload,
+        order.support_case
+      );
       const nextOrder = supportOrderSchema.parse({
         ...order,
         support_case: nextCase,
@@ -1527,15 +1820,26 @@ export function createPortalApi(session) {
     },
     async createSupportNote(orderUuid, payload) {
       const parsedPayload = supportNoteInputSchema.parse(payload);
-      const order = state.merchantOrders.find((entry) => entry.uuid === orderUuid);
+      const order = state.merchantOrders.find(
+        (entry) => entry.uuid === orderUuid
+      );
 
       if (!order) {
         throw new Error('Support order not found.');
       }
 
       const note = supportNoteSchema.parse({
-        id: Math.max(500, ...state.merchantOrders.flatMap((entry) => entry.support_notes.map((item) => item.id))) + 1,
-        order_id: 9000 + state.merchantOrders.findIndex((entry) => entry.uuid === orderUuid) + 1,
+        id:
+          Math.max(
+            500,
+            ...state.merchantOrders.flatMap((entry) =>
+              entry.support_notes.map((item) => item.id)
+            )
+          ) + 1,
+        order_id:
+          9000 +
+          state.merchantOrders.findIndex((entry) => entry.uuid === orderUuid) +
+          1,
         order_uuid: order.uuid,
         author_user_id: 901,
         author_name: 'Huda Support',
@@ -1580,7 +1884,9 @@ export function createPortalApi(session) {
     },
     async cancelSupportOrder(orderUuid, payload) {
       const parsedPayload = cancelSupportOrderInputSchema.parse(payload);
-      const order = state.merchantOrders.find((entry) => entry.uuid === orderUuid);
+      const order = state.merchantOrders.find(
+        (entry) => entry.uuid === orderUuid
+      );
 
       if (!order) {
         throw new Error('Support order not found.');
@@ -1642,9 +1948,15 @@ export function createPortalApi(session) {
       return nextOrder;
     },
     async listNotifications(query = {}) {
-      const data = listNotificationDeliveries(state.notificationDeliveries, query)
+      const data = listNotificationDeliveries(
+        state.notificationDeliveries,
+        query
+      )
         .slice()
-        .sort((left, right) => new Date(right.queued_at ?? 0) - new Date(left.queued_at ?? 0))
+        .sort(
+          (left, right) =>
+            new Date(right.queued_at ?? 0) - new Date(left.queued_at ?? 0)
+        )
         .map((entry) => notificationDeliverySchema.parse(entry));
 
       return {
@@ -1655,7 +1967,9 @@ export function createPortalApi(session) {
       };
     },
     async retryNotification(notificationDeliveryId) {
-      const delivery = state.notificationDeliveries.find((entry) => entry.id === notificationDeliveryId);
+      const delivery = state.notificationDeliveries.find(
+        (entry) => entry.id === notificationDeliveryId
+      );
 
       if (!delivery) {
         throw new Error('Notification delivery could not be found.');
@@ -1673,8 +1987,8 @@ export function createPortalApi(session) {
         sent_at: new Date().toISOString(),
       });
 
-      state.notificationDeliveries = state.notificationDeliveries.map((entry) =>
-        entry.id === notificationDeliveryId ? nextDelivery : entry
+      state.notificationDeliveries = state.notificationDeliveries.map(
+        (entry) => (entry.id === notificationDeliveryId ? nextDelivery : entry)
       );
 
       return nextDelivery;
@@ -1682,7 +1996,10 @@ export function createPortalApi(session) {
     async listSettlementLedger(query = {}) {
       const entries = filterSettlementEntries(state.settlementEntries, query)
         .slice()
-        .sort((left, right) => new Date(right.occurred_at) - new Date(left.occurred_at))
+        .sort(
+          (left, right) =>
+            new Date(right.occurred_at) - new Date(left.occurred_at)
+        )
         .map((entry) => ledgerEntrySchema.parse(entry));
 
       return {
@@ -1692,7 +2009,9 @@ export function createPortalApi(session) {
     },
     async createSettlementAdjustment(orderUuid, payload) {
       const parsedPayload = settlementAdjustmentSchema.parse(payload);
-      const relatedEntry = state.settlementEntries.find((entry) => entry.order_uuid === orderUuid);
+      const relatedEntry = state.settlementEntries.find(
+        (entry) => entry.order_uuid === orderUuid
+      );
 
       if (!relatedEntry) {
         throw new Error('Order ledger could not be found for adjustment.');
