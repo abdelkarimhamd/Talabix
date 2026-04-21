@@ -5,6 +5,7 @@ import {
   branchFeeBandSchema,
   branchServiceZoneInputSchema,
   branchServiceZoneSchema,
+  createOpsUserInputSchema,
   dispatchAssignmentSchema,
   dispatchReassignmentInputSchema,
   ledgerEntrySchema,
@@ -26,6 +27,7 @@ import {
   opsDashboardQuerySchema,
   opsMerchantConfigurationSchema,
   opsNotificationQuerySchema,
+  opsUserSchema,
   promotionOfferInputSchema,
   promotionOfferSchema,
   settlementAdjustmentSchema,
@@ -41,6 +43,7 @@ import {
   updateBranchConfigurationSchema,
   updateMapsProviderConfigurationSchema,
   updateMerchantConfigurationSchema,
+  updateOpsUserInputSchema,
 } from '@talabix/shared/validation/schemas';
 import {
   dispatchAssignments,
@@ -122,6 +125,41 @@ function createInitialState() {
     notificationDeliveries: clone(seedNotificationDeliveries).map((entry) =>
       notificationDeliverySchema.parse(entry)
     ),
+    opsUsers: [
+      {
+        uuid: '9e8ff354-b422-46a2-9d5f-e8d73a85007f',
+        name: 'Huda Ops Admin',
+        email: 'huda.ops@talabix.test',
+        phone: '+966500000001',
+        account_status: 'active',
+        roles: ['ops_admin'],
+        abilities: [],
+        created_at: new Date().toISOString(),
+        last_login_at: new Date().toISOString(),
+      },
+      {
+        uuid: '70004eaf-4112-4ceb-a3bf-5efc1ab8ad05',
+        name: 'Fahad Dispatch',
+        email: 'fahad.dispatch@talabix.test',
+        phone: '+966500000002',
+        account_status: 'active',
+        roles: ['ops_dispatcher'],
+        abilities: [],
+        created_at: new Date().toISOString(),
+        last_login_at: null,
+      },
+      {
+        uuid: '16ff9be9-3277-44f7-baa7-73136d8b973c',
+        name: 'Noura Support',
+        email: 'noura.support@talabix.test',
+        phone: '+966500000003',
+        account_status: 'suspended',
+        roles: ['ops_support'],
+        abilities: [],
+        created_at: new Date().toISOString(),
+        last_login_at: null,
+      },
+    ].map((user) => opsUserSchema.parse(user)),
   };
 }
 
@@ -1127,6 +1165,78 @@ export function createPortalApi(session) {
       }
 
       await client.post('auth/logout');
+    },
+    async changePassword(payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.changePassword(payload);
+      }
+
+      return {
+        message: 'Password updated successfully.',
+      };
+    },
+    async listOpsUsers() {
+      if (liveOpsApi) {
+        return liveOpsApi.listUsers();
+      }
+
+      return state.opsUsers.map((user) => opsUserSchema.parse(user));
+    },
+    async createOpsUser(payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.createUser(payload);
+      }
+
+      const parsedPayload = createOpsUserInputSchema.parse(payload);
+      const nextUser = opsUserSchema.parse({
+        uuid: createUuid(),
+        name: parsedPayload.name,
+        email: parsedPayload.email,
+        phone: parsedPayload.phone ?? null,
+        account_status: parsedPayload.account_status ?? 'active',
+        roles: [parsedPayload.role],
+        abilities: [],
+        created_at: new Date().toISOString(),
+        last_login_at: null,
+      });
+
+      state.opsUsers = [...state.opsUsers, nextUser].sort((left, right) =>
+        left.name.localeCompare(right.name)
+      );
+
+      return nextUser;
+    },
+    async updateOpsUser(userUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.updateUser(userUuid, payload);
+      }
+
+      const parsedPayload = updateOpsUserInputSchema.parse(payload);
+      const existingUser = state.opsUsers.find(
+        (user) => user.uuid === userUuid
+      );
+
+      if (!existingUser) {
+        throw new Error('Ops user could not be found.');
+      }
+
+      const nextUser = opsUserSchema.parse({
+        ...existingUser,
+        name: parsedPayload.name ?? existingUser.name,
+        phone:
+          parsedPayload.phone === undefined
+            ? existingUser.phone
+            : parsedPayload.phone,
+        account_status:
+          parsedPayload.account_status ?? existingUser.account_status,
+        roles: parsedPayload.role ? [parsedPayload.role] : existingUser.roles,
+      });
+
+      state.opsUsers = state.opsUsers
+        .map((user) => (user.uuid === userUuid ? nextUser : user))
+        .sort((left, right) => left.name.localeCompare(right.name));
+
+      return nextUser;
     },
     async listManagedMerchants() {
       return state.managedMerchants.map((merchant) =>

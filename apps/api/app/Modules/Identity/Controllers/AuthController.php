@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomerProfile;
 use App\Models\User;
 use App\Modules\Identity\Actions\IssueTokenAction;
+use App\Modules\Identity\Requests\ChangePasswordRequest;
 use App\Modules\Identity\Requests\ForgotPasswordRequest;
 use App\Modules\Identity\Requests\LoginRequest;
 use App\Modules\Identity\Requests\RegisterCustomerRequest;
@@ -108,6 +109,30 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Logged out successfully.',
+        ]);
+    }
+
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user || ! Hash::check($request->string('current_password'), $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => 'The current password is incorrect.',
+            ]);
+        }
+
+        $user->forceFill([
+            'password' => $request->string('password')->toString(),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        $user->tokens()
+            ->where('id', '!=', $user->currentAccessToken()?->id)
+            ->delete();
+
+        return response()->json([
+            'message' => 'Password updated successfully.',
         ]);
     }
 

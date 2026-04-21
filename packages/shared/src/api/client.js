@@ -12,6 +12,8 @@ import {
   branchFeeBandSchema,
   branchServiceZoneInputSchema,
   branchServiceZoneSchema,
+  changePasswordSchema,
+  createOpsUserInputSchema,
   customerProfileSchema,
   dispatchAssignmentSchema,
   dispatchReassignmentInputSchema,
@@ -40,6 +42,7 @@ import {
   orderSchema,
   opsMerchantConfigurationSchema,
   opsNotificationQuerySchema,
+  opsUserSchema,
   placeSuggestionSchema,
   registerSchema,
   riderAvailabilitySchema,
@@ -60,6 +63,7 @@ import {
   updateBranchConfigurationSchema,
   updateMapsProviderConfigurationSchema,
   updateMerchantConfigurationSchema,
+  updateOpsUserInputSchema,
   userSchema,
 } from '../validation/schemas.js';
 
@@ -530,6 +534,36 @@ export function createOpsApi({ baseURL, token } = {}) {
     async logout() {
       await client.post('auth/logout');
       delete client.defaults.headers.Authorization;
+    },
+    async changePassword(payload) {
+      const parsedPayload = changePasswordSchema.parse(payload);
+      const response = await client.patch('auth/password', parsedPayload);
+
+      return {
+        message:
+          typeof response.data?.message === 'string'
+            ? response.data.message
+            : 'Password updated successfully.',
+      };
+    },
+    async listUsers() {
+      const data = unwrapData(await client.get('users'));
+
+      return z.array(opsUserSchema).parse(data);
+    },
+    async createUser(payload) {
+      const parsedPayload = createOpsUserInputSchema.parse(payload);
+      const data = unwrapData(await client.post('users', parsedPayload));
+
+      return opsUserSchema.parse(data);
+    },
+    async updateUser(userUuid, payload) {
+      const parsedPayload = updateOpsUserInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.patch(`users/${userUuid}`, parsedPayload)
+      );
+
+      return opsUserSchema.parse(data);
     },
     async getDashboardOverview(query = {}) {
       const parsedQuery = opsDashboardQuerySchema.parse(compactParams(query));

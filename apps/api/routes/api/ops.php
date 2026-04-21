@@ -2,6 +2,7 @@
 
 use App\Modules\Dispatch\Controllers\DispatchController;
 use App\Modules\Identity\Controllers\AuthController;
+use App\Modules\Identity\Controllers\OpsUserController;
 use App\Modules\Merchants\Controllers\MerchantConfigurationController;
 use App\Modules\Merchants\Controllers\MerchantController;
 use App\Modules\Notifications\Controllers\NotificationController;
@@ -19,7 +20,12 @@ Route::prefix('ops')->name('ops.')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('auth/me', [AuthController::class, 'me']);
         Route::post('auth/logout', [AuthController::class, 'logout']);
+        Route::patch('auth/password', [AuthController::class, 'changePassword']);
         Route::get('dashboard/overview', [ReportingController::class, 'opsOverview']);
+
+        Route::get('users', [OpsUserController::class, 'index']);
+        Route::post('users', [OpsUserController::class, 'store']);
+        Route::patch('users/{user}', [OpsUserController::class, 'update']);
 
         Route::get('merchants', [MerchantController::class, 'indexForOps']);
         Route::post('merchants', [MerchantController::class, 'store']);

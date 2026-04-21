@@ -434,6 +434,102 @@ describe('portal routing', () => {
     expect(await screen.findByText(/available riders/i)).toBeInTheDocument();
   });
 
+  it('lets ops users change their portal password', async () => {
+    render(
+      <App
+        initialEntries={['/ops/account']}
+        initialSession={defaultOpsSession}
+      />
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: /change your ops password/i })
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/current password/i), {
+      target: { value: 'old-password' },
+    });
+    fireEvent.change(screen.getByLabelText(/^new password$/i), {
+      target: { value: 'new-password-123' },
+    });
+    fireEvent.change(screen.getByLabelText(/confirm new password/i), {
+      target: { value: 'new-password-123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /update password/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/password updated successfully/i)
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('lets super admins invite and disable ops users', async () => {
+    render(
+      <App initialEntries={['/ops/users']} initialSession={defaultOpsSession} />
+    );
+
+    expect(
+      await screen.findByRole('heading', {
+        name: /invite and disable ops users/i,
+      })
+    ).toBeInTheDocument();
+
+    const inviteForm = screen.getByTestId('ops-user-invite-form');
+
+    fireEvent.change(within(inviteForm).getByLabelText(/^name$/i), {
+      target: { value: 'Codex Support' },
+    });
+    fireEvent.change(within(inviteForm).getByLabelText(/email address/i), {
+      target: { value: 'codex-support@talabix.test' },
+    });
+    fireEvent.change(within(inviteForm).getByLabelText(/phone number/i), {
+      target: { value: '+966500000099' },
+    });
+    fireEvent.change(within(inviteForm).getByLabelText(/^role$/i), {
+      target: { value: 'ops_support' },
+    });
+    fireEvent.change(
+      within(inviteForm).getByLabelText(/^temporary password$/i),
+      {
+        target: { value: 'temporary-123' },
+      }
+    );
+    fireEvent.change(
+      within(inviteForm).getByLabelText(/confirm temporary password/i),
+      {
+        target: { value: 'temporary-123' },
+      }
+    );
+    fireEvent.click(
+      within(inviteForm).getByRole('button', { name: /invite ops user/i })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/codex support was invited/i)
+      ).toBeInTheDocument();
+    });
+
+    const createdCard = screen.getByTestId(
+      'ops-user-codex-support@talabix.test'
+    );
+    fireEvent.click(
+      within(createdCard).getByRole('button', { name: /disable user/i })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/codex support was updated/i)
+      ).toBeInTheDocument();
+    });
+    expect(
+      within(
+        screen.getByTestId('ops-user-codex-support@talabix.test')
+      ).getByLabelText(/^status$/i)
+    ).toHaveValue('suspended');
+  });
+
   it('exposes keyboard-friendly portal chrome controls', async () => {
     render(
       <App

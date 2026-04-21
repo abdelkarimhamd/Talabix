@@ -20,6 +20,8 @@ import { MerchantSalesReportBoard } from './features/merchant/MerchantSalesRepor
 import { DispatchBoard } from './features/ops/DispatchBoard.jsx';
 import { OpsDashboardBoard } from './features/ops/OpsDashboardBoard.jsx';
 import { OpsConfigurationBoard } from './features/ops/OpsConfigurationBoard.jsx';
+import { OpsUserManagementBoard } from './features/ops/OpsUserManagementBoard.jsx';
+import { PasswordChangeBoard } from './features/ops/PasswordChangeBoard.jsx';
 import { PromotionOffersBoard } from './features/ops/PromotionOffersBoard.jsx';
 import { SettlementBoard } from './features/ops/SettlementBoard.jsx';
 import { SupportConsole } from './features/ops/SupportConsole.jsx';
@@ -51,6 +53,7 @@ const navItems = [
     path: '/merchant/catalog',
     actors: ['merchant'],
     badgeKey: 'navigation.badges.scoped',
+    requiredPermissions: ['merchant:catalog.read'],
   },
   {
     labelKey: 'navigation.merchantPromotions',
@@ -63,48 +66,69 @@ const navItems = [
     path: '/merchant/reports',
     actors: ['merchant'],
     badgeKey: 'navigation.badges.sales',
+    requiredPermissions: ['merchant:dashboard.read'],
   },
   {
     labelKey: 'navigation.merchantInbox',
     path: '/merchant/notifications',
     actors: ['merchant'],
     badgeKey: 'navigation.badges.inbox',
+    requiredPermissions: ['merchant:notifications.read'],
   },
   {
     labelKey: 'navigation.opsDashboard',
     path: '/ops/dashboard',
     actors: ['ops'],
     badgeKey: 'navigation.badges.kpi',
+    requiredPermissions: ['ops:dashboard.read'],
+  },
+  {
+    labelKey: 'navigation.accountSecurity',
+    path: '/ops/account',
+    actors: ['ops'],
+    badgeKey: 'navigation.badges.security',
+  },
+  {
+    labelKey: 'navigation.opsUsers',
+    path: '/ops/users',
+    actors: ['ops'],
+    badgeKey: 'navigation.badges.users',
+    requiredPermissions: ['ops:users.manage'],
   },
   {
     labelKey: 'navigation.dispatchBoard',
     path: '/ops/dispatch',
     actors: ['ops'],
     badgeKey: 'navigation.badges.ops',
+    requiredPermissions: ['ops:dispatch.manage'],
   },
   {
     labelKey: 'navigation.opsConfiguration',
     path: '/ops/configuration',
     actors: ['ops'],
     badgeKey: 'navigation.badges.config',
+    requiredPermissions: ['ops:merchants.manage'],
   },
   {
     labelKey: 'navigation.opsPromotions',
     path: '/ops/promotions',
     actors: ['ops'],
     badgeKey: 'navigation.badges.offers',
+    requiredPermissions: ['ops:merchants.manage'],
   },
   {
     labelKey: 'navigation.settlementLedger',
     path: '/ops/settlements',
     actors: ['ops'],
     badgeKey: 'navigation.badges.finance',
+    requiredPermissions: ['ops:settlements.read'],
   },
   {
     labelKey: 'navigation.supportConsole',
     path: '/ops/support',
     actors: ['ops'],
     badgeKey: 'navigation.badges.audit',
+    requiredPermissions: ['ops:support.manage'],
   },
 ];
 
@@ -254,6 +278,25 @@ export function App({
                       requiredPermissions={['ops:dashboard.read']}
                     >
                       <OpsDashboardBoard />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/ops/account"
+                  element={
+                    <RequireAccess allowedActors={['ops']}>
+                      <PasswordChangeBoard />
+                    </RequireAccess>
+                  }
+                />
+                <Route
+                  path="/ops/users"
+                  element={
+                    <RequireAccess
+                      allowedActors={['ops']}
+                      requiredPermissions={['ops:users.manage']}
+                    >
+                      <OpsUserManagementBoard />
                     </RequireAccess>
                   }
                 />
@@ -457,11 +500,15 @@ function PortalLayout() {
   const { logout, session, switchActor } = useSession();
   const { locale, setLocale, t } = useI18n();
   const navigate = useNavigate();
-  const visibleNav = navItems.filter((item) =>
-    item.actors.includes(session.actor)
-  );
   const activeAbilities =
     session.permissions ?? actorAbilities[session.actor] ?? [];
+  const visibleNav = navItems.filter(
+    (item) =>
+      item.actors.includes(session.actor) &&
+      (item.requiredPermissions ?? []).every((permission) =>
+        activeAbilities.includes(permission)
+      )
+  );
   const handleActorSwitch = (actor) => {
     switchActor(actor);
     navigate(actor === 'merchant' ? '/merchant/orders' : '/ops/dashboard', {

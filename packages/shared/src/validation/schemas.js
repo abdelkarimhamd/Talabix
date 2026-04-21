@@ -28,11 +28,69 @@ export const userSchema = z.object({
   abilities: z.array(z.string()).default([]),
 });
 
+export const opsUserSchema = userSchema.extend({
+  created_at: z.string().nullable().optional(),
+  last_login_at: z.string().nullable().optional(),
+});
+
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
   device_name: z.string().min(2),
 });
+
+export const changePasswordSchema = z
+  .object({
+    current_password: z.string().min(1),
+    password: z.string().min(8),
+    password_confirmation: z.string().min(8),
+  })
+  .refine((payload) => payload.password === payload.password_confirmation, {
+    path: ['password_confirmation'],
+    message: 'Passwords must match.',
+  });
+
+const opsUserInputBaseSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email().optional(),
+  phone: z.string().nullable().optional(),
+  role: z.enum(['ops_admin', 'ops_dispatcher', 'ops_support']),
+  account_status: z
+    .enum(['active', 'suspended', 'pending'])
+    .optional()
+    .default('active'),
+  password: z.string().min(8).optional(),
+  password_confirmation: z.string().min(8).optional(),
+});
+
+export const opsUserInputSchema = opsUserInputBaseSchema.refine(
+  (payload) =>
+    payload.password === undefined ||
+    payload.password === payload.password_confirmation,
+  {
+    path: ['password_confirmation'],
+    message: 'Passwords must match.',
+  }
+);
+
+export const createOpsUserInputSchema = opsUserInputBaseSchema
+  .required({
+    email: true,
+    password: true,
+    password_confirmation: true,
+  })
+  .refine((payload) => payload.password === payload.password_confirmation, {
+    path: ['password_confirmation'],
+    message: 'Passwords must match.',
+  });
+
+export const updateOpsUserInputSchema = opsUserInputBaseSchema
+  .omit({
+    email: true,
+    password: true,
+    password_confirmation: true,
+  })
+  .partial();
 
 export const registerSchema = z
   .object({

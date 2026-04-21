@@ -542,6 +542,11 @@ textarea:focus-visible,
   gap: 10px;
 }
 
+.user-management-form {
+  display: grid;
+  gap: 14px;
+}
+
 .board-meta {
   display: flex;
   flex-wrap: wrap;
