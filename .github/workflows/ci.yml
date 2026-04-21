@@ -50,6 +50,10 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - name: Guard PHPStan baseline
+        working-directory: .
+        run: node scripts/check-phpstan-baseline.mjs
+
       - run: composer install --no-interaction --prefer-dist
       - run: cp .env.example .env
       - run: php artisan key:generate --force
