@@ -2,11 +2,18 @@
 
 namespace App\Modules\Support\Resources;
 
+use App\Models\SupportNote;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin SupportNote
+ */
 class SupportNoteResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [

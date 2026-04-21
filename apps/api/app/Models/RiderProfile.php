@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property RiderAvailability $availability
+ */
 class RiderProfile extends Model
 {
     /** @use HasFactory<Factory<RiderProfile>> */

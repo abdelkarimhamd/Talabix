@@ -95,9 +95,7 @@ class DispatchController extends Controller
         $this->authorize('dispatch', $order);
 
         $validated = $request->validated();
-        $activeStatus = $order->status instanceof OrderStatus
-            ? $order->status
-            : OrderStatus::tryFrom((string) $order->status);
+        $activeStatus = $order->status;
 
         if (in_array($activeStatus, [OrderStatus::DELIVERED, OrderStatus::CANCELLED], true)) {
             throw ValidationException::withMessages([

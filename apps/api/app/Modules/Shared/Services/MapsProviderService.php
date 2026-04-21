@@ -54,6 +54,9 @@ class MapsProviderService
         return in_array($provider, ['google', 'google_maps'], true) ? 'google_maps' : $provider;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function searchPlaces(string $query): array
     {
         $normalizedQuery = str($query)->lower()->trim()->toString();
@@ -77,6 +80,9 @@ class MapsProviderService
         return $this->searchDemoPlaces($normalizedQuery);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private function searchDemoPlaces(string $normalizedQuery): array
     {
         return collect(self::DEMO_PLACES)
@@ -106,6 +112,9 @@ class MapsProviderService
         return (int) round(2 * $earthRadius * asin(sqrt($angle)));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function distanceEstimate(
         float $fromLat,
         float $fromLng,
@@ -128,6 +137,9 @@ class MapsProviderService
         return $this->demoDistanceEstimate($fromLat, $fromLng, $toLat, $toLng, $mode);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function demoDistanceEstimate(
         float $fromLat,
         float $fromLng,
@@ -154,6 +166,9 @@ class MapsProviderService
         ];
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private function searchGooglePlaces(string $query): array
     {
         $params = [
@@ -176,6 +191,11 @@ class MapsProviderService
         }
 
         $payload = $response->json();
+
+        if (! is_array($payload)) {
+            throw new \RuntimeException('Google Places returned an invalid response payload.');
+        }
+
         $status = $payload['status'] ?? 'UNKNOWN';
 
         if ($status === 'ZERO_RESULTS') {
@@ -186,13 +206,21 @@ class MapsProviderService
             throw new \RuntimeException($payload['error_message'] ?? 'Google Places returned '.$status.'.');
         }
 
-        return collect($payload['candidates'] ?? [])
+        $candidates = array_values(array_filter(
+            (array) ($payload['candidates'] ?? []),
+            'is_array'
+        ));
+
+        return collect($candidates)
             ->map(fn (array $candidate) => $this->mapGooglePlaceCandidate($candidate))
             ->filter()
             ->values()
             ->all();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function googleDistanceEstimate(
         float $fromLat,
         float $fromLng,
@@ -214,6 +242,11 @@ class MapsProviderService
         }
 
         $payload = $response->json();
+
+        if (! is_array($payload)) {
+            throw new \RuntimeException('Google Distance Matrix returned an invalid response payload.');
+        }
+
         $status = $payload['status'] ?? 'UNKNOWN';
         $element = $payload['rows'][0]['elements'][0] ?? null;
         $elementStatus = $element['status'] ?? 'UNKNOWN';
@@ -240,6 +273,10 @@ class MapsProviderService
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $candidate
+     * @return array<string, mixed>|null
+     */
     private function mapGooglePlaceCandidate(array $candidate): ?array
     {
         $location = $candidate['geometry']['location'] ?? null;

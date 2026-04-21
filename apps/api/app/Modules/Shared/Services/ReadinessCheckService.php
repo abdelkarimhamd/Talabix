@@ -9,6 +9,9 @@ use Throwable;
 
 class ReadinessCheckService
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function report(): array
     {
         $checks = [
@@ -27,6 +30,9 @@ class ReadinessCheckService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function measure(callable $callback): array
     {
         $startedAt = microtime(true);
@@ -48,6 +54,9 @@ class ReadinessCheckService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function checkDatabase(): array
     {
         DB::select('select 1');
@@ -58,6 +67,9 @@ class ReadinessCheckService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function checkCache(): array
     {
         $key = 'readiness:'.bin2hex(random_bytes(6));
@@ -82,6 +94,9 @@ class ReadinessCheckService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function checkQueue(): array
     {
         $queueConnection = (string) config('queue.default', 'sync');
@@ -104,6 +119,9 @@ class ReadinessCheckService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function checkReverb(): array
     {
         if (config('broadcasting.default') !== 'reverb') {

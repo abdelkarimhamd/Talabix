@@ -4,6 +4,7 @@ namespace App\Modules\Orders\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomerAddress;
+use App\Models\CustomerProfile;
 use App\Modules\Orders\Requests\StoreAddressRequest;
 use App\Modules\Orders\Resources\AddressResource;
 use Illuminate\Http\JsonResponse;
@@ -65,7 +66,7 @@ class CustomerAddressController extends Controller
         ]);
     }
 
-    private function ensureDefaultAddressExists($profile): void
+    private function ensureDefaultAddressExists(CustomerProfile $profile): void
     {
         if ($profile->addresses()->where('is_default', true)->exists()) {
             return;

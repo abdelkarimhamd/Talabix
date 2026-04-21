@@ -2,22 +2,29 @@
 
 namespace App\Modules\Support\Resources;
 
+use App\Models\SupportCase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin SupportCase
+ */
 class SupportCaseResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
             'uuid' => $this->uuid,
             'order_id' => $this->order_id,
             'order_uuid' => $this->order?->uuid,
-            'status' => $this->status?->value ?? $this->status,
-            'issue_type' => $this->issue_type?->value ?? $this->issue_type,
+            'status' => $this->status->value,
+            'issue_type' => $this->issue_type->value,
             'summary' => $this->summary,
-            'cancellation_reason_code' => $this->cancellation_reason_code?->value ?? $this->cancellation_reason_code,
-            'resolution_type' => $this->resolution_type?->value ?? $this->resolution_type,
+            'cancellation_reason_code' => $this->cancellation_reason_code?->value,
+            'resolution_type' => $this->resolution_type?->value,
             'resolution_notes' => $this->resolution_notes,
             'opened_by_user_id' => $this->opened_by_user_id,
             'opened_by_name' => $this->openedBy?->name,

@@ -7,7 +7,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property LedgerEntryType $entry_type
+ * @property Carbon|null $occurred_at
+ */
 class LedgerEntry extends Model
 {
     /** @use HasFactory<Factory<LedgerEntry>> */

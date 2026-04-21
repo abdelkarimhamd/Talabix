@@ -55,10 +55,13 @@ class OrderController extends Controller
         $branch = Branch::query()->where('uuid', $request->string('branch_uuid'))->firstOrFail();
         $merchant = $branch->merchant()->first();
 
-        $items = collect($request->validated('items'))->map(function (array $item) {
+        $items = collect((array) $request->validated('items'))->values()->map(function (array $item) {
             return [
-                'quantity' => $item['quantity'],
-                'modifier_option_uuids' => array_values(array_unique($item['modifier_option_uuids'] ?? [])),
+                'quantity' => (int) $item['quantity'],
+                'modifier_option_uuids' => array_values(array_unique(array_map(
+                    static fn (mixed $uuid): string => (string) $uuid,
+                    (array) ($item['modifier_option_uuids'] ?? [])
+                ))),
                 'model' => CatalogItem::query()
                     ->with(['modifierGroups.options'])
                     ->where('uuid', $item['catalog_item_uuid'])

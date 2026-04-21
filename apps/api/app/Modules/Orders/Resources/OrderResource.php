@@ -2,12 +2,21 @@
 
 namespace App\Modules\Orders\Resources;
 
+use App\Models\DeliveryAssignment;
+use App\Models\Order;
 use App\Modules\Orders\Enums\OrderStatus;
+use BackedEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Order
+ */
 class OrderResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         $items = $this->relationLoaded('items') ? $this->items : collect();
@@ -19,8 +28,8 @@ class OrderResource extends JsonResource
 
         return [
             'uuid' => $this->uuid,
-            'status' => $this->status?->value ?? $this->status,
-            'payment_status' => $this->payment_status?->value ?? $this->payment_status,
+            'status' => $this->status->value,
+            'payment_status' => $this->payment_status->value,
             'currency' => $this->currency,
             'subtotal_minor' => $this->subtotal_minor,
             'delivery_fee_minor' => $this->delivery_fee_minor,
@@ -42,8 +51,7 @@ class OrderResource extends JsonResource
             'delivery_assignment' => $latestAssignment ? [
                 'rider_uuid' => $latestAssignment->riderProfile?->uuid,
                 'rider_name' => $latestAssignment->riderProfile?->user?->name,
-                'rider_availability' => $latestAssignment->riderProfile?->availability?->value
-                    ?? $latestAssignment->riderProfile?->availability,
+                'rider_availability' => $latestAssignment->riderProfile?->availability->value,
                 'status' => $latestAssignment->status,
                 'assignment_type' => $latestAssignment->assignment_type,
                 'score' => $latestAssignment->score,
@@ -63,9 +71,9 @@ class OrderResource extends JsonResource
                 'item_snapshot' => $item->item_snapshot,
             ])->all(),
             'timeline' => $timeline->map(fn ($event) => [
-                'event_type' => $event->event_type?->value ?? $event->event_type,
-                'from_status' => $event->from_status?->value ?? $event->from_status,
-                'to_status' => $event->to_status?->value ?? $event->to_status,
+                'event_type' => $event->event_type->value,
+                'from_status' => $event->from_status->value,
+                'to_status' => $event->to_status->value,
                 'actor_role' => $event->actor_role,
                 'metadata' => $event->metadata,
                 'created_at' => $event->created_at,
@@ -81,11 +89,11 @@ class OrderResource extends JsonResource
             ])->all(),
             'support_case' => $supportCase ? [
                 'uuid' => $supportCase->uuid,
-                'status' => $supportCase->status?->value ?? $supportCase->status,
-                'issue_type' => $supportCase->issue_type?->value ?? $supportCase->issue_type,
+                'status' => $this->enumValue($supportCase->status),
+                'issue_type' => $this->enumValue($supportCase->issue_type),
                 'summary' => $supportCase->summary,
-                'cancellation_reason_code' => $supportCase->cancellation_reason_code?->value ?? $supportCase->cancellation_reason_code,
-                'resolution_type' => $supportCase->resolution_type?->value ?? $supportCase->resolution_type,
+                'cancellation_reason_code' => $this->enumValue($supportCase->cancellation_reason_code),
+                'resolution_type' => $this->enumValue($supportCase->resolution_type),
                 'resolution_notes' => $supportCase->resolution_notes,
                 'opened_by_user_id' => $supportCase->opened_by_user_id,
                 'opened_by_name' => $supportCase->openedBy?->name,
@@ -99,11 +107,12 @@ class OrderResource extends JsonResource
         ];
     }
 
+    /**
+     * @return array<int, string>
+     */
     private function merchantActions(): array
     {
-        $status = $this->status instanceof OrderStatus
-            ? $this->status
-            : OrderStatus::tryFrom((string) $this->status);
+        $status = $this->status;
 
         return match ($status) {
             OrderStatus::PLACED => ['accept', 'reject'],
@@ -113,11 +122,12 @@ class OrderResource extends JsonResource
         };
     }
 
-    private function riderActions($latestAssignment): array
+    /**
+     * @return array<int, string>
+     */
+    private function riderActions(?DeliveryAssignment $latestAssignment): array
     {
-        $status = $this->status instanceof OrderStatus
-            ? $this->status
-            : OrderStatus::tryFrom((string) $this->status);
+        $status = $this->status;
 
         if (! $latestAssignment) {
             return [];
@@ -130,5 +140,14 @@ class OrderResource extends JsonResource
             OrderStatus::PICKED_UP => ['complete_delivery'],
             default => [],
         };
+    }
+
+    private function enumValue(mixed $value): ?string
+    {
+        if ($value instanceof BackedEnum) {
+            return (string) $value->value;
+        }
+
+        return is_string($value) ? $value : null;
     }
 }

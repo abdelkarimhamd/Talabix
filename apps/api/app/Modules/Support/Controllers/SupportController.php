@@ -76,8 +76,8 @@ class SupportController extends Controller
             'Support case created or updated.',
             [
                 'support_case_uuid' => $supportCase->uuid,
-                'status' => $supportCase->status?->value ?? $supportCase->status,
-                'issue_type' => $supportCase->issue_type?->value ?? $supportCase->issue_type,
+                'status' => $supportCase->status->value,
+                'issue_type' => $supportCase->issue_type->value,
             ]
         );
 
@@ -103,8 +103,8 @@ class SupportController extends Controller
             'Support case updated.',
             [
                 'support_case_uuid' => $supportCase->uuid,
-                'status' => $supportCase->status?->value ?? $supportCase->status,
-                'resolution_type' => $supportCase->resolution_type?->value ?? $supportCase->resolution_type,
+                'status' => $supportCase->status->value,
+                'resolution_type' => $supportCase->resolution_type?->value,
             ]
         );
 

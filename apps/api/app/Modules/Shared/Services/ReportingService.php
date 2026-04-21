@@ -16,6 +16,9 @@ use Illuminate\Support\Collection;
 
 class ReportingService
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function merchantSales(Merchant $merchant, int $rangeDays = 7): array
     {
         [$startsAt, $endsAt] = $this->resolveRange($rangeDays);
@@ -77,8 +80,8 @@ class ReportingService
                 $firstOrder = $branchOrders->first();
 
                 return [
-                    'branch_uuid' => $firstOrder->branch?->uuid,
-                    'branch_name' => $firstOrder->branch?->name ?? 'Unknown branch',
+                    'branch_uuid' => data_get($firstOrder->branch, 'uuid'),
+                    'branch_name' => data_get($firstOrder->branch, 'name', 'Unknown branch'),
                     'total_orders' => $branchOrders->count(),
                     'delivered_orders' => $branchOrders
                         ->filter(fn (Order $order) => $this->orderStatus($order) === OrderStatus::DELIVERED->value)
@@ -100,7 +103,7 @@ class ReportingService
 
         $topItems = $nonCancelledOrders
             ->flatMap(fn (Order $order) => $order->items)
-            ->groupBy(fn (OrderItem $item) => data_get($item->item_snapshot, 'name', 'Unknown item'))
+            ->groupBy(fn (OrderItem $item) => (string) data_get($item->item_snapshot, 'name', 'Unknown item'))
             ->map(function (Collection $items, string $itemName) {
                 return [
                     'item_name' => $itemName,
@@ -132,7 +135,7 @@ class ReportingService
                 'average_order_value_minor' => $nonCancelledOrders->count() > 0
                     ? (int) round($nonCancelledOrders->avg('subtotal_minor'))
                     : 0,
-                'currency' => $orders->first()?->currency ?? 'SAR',
+                'currency' => data_get($orders->first(), 'currency', 'SAR'),
             ],
             'daily_sales' => array_values($dailySales),
             'branch_breakdown' => $branchBreakdown,
@@ -140,6 +143,9 @@ class ReportingService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function opsOverview(int $rangeDays = 7): array
     {
         [$startsAt, $endsAt] = $this->resolveRange($rangeDays);
@@ -194,8 +200,8 @@ class ReportingService
                 $firstOrder = $merchantOrders->first();
 
                 return [
-                    'merchant_uuid' => $firstOrder->merchant?->uuid,
-                    'merchant_name' => $firstOrder->merchant?->name ?? 'Unknown merchant',
+                    'merchant_uuid' => data_get($firstOrder->merchant, 'uuid'),
+                    'merchant_name' => data_get($firstOrder->merchant, 'name', 'Unknown merchant'),
                     'total_orders' => $merchantOrders->count(),
                     'delivered_orders' => $merchantOrders
                         ->filter(fn (Order $order) => $this->orderStatus($order) === OrderStatus::DELIVERED->value)
@@ -222,8 +228,8 @@ class ReportingService
                 $earningsMinor = $entries->sum('amount_minor');
 
                 return [
-                    'rider_uuid' => $firstEntry->riderProfile?->uuid,
-                    'rider_name' => $firstEntry->riderProfile?->user?->name ?? 'Unknown rider',
+                    'rider_uuid' => data_get($firstEntry->riderProfile, 'uuid'),
+                    'rider_name' => data_get($firstEntry->riderProfile, 'user.name', 'Unknown rider'),
                     'deliveries_count' => $deliveriesCount,
                     'earnings_minor' => $earningsMinor,
                     'average_per_delivery_minor' => $deliveriesCount > 0
@@ -297,7 +303,7 @@ class ReportingService
                 'adjustment_minor' => $financialsByType->get(LedgerEntryType::ADJUSTMENT->value, 0),
                 'net_platform_minor' => $financialsByType->get(LedgerEntryType::PLATFORM_COMMISSION->value, 0)
                     + $financialsByType->get(LedgerEntryType::ADJUSTMENT->value, 0),
-                'currency' => $ledgerEntries->first()?->currency ?? $orders->first()?->currency ?? 'SAR',
+                'currency' => data_get($ledgerEntries->first(), 'currency', data_get($orders->first(), 'currency', 'SAR')),
             ],
             'order_status_breakdown' => $orderStatusBreakdown,
             'daily_orders' => array_values($dailyOrders),
@@ -313,6 +319,9 @@ class ReportingService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function riderEarnings(RiderProfile $riderProfile, int $rangeDays = 7): array
     {
         [$startsAt, $endsAt] = $this->resolveRange($rangeDays);
@@ -351,10 +360,8 @@ class ReportingService
         return [
             'rider' => [
                 'uuid' => $riderProfile->uuid,
-                'name' => $riderProfile->user?->name ?? 'Unknown rider',
-                'availability' => $riderProfile->availability instanceof RiderAvailability
-                    ? $riderProfile->availability->value
-                    : (string) $riderProfile->availability,
+                'name' => data_get($riderProfile->user, 'name', 'Unknown rider'),
+                'availability' => $riderProfile->availability->value,
             ],
             'range' => $this->rangeMeta($startsAt, $endsAt, $rangeDays),
             'summary' => [
@@ -363,14 +370,14 @@ class ReportingService
                 'average_per_delivery_minor' => $deliveriesCount > 0
                     ? (int) round($earningsMinor / $deliveriesCount)
                     : 0,
-                'currency' => $entries->first()?->currency ?? 'SAR',
+                'currency' => data_get($entries->first(), 'currency', 'SAR'),
             ],
             'daily_earnings' => array_values($dailyEarnings),
             'orders' => $entries
                 ->map(fn (LedgerEntry $entry) => [
                     'order_uuid' => $entry->order?->uuid,
-                    'merchant_name' => $entry->order?->merchant?->name ?? 'Unknown merchant',
-                    'branch_name' => $entry->order?->branch?->name ?? 'Unknown branch',
+                    'merchant_name' => data_get($entry->order, 'merchant.name', 'Unknown merchant'),
+                    'branch_name' => data_get($entry->order, 'branch.name', 'Unknown branch'),
                     'delivered_at' => $entry->order?->delivered_at?->toIso8601String(),
                     'occurred_at' => $entry->occurred_at?->toIso8601String(),
                     'earning_minor' => $entry->amount_minor,
@@ -381,6 +388,9 @@ class ReportingService
         ];
     }
 
+    /**
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     */
     private function resolveRange(int $rangeDays): array
     {
         $endsAt = CarbonImmutable::now()->endOfDay();
@@ -389,6 +399,9 @@ class ReportingService
         return [$startsAt, $endsAt];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function rangeMeta(CarbonImmutable $startsAt, CarbonImmutable $endsAt, int $rangeDays): array
     {
         return [
@@ -398,6 +411,10 @@ class ReportingService
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $template
+     * @return array<string, array<string, mixed>>
+     */
     private function seedDateBuckets(CarbonImmutable $startsAt, CarbonImmutable $endsAt, array $template): array
     {
         $bucket = [];
@@ -414,11 +431,11 @@ class ReportingService
 
     private function orderStatus(Order $order): string
     {
-        return $order->status instanceof OrderStatus ? $order->status->value : (string) $order->status;
+        return $order->status->value;
     }
 
     private function ledgerEntryType(LedgerEntry $entry): string
     {
-        return $entry->entry_type instanceof LedgerEntryType ? $entry->entry_type->value : (string) $entry->entry_type;
+        return $entry->entry_type->value;
     }
 }

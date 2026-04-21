@@ -15,6 +15,10 @@ class OrderPricingService
 {
     public function __construct(private readonly MapsProviderService $mapsProviderService) {}
 
+    /**
+     * @param  Collection<int, array{quantity: int, modifier_option_uuids: list<string>, model: CatalogItem}>  $lineItems
+     * @return array<string, mixed>
+     */
     public function quote(Branch $branch, CustomerAddress $address, Collection $lineItems, ?string $promoCode = null): array
     {
         $zone = $branch->serviceZones()
@@ -69,12 +73,12 @@ class OrderPricingService
                 ->first();
             [$selectedModifierGroups, $modifierUnitDelta] = $this->resolveSelectedModifiers(
                 $catalogItem,
-                collect($entry['modifier_option_uuids'] ?? [])
+                collect($entry['modifier_option_uuids'])
             );
 
-            $price = $override?->price_minor ?? $catalogItem->base_price_minor;
-            $available = $override?->is_available ?? $catalogItem->is_active;
-            $stock = $override?->stock_quantity ?? $catalogItem->base_stock;
+            $price = data_get($override, 'price_minor') ?? $catalogItem->base_price_minor;
+            $available = data_get($override, 'is_available') ?? $catalogItem->is_active;
+            $stock = data_get($override, 'stock_quantity') ?? $catalogItem->base_stock;
 
             if (! $available) {
                 throw ValidationException::withMessages([
@@ -108,19 +112,20 @@ class OrderPricingService
             ];
         });
 
-        $commission = (int) round($subtotal * (($branch->merchant?->platform_commission_bps ?? 1200) / 10000));
+        $commission = (int) round($subtotal * ((data_get($branch->merchant, 'platform_commission_bps', 1200)) / 10000));
         $deliveryFee = $band->fee_minor;
         $riderEarning = $deliveryFee;
+        $pricedItems = $items->values()->all();
         $discounts = $this->calculateOfferDiscounts(
             $branch,
-            $items,
+            $pricedItems,
             $subtotal,
             $deliveryFee,
             $promoCode
         );
 
         return [
-            'items' => $items->values()->all(),
+            'items' => $pricedItems,
             'pricing' => [
                 'subtotal_minor' => $subtotal,
                 'delivery_fee_minor' => $deliveryFee,
@@ -147,14 +152,19 @@ class OrderPricingService
         ];
     }
 
+    /**
+     * @param  array<int, array{catalog_item_id: int, quantity: int, unit_price_minor: int|float, line_total_minor: int|float, item_snapshot: array{uuid: string, name: string, sku: string|null, category_name: string|null, image_url: string|null, selected_modifier_groups: array<int, array<string, mixed>>}}>  $items
+     * @return array<string, mixed>
+     */
     private function calculateOfferDiscounts(
         Branch $branch,
-        Collection $items,
+        array $items,
         int $subtotal,
         int $deliveryFee,
         ?string $promoCode,
     ): array {
         $normalizedPromoCode = $this->normalizePromoCode($promoCode);
+        $items = collect($items);
         $catalogItemIds = $items->pluck('catalog_item_id')->filter()->unique()->values();
         $lineTotalsByCatalogItem = $items
             ->groupBy('catalog_item_id')
@@ -279,6 +289,10 @@ class OrderPricingService
         return $normalized === '' ? null : $normalized;
     }
 
+    /**
+     * @param  Collection<int, string>  $selectedOptionUuids
+     * @return array{0: array<int, array<string, mixed>>, 1: int}
+     */
     private function resolveSelectedModifiers(CatalogItem $catalogItem, Collection $selectedOptionUuids): array
     {
         $catalogItem->loadMissing(['modifierGroups.options']);

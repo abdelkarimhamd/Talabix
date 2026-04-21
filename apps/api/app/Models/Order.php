@@ -11,7 +11,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property OrderStatus $status
+ * @property PaymentStatus $payment_status
+ * @property Carbon|null $placed_at
+ * @property Carbon|null $accepted_at
+ * @property Carbon|null $delivered_at
+ */
 class Order extends Model
 {
     /** @use HasFactory<Factory<Order>> */

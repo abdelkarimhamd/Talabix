@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class RecordAuditLogAction
 {
+    /**
+     * @param  array<string, mixed>  $properties
+     */
     public function execute(
         AuditActionType $actionType,
         User $causer,
