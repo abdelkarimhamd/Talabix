@@ -92,6 +92,178 @@ function createStorePayload(form) {
   };
 }
 
+function StoreSetupForm({
+  form,
+  isSubmitting,
+  onCancel,
+  onFieldChange,
+  onSubmit,
+}) {
+  return (
+    <form
+      className="catalog-panel panel first-store-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+    >
+      <div className="board-header">
+        <div>
+          <span className="eyebrow">Store setup</span>
+          <h3>Store and first branch</h3>
+        </div>
+      </div>
+
+      <div className="field-grid">
+        <label className="field-stack">
+          <span>Store name</span>
+          <input
+            onChange={(event) => onFieldChange('name', event.target.value)}
+            required
+            value={form.name}
+          />
+        </label>
+        <label className="field-stack">
+          <span>Store URL slug</span>
+          <input
+            onChange={(event) => onFieldChange('slug', event.target.value)}
+            required
+            value={form.slug}
+          />
+        </label>
+        <label className="field-stack">
+          <span>Commission percent</span>
+          <input
+            inputMode="decimal"
+            min="0"
+            max="100"
+            onChange={(event) =>
+              onFieldChange('commission_percent', event.target.value)
+            }
+            required
+            type="number"
+            value={form.commission_percent}
+          />
+        </label>
+        <label className="field-stack">
+          <span>Branch name</span>
+          <input
+            onChange={(event) =>
+              onFieldChange('branch_name', event.target.value)
+            }
+            required
+            value={form.branch_name}
+          />
+        </label>
+        <label className="field-stack">
+          <span>City</span>
+          <input
+            onChange={(event) => onFieldChange('city', event.target.value)}
+            required
+            value={form.city}
+          />
+        </label>
+        <label className="field-stack">
+          <span>Branch address</span>
+          <input
+            onChange={(event) =>
+              onFieldChange('address_line', event.target.value)
+            }
+            required
+            value={form.address_line}
+          />
+        </label>
+        <label className="field-stack">
+          <span>Latitude</span>
+          <input
+            inputMode="decimal"
+            onChange={(event) => onFieldChange('latitude', event.target.value)}
+            required
+            type="number"
+            value={form.latitude}
+          />
+        </label>
+        <label className="field-stack">
+          <span>Longitude</span>
+          <input
+            inputMode="decimal"
+            onChange={(event) => onFieldChange('longitude', event.target.value)}
+            required
+            type="number"
+            value={form.longitude}
+          />
+        </label>
+      </div>
+
+      <div className="field-grid">
+        <label className="field-stack">
+          <span>Opening time</span>
+          <input
+            onChange={(event) => onFieldChange('opens_at', event.target.value)}
+            type="time"
+            value={form.opens_at}
+          />
+        </label>
+        <label className="field-stack">
+          <span>Closing time</span>
+          <input
+            onChange={(event) => onFieldChange('closes_at', event.target.value)}
+            type="time"
+            value={form.closes_at}
+          />
+        </label>
+        <label className="field-stack">
+          <span>Service zone name</span>
+          <input
+            onChange={(event) => onFieldChange('zone_name', event.target.value)}
+            required
+            value={form.zone_name}
+          />
+        </label>
+        <label className="field-stack">
+          <span>Delivery radius meters</span>
+          <input
+            inputMode="numeric"
+            min="100"
+            onChange={(event) =>
+              onFieldChange('radius_meters', event.target.value)
+            }
+            required
+            type="number"
+            value={form.radius_meters}
+          />
+        </label>
+        <label className="field-stack">
+          <span>Delivery fee minor units</span>
+          <input
+            inputMode="numeric"
+            min="0"
+            onChange={(event) => onFieldChange('fee_minor', event.target.value)}
+            required
+            type="number"
+            value={form.fee_minor}
+          />
+        </label>
+      </div>
+
+      <div className="card-actions">
+        <button className="action-button" disabled={isSubmitting} type="submit">
+          {isSubmitting ? 'Creating store...' : 'Create store'}
+        </button>
+        {onCancel ? (
+          <button
+            className="action-button secondary"
+            onClick={onCancel}
+            type="button"
+          >
+            Cancel
+          </button>
+        ) : null}
+      </div>
+    </form>
+  );
+}
+
 export function OpsConfigurationBoard() {
   const { api } = useSession();
   const queryClient = useQueryClient();
@@ -113,6 +285,7 @@ export function OpsConfigurationBoard() {
     clearApiKey: false,
   });
   const [storeSetupForm, setStoreSetupForm] = useState(emptyStoreSetupForm);
+  const [showStoreSetupForm, setShowStoreSetupForm] = useState(false);
   const [feedback, setFeedback] = useState('');
 
   const { data: merchants = [] } = useQuery({
@@ -239,6 +412,7 @@ export function OpsConfigurationBoard() {
     onSuccess: async (merchant) => {
       setSelectedMerchantUuid(merchant.uuid);
       setStoreSetupForm(emptyStoreSetupForm);
+      setShowStoreSetupForm(false);
       await queryClient.invalidateQueries({ queryKey: ['ops-configuration'] });
       await queryClient.invalidateQueries({ queryKey: ['managed-merchants'] });
       setFeedback(`${merchant.name} store was created.`);
@@ -361,185 +535,12 @@ export function OpsConfigurationBoard() {
           </div>
         ) : null}
 
-        <form
-          className="catalog-panel panel first-store-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            createMerchantMutation.mutate();
-          }}
-        >
-          <div className="board-header">
-            <div>
-              <span className="eyebrow">Store setup</span>
-              <h3>Store and first branch</h3>
-            </div>
-          </div>
-
-          <div className="field-grid">
-            <label className="field-stack">
-              <span>Store name</span>
-              <input
-                onChange={(event) =>
-                  updateStoreSetupField('name', event.target.value)
-                }
-                required
-                value={storeSetupForm.name}
-              />
-            </label>
-            <label className="field-stack">
-              <span>Store URL slug</span>
-              <input
-                onChange={(event) =>
-                  updateStoreSetupField('slug', event.target.value)
-                }
-                required
-                value={storeSetupForm.slug}
-              />
-            </label>
-            <label className="field-stack">
-              <span>Commission percent</span>
-              <input
-                inputMode="decimal"
-                min="0"
-                max="100"
-                onChange={(event) =>
-                  updateStoreSetupField(
-                    'commission_percent',
-                    event.target.value
-                  )
-                }
-                required
-                type="number"
-                value={storeSetupForm.commission_percent}
-              />
-            </label>
-            <label className="field-stack">
-              <span>Branch name</span>
-              <input
-                onChange={(event) =>
-                  updateStoreSetupField('branch_name', event.target.value)
-                }
-                required
-                value={storeSetupForm.branch_name}
-              />
-            </label>
-            <label className="field-stack">
-              <span>City</span>
-              <input
-                onChange={(event) =>
-                  updateStoreSetupField('city', event.target.value)
-                }
-                required
-                value={storeSetupForm.city}
-              />
-            </label>
-            <label className="field-stack">
-              <span>Branch address</span>
-              <input
-                onChange={(event) =>
-                  updateStoreSetupField('address_line', event.target.value)
-                }
-                required
-                value={storeSetupForm.address_line}
-              />
-            </label>
-            <label className="field-stack">
-              <span>Latitude</span>
-              <input
-                inputMode="decimal"
-                onChange={(event) =>
-                  updateStoreSetupField('latitude', event.target.value)
-                }
-                required
-                type="number"
-                value={storeSetupForm.latitude}
-              />
-            </label>
-            <label className="field-stack">
-              <span>Longitude</span>
-              <input
-                inputMode="decimal"
-                onChange={(event) =>
-                  updateStoreSetupField('longitude', event.target.value)
-                }
-                required
-                type="number"
-                value={storeSetupForm.longitude}
-              />
-            </label>
-          </div>
-
-          <div className="field-grid">
-            <label className="field-stack">
-              <span>Opening time</span>
-              <input
-                onChange={(event) =>
-                  updateStoreSetupField('opens_at', event.target.value)
-                }
-                type="time"
-                value={storeSetupForm.opens_at}
-              />
-            </label>
-            <label className="field-stack">
-              <span>Closing time</span>
-              <input
-                onChange={(event) =>
-                  updateStoreSetupField('closes_at', event.target.value)
-                }
-                type="time"
-                value={storeSetupForm.closes_at}
-              />
-            </label>
-            <label className="field-stack">
-              <span>Service zone name</span>
-              <input
-                onChange={(event) =>
-                  updateStoreSetupField('zone_name', event.target.value)
-                }
-                required
-                value={storeSetupForm.zone_name}
-              />
-            </label>
-            <label className="field-stack">
-              <span>Delivery radius meters</span>
-              <input
-                inputMode="numeric"
-                min="100"
-                onChange={(event) =>
-                  updateStoreSetupField('radius_meters', event.target.value)
-                }
-                required
-                type="number"
-                value={storeSetupForm.radius_meters}
-              />
-            </label>
-            <label className="field-stack">
-              <span>Delivery fee minor units</span>
-              <input
-                inputMode="numeric"
-                min="0"
-                onChange={(event) =>
-                  updateStoreSetupField('fee_minor', event.target.value)
-                }
-                required
-                type="number"
-                value={storeSetupForm.fee_minor}
-              />
-            </label>
-          </div>
-
-          <div className="card-actions">
-            <button
-              className="action-button"
-              disabled={createMerchantMutation.isPending}
-              type="submit"
-            >
-              {createMerchantMutation.isPending
-                ? 'Creating store...'
-                : 'Create store'}
-            </button>
-          </div>
-        </form>
+        <StoreSetupForm
+          form={storeSetupForm}
+          isSubmitting={createMerchantMutation.isPending}
+          onFieldChange={updateStoreSetupField}
+          onSubmit={() => createMerchantMutation.mutate()}
+        />
       </section>
     );
   }
@@ -553,10 +554,29 @@ export function OpsConfigurationBoard() {
             Control commissions, branch order-taking, service zones, and fees
           </h2>
         </div>
-        <span className="status-pill" data-tone="info">
-          {merchants.length} merchants
-        </span>
+        <div className="card-actions">
+          <span className="status-pill" data-tone="info">
+            {merchants.length} merchants
+          </span>
+          <button
+            className="action-button secondary"
+            onClick={() => setShowStoreSetupForm((current) => !current)}
+            type="button"
+          >
+            {showStoreSetupForm ? 'Hide store form' : 'Add store'}
+          </button>
+        </div>
       </div>
+
+      {showStoreSetupForm ? (
+        <StoreSetupForm
+          form={storeSetupForm}
+          isSubmitting={createMerchantMutation.isPending}
+          onCancel={() => setShowStoreSetupForm(false)}
+          onFieldChange={updateStoreSetupField}
+          onSubmit={() => createMerchantMutation.mutate()}
+        />
+      ) : null}
 
       <section className="catalog-panel panel">
         <div className="board-header">

@@ -746,6 +746,13 @@ describe('portal routing', () => {
       )
     ).toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole('button', { name: /add store/i }));
+    expect(screen.getByLabelText(/store name/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /create store/i })
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+
     fireEvent.change(
       screen.getByLabelText(/merchant platform commission bps/i),
       {
