@@ -2,11 +2,18 @@
 
 namespace App\Modules\Notifications\Resources;
 
+use App\Models\NotificationDelivery;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin NotificationDelivery
+ */
 class NotificationDeliveryResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -15,13 +22,13 @@ class NotificationDeliveryResource extends JsonResource
             'order_uuid' => $this->order?->uuid,
             'recipient_user_id' => $this->recipient_user_id,
             'recipient_actor' => $this->recipient_actor,
-            'recipient_name' => $this->recipientUser?->name,
-            'recipient_email' => $this->recipientUser?->email,
-            'notification_type' => $this->notification_type?->value ?? $this->notification_type,
-            'channel' => $this->channel?->value ?? $this->channel,
+            'recipient_name' => $this->recipientUser->name,
+            'recipient_email' => $this->recipientUser->email,
+            'notification_type' => $this->notification_type->value,
+            'channel' => $this->channel->value,
             'provider' => $this->provider,
             'provider_reference' => $this->provider_reference,
-            'status' => $this->status?->value ?? $this->status,
+            'status' => $this->status->value,
             'attempt_count' => (int) $this->attempt_count,
             'title' => $this->title,
             'body' => $this->body,

@@ -112,6 +112,9 @@ class PromotionOfferController extends Controller
         ], 201);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function payloadForOffer(StorePromotionOfferRequest $request, Branch $branch): array
     {
         $catalogItem = $request->filled('catalog_item_uuid')
@@ -169,7 +172,7 @@ class PromotionOfferController extends Controller
             $message,
             [
                 'promotion_offer_uuid' => $promotionOffer->uuid,
-                'branch_uuid' => $promotionOffer->branch?->uuid,
+                'branch_uuid' => $promotionOffer->branch->uuid,
                 'discount_type' => $promotionOffer->discount_type,
             ]
         );

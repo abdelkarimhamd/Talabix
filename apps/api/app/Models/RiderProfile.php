@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
+ * @property int $id
  * @property RiderAvailability $availability
+ * @property User $user
  */
 class RiderProfile extends Model
 {

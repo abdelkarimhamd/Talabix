@@ -375,10 +375,10 @@ class ReportingService
             'daily_earnings' => array_values($dailyEarnings),
             'orders' => $entries
                 ->map(fn (LedgerEntry $entry) => [
-                    'order_uuid' => $entry->order?->uuid,
+                    'order_uuid' => $entry->order->uuid,
                     'merchant_name' => data_get($entry->order, 'merchant.name', 'Unknown merchant'),
                     'branch_name' => data_get($entry->order, 'branch.name', 'Unknown branch'),
-                    'delivered_at' => $entry->order?->delivered_at?->toIso8601String(),
+                    'delivered_at' => $entry->order->delivered_at?->toIso8601String(),
                     'occurred_at' => $entry->occurred_at?->toIso8601String(),
                     'earning_minor' => $entry->amount_minor,
                     'currency' => $entry->currency,

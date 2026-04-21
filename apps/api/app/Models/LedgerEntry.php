@@ -10,8 +10,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
+ * @property int $id
+ * @property int $order_id
+ * @property int $merchant_id
+ * @property int|null $rider_profile_id
  * @property LedgerEntryType $entry_type
+ * @property int $amount_minor
+ * @property string $currency
+ * @property string|null $notes
  * @property Carbon|null $occurred_at
+ * @property Order $order
+ * @property Merchant $merchant
+ * @property RiderProfile|null $riderProfile
  */
 class LedgerEntry extends Model
 {

@@ -2,11 +2,18 @@
 
 namespace App\Modules\Merchants\Resources;
 
+use App\Models\BranchFeeBand;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin BranchFeeBand
+ */
 class BranchFeeBandResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [

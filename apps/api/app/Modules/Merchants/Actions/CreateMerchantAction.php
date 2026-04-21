@@ -13,6 +13,23 @@ use Illuminate\Support\Str;
 
 class CreateMerchantAction
 {
+    /**
+     * @param array{
+     *     name: string,
+     *     slug: string,
+     *     platform_commission_bps?: int,
+     *     branch: array{
+     *         name: string,
+     *         city: string,
+     *         address_line: string,
+     *         latitude: mixed,
+     *         longitude: mixed,
+     *         hours: list<array{day_of_week: int, opens_at?: string|null, closes_at?: string|null}>,
+     *         zones: list<array{name: string, city: string, postal_code?: string|null, center_latitude: mixed, center_longitude: mixed, radius_meters: int}>,
+     *         fee_bands: list<array{min_distance_meters: int, max_distance_meters: int, fee_minor: int}>
+     *     }
+     * } $payload
+     */
     public function execute(array $payload, User $creator): Merchant
     {
         return DB::transaction(function () use ($payload, $creator) {

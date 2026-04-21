@@ -17,7 +17,7 @@ class FailingNotificationTransport implements NotificationChannelTransport
     {
         throw new RuntimeException(sprintf(
             'The %s notification transport is configured to fail.',
-            $delivery->channel?->value ?? $delivery->channel
+            $delivery->channel->value
         ));
     }
 }

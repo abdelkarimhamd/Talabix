@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property User $user
+ */
 class MerchantStaffMembership extends Model
 {
     /** @use HasFactory<Factory<MerchantStaffMembership>> */

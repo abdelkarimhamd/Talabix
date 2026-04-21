@@ -7,7 +7,27 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $uuid
+ * @property int $branch_id
+ * @property int|null $catalog_item_id
+ * @property string|null $code
+ * @property string $title
+ * @property string $discount_label
+ * @property string $discount_type
+ * @property int|null $percent
+ * @property int|null $amount_minor
+ * @property int $min_spend_minor
+ * @property bool $requires_promo_code
+ * @property bool $is_active
+ * @property Carbon|null $starts_at
+ * @property Carbon|null $expires_at
+ * @property Branch $branch
+ * @property CatalogItem|null $catalogItem
+ */
 class PromotionOffer extends Model
 {
     /** @use HasFactory<Factory<PromotionOffer>> */

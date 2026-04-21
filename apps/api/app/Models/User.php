@@ -14,6 +14,13 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string|null $phone
+ * @property UserAccountStatus $account_status
+ */
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {

@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property User $user
+ */
 class CustomerProfile extends Model
 {
     /** @use HasFactory<Factory<CustomerProfile>> */

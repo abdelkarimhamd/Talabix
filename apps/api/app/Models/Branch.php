@@ -9,6 +9,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $uuid
+ * @property int $merchant_id
+ * @property string $name
+ * @property string $status
+ * @property string $city
+ * @property string $address_line
+ * @property string|float $latitude
+ * @property string|float $longitude
+ * @property bool $accepts_orders
+ * @property bool|null $is_open_now
+ * @property array<string, mixed>|null $today_hours
+ * @property array<string, mixed>|null $serviceability
+ */
 class Branch extends Model
 {
     /** @use HasFactory<Factory<Branch>> */

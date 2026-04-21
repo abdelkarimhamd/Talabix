@@ -22,9 +22,7 @@ class NotificationTransportManager
 
     public function forDelivery(NotificationDelivery $delivery): NotificationChannelTransport
     {
-        $channel = $delivery->channel instanceof NotificationChannel
-            ? $delivery->channel
-            : NotificationChannel::from($delivery->channel);
+        $channel = $delivery->channel;
 
         return match ($channel) {
             NotificationChannel::EMAIL => $this->emailTransport(),

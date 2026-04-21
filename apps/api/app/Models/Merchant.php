@@ -9,6 +9,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $uuid
+ * @property string $name
+ * @property string $slug
+ * @property string $status
+ * @property int $platform_commission_bps
+ * @property bool|null $is_open_now
+ * @property bool|null $is_serviceable
+ * @property int|null $serviceable_branch_count
+ */
 class Merchant extends Model
 {
     /** @use HasFactory<Factory<Merchant>> */
