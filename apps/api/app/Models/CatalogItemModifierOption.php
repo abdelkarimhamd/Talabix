@@ -3,13 +3,16 @@
 namespace App\Models;
 
 use App\Modules\Shared\Concerns\HasPublicUuid;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CatalogItemModifierOption extends Model
 {
+    /** @use HasFactory<Factory<CatalogItemModifierOption>> */
     use HasFactory;
+
     use HasPublicUuid;
 
     protected $guarded = [];
@@ -22,6 +25,7 @@ class CatalogItemModifierOption extends Model
         ];
     }
 
+    /** @return BelongsTo<CatalogItemModifierGroup, $this> */
     public function modifierGroup(): BelongsTo
     {
         return $this->belongsTo(CatalogItemModifierGroup::class, 'modifier_group_id');

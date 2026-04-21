@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DeliveryAssignment extends Model
 {
+    /** @use HasFactory<Factory<DeliveryAssignment>> */
     use HasFactory;
 
     protected $guarded = [];
@@ -24,11 +26,13 @@ class DeliveryAssignment extends Model
         ];
     }
 
+    /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
+    /** @return BelongsTo<RiderProfile, $this> */
     public function riderProfile(): BelongsTo
     {
         return $this->belongsTo(RiderProfile::class);
