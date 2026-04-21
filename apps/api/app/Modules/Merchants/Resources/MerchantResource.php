@@ -16,14 +16,20 @@ class MerchantResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $attributes = $this->resource->getAttributes();
+
         return [
             'uuid' => $this->uuid,
             'name' => $this->name,
             'slug' => $this->slug,
             'status' => $this->status,
-            'is_open_now' => (bool) ($this->is_open_now ?? false),
-            'is_serviceable' => $this->is_serviceable,
-            'serviceable_branch_count' => $this->serviceable_branch_count,
+            'is_open_now' => (bool) ($attributes['is_open_now'] ?? false),
+            'is_serviceable' => array_key_exists('is_serviceable', $attributes)
+                ? (bool) $attributes['is_serviceable']
+                : null,
+            'serviceable_branch_count' => array_key_exists('serviceable_branch_count', $attributes)
+                ? (int) $attributes['serviceable_branch_count']
+                : null,
             'branches' => BranchResource::collection($this->whenLoaded('branches')),
         ];
     }
