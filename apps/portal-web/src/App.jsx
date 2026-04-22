@@ -175,6 +175,30 @@ const navGroupOrder = [
   'navigation.groups.account',
 ];
 
+const portalRoleOptions = [
+  {
+    key: 'store',
+    labelKey: 'portal.roles.store',
+    switchLabelKey: 'portal.switchToMerchantSession',
+    defaultPath: '/merchant/orders',
+    actor: 'merchant',
+  },
+  {
+    key: 'admin',
+    labelKey: 'portal.roles.admin',
+    switchLabelKey: 'portal.switchToOpsSession',
+    defaultPath: '/ops/dashboard',
+    actor: 'ops',
+  },
+  {
+    key: 'super',
+    labelKey: 'portal.roles.super',
+    switchLabelKey: 'portal.switchToSuperSession',
+    defaultPath: '/ops/users',
+    actor: 'ops',
+  },
+];
+
 const navIconPaths = {
   catalog:
     'M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Zm4 2v3h8v-3H8Zm0 6v3h8v-3H8Z',
@@ -197,6 +221,12 @@ const navIconPaths = {
     'M12 4a7 7 0 0 0-7 7v3.5A2.5 2.5 0 0 0 7.5 17H9v-6H7v-.1a5 5 0 0 1 10 0v.1h-2v6h1.2A4.2 4.2 0 0 1 12 20h-1v-2h1a2.2 2.2 0 0 0 2.2-2.2V11A7 7 0 0 0 12 4Z',
   users:
     'M8.8 11.2a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2Zm0 2c2.7 0 5 1.2 5.8 3.1.4 1-.3 2.2-1.4 2.2H4.4c-1.1 0-1.8-1.1-1.4-2.2.8-1.9 3.1-3.1 5.8-3.1Zm7.1-1.7a2.8 2.8 0 1 1 0-5.6 2.8 2.8 0 0 1 0 5.6Zm.4 1.7c2 0 3.8.9 4.4 2.4.4 1-.3 1.9-1.3 1.9h-3.2c-.1-.7-.3-1.4-.7-2.1-.4-.8-1-1.5-1.8-2 .8-.2 1.7-.2 2.6-.2Z',
+};
+
+const uiIconPaths = {
+  bell: 'M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0',
+  logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
+  search: 'm21 21-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z',
 };
 
 export function App({
@@ -574,11 +604,43 @@ function resolveInitialSession(initialSession) {
   return readStoredOpsSession();
 }
 
+function resolveActiveRoleKey(session, pathname) {
+  if (session.actor === 'merchant') {
+    return 'store';
+  }
+
+  if (pathname.startsWith('/ops/users')) {
+    return 'super';
+  }
+
+  return 'admin';
+}
+
+function getSessionInitials(session) {
+  const source =
+    session.user?.name ?? session.label ?? session.user?.email ?? 'T';
+  const parts = source
+    .split(/\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length === 0) {
+    return 'T';
+  }
+
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+}
+
 function PortalLayout() {
   const { logout, session, switchActor } = useSession();
   const { locale, setLocale, t } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
+  const [globalSearch, setGlobalSearch] = useState('');
   const activeAbilities =
     session.permissions ?? actorAbilities[session.actor] ?? [];
   const visibleNav = navItems.filter(
@@ -600,9 +662,45 @@ function PortalLayout() {
       items: visibleNav.filter((item) => item.groupKey === groupKey),
     }))
     .filter((group) => group.items.length > 0);
-  const handleActorSwitch = (actor) => {
-    switchActor(actor);
-    navigate(actor === 'merchant' ? '/merchant/orders' : '/ops/dashboard', {
+  const activeRoleKey = resolveActiveRoleKey(session, location.pathname);
+  const activeRole =
+    portalRoleOptions.find((role) => role.key === activeRoleKey) ??
+    portalRoleOptions[1];
+  const sessionInitials = getSessionInitials(session);
+  const handleGlobalSearch = (event) => {
+    event.preventDefault();
+
+    const query = globalSearch.trim().toLocaleLowerCase(locale);
+
+    if (!query) {
+      return;
+    }
+
+    const match = visibleNav.find((item) =>
+      [item.labelKey, item.badgeKey, item.groupKey]
+        .map((key) => t(key).toLocaleLowerCase(locale))
+        .some((label) => label.includes(query))
+    );
+
+    if (match) {
+      navigate(match.path);
+      setGlobalSearch('');
+    }
+  };
+  const handleRoleSwitch = (roleKey) => {
+    const nextRole =
+      portalRoleOptions.find((role) => role.key === roleKey) ??
+      portalRoleOptions[1];
+
+    if (nextRole.actor === 'merchant' && session.isAuthenticated) {
+      return;
+    }
+
+    if (!session.isAuthenticated && nextRole.actor !== session.actor) {
+      switchActor(nextRole.actor);
+    }
+
+    navigate(nextRole.defaultPath, {
       replace: true,
     });
   };
@@ -612,84 +710,25 @@ function PortalLayout() {
       <a className="skip-link" href="#portal-main">
         {t('common.skipToMain')}
       </a>
-      <header className="topbar">
-        <div className="topbar-brand">
-          <span className="brand-mark">{t('portal.brandMark')}</span>
-          <div>
-            <strong>{t('portal.title')}</strong>
-            <span>{t('portal.deliveryControl')}</span>
-          </div>
-        </div>
-
-        <div className="topbar-actions">
-          <div
-            aria-label={t('common.language.switcherLabel')}
-            className="language-switcher"
-            role="group"
-          >
-            <button
-              aria-label={t('common.language.englishNative')}
-              aria-pressed={locale === 'en'}
-              className={locale === 'en' ? 'active' : ''}
-              onClick={() => setLocale('en')}
-              translate="no"
-              type="button"
-            >
-              {t('common.language.englishNative')}
-            </button>
-            <button
-              aria-label={`${t('common.language.arabicNative')} Arabic`}
-              aria-pressed={locale === 'ar'}
-              className={locale === 'ar' ? 'active' : ''}
-              onClick={() => setLocale('ar')}
-              translate="no"
-              type="button"
-            >
-              {t('common.language.arabicNative')}
-            </button>
-          </div>
-
-          {session.isAuthenticated ? (
-            <button
-              className="action-button secondary topbar-signout"
-              onClick={() => {
-                void logout();
-              }}
-              type="button"
-            >
-              {t('auth.signOut')}
-            </button>
-          ) : (
-            <div
-              aria-label={t('portal.actorSwitcher')}
-              className="actor-switcher"
-              role="group"
-            >
-              <button
-                aria-label={t('portal.switchToMerchantSession')}
-                aria-pressed={session.actor === 'merchant'}
-                className={session.actor === 'merchant' ? 'active' : ''}
-                onClick={() => handleActorSwitch('merchant')}
-                type="button"
-              >
-                {t('portal.merchantSession')}
-              </button>
-              <button
-                aria-label={t('portal.switchToOpsSession')}
-                aria-pressed={session.actor === 'ops'}
-                className={session.actor === 'ops' ? 'active' : ''}
-                onClick={() => handleActorSwitch('ops')}
-                type="button"
-              >
-                {t('portal.opsSession')}
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
 
       <div className="portal-grid">
         <aside className="sidebar">
+          <div className="sidebar-brand">
+            <span className="brand-mark">{t('portal.brandMark')}</span>
+            <div>
+              <strong>{t('portal.title')}</strong>
+              <span>{t(activeRole.labelKey)}</span>
+            </div>
+          </div>
+
+          <div className="sidebar-context">
+            <span className="sidebar-context-avatar">{sessionInitials}</span>
+            <div>
+              <strong>{session.label}</strong>
+              <span>{session.scopeSummary}</span>
+            </div>
+          </div>
+
           <nav className="nav-list" aria-label={t('navigation.primary')}>
             {groupedNav.map((group) => (
               <section className="nav-section" key={group.groupKey}>
@@ -714,23 +753,144 @@ function PortalLayout() {
               </section>
             ))}
           </nav>
+
+          <div className="sidebar-user">
+            <span className="sidebar-user-avatar">{sessionInitials}</span>
+            <div>
+              <strong>{session.label}</strong>
+              <span>{t(activeRole.labelKey)}</span>
+            </div>
+            {session.isAuthenticated ? (
+              <button
+                aria-label={t('auth.signOut')}
+                className="sidebar-signout"
+                onClick={() => {
+                  void logout();
+                }}
+                type="button"
+              >
+                <UiIcon name="logout" />
+              </button>
+            ) : null}
+          </div>
         </aside>
 
-        <main className="content" id="portal-main" tabIndex="-1">
-          <section className="workspace-header">
-            <div>
-              <span className="eyebrow">{t('portal.activeSession')}</span>
-              <h2>{currentNav ? t(currentNav.labelKey) : t('portal.title')}</h2>
-              <p>{session.scopeSummary}</p>
+        <div className="workspace-frame">
+          <header className="topbar">
+            <div className="topbar-title">
+              <div
+                className="topbar-crumbs"
+                aria-label={t('portal.activeSession')}
+              >
+                <span>{t(activeRole.labelKey)}</span>
+                <span aria-hidden="true">/</span>
+                <span>
+                  {currentNav
+                    ? t(currentNav.groupKey)
+                    : t('navigation.primary')}
+                </span>
+              </div>
+              <h1>{currentNav ? t(currentNav.labelKey) : t('portal.title')}</h1>
             </div>
-            <div className="workspace-session">
-              <span>{t('portal.currentWorkspace')}</span>
-              <strong>{session.label}</strong>
-            </div>
-          </section>
 
-          <Outlet />
-        </main>
+            <div className="topbar-actions">
+              <form
+                aria-label={t('portal.searchLabel')}
+                className="global-search"
+                onSubmit={handleGlobalSearch}
+                role="search"
+              >
+                <UiIcon name="search" />
+                <input
+                  aria-label={t('portal.searchLabel')}
+                  onChange={(event) => setGlobalSearch(event.target.value)}
+                  placeholder={t('portal.searchPlaceholder')}
+                  type="search"
+                  value={globalSearch}
+                />
+              </form>
+
+              <div
+                aria-label={t('portal.roleSwitcher')}
+                className="actor-switcher role-switcher"
+                role="group"
+              >
+                {portalRoleOptions.map((role) => {
+                  const isDisabled =
+                    session.isAuthenticated && role.actor === 'merchant';
+
+                  return (
+                    <button
+                      aria-label={t(role.switchLabelKey)}
+                      aria-pressed={activeRoleKey === role.key}
+                      className={activeRoleKey === role.key ? 'active' : ''}
+                      disabled={isDisabled}
+                      key={role.key}
+                      onClick={() => handleRoleSwitch(role.key)}
+                      type="button"
+                    >
+                      {t(role.labelKey)}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div
+                aria-label={t('common.language.switcherLabel')}
+                className="language-switcher"
+                role="group"
+              >
+                <button
+                  aria-label={t('common.language.englishNative')}
+                  aria-pressed={locale === 'en'}
+                  className={locale === 'en' ? 'active' : ''}
+                  onClick={() => setLocale('en')}
+                  translate="no"
+                  type="button"
+                >
+                  {t('common.language.englishNative')}
+                </button>
+                <button
+                  aria-label={`${t('common.language.arabicNative')} Arabic`}
+                  aria-pressed={locale === 'ar'}
+                  className={locale === 'ar' ? 'active' : ''}
+                  onClick={() => setLocale('ar')}
+                  translate="no"
+                  type="button"
+                >
+                  {t('common.language.arabicNative')}
+                </button>
+              </div>
+
+              <button
+                aria-label={t('portal.notifications')}
+                className="icon-button notification-button"
+                type="button"
+              >
+                <UiIcon name="bell" />
+                <span aria-hidden="true" />
+              </button>
+            </div>
+          </header>
+
+          <main className="content" id="portal-main" tabIndex="-1">
+            <section className="workspace-header">
+              <div>
+                <span className="eyebrow">{t('portal.currentWorkspace')}</span>
+                <h2>
+                  {currentNav ? t(currentNav.labelKey) : t('portal.title')}
+                </h2>
+                <p>{session.scopeSummary}</p>
+              </div>
+              <div className="workspace-session">
+                <span>{t('portal.activeSession')}</span>
+                <strong>{session.label}</strong>
+              </div>
+            </section>
+
+            <Outlet />
+          </main>
+        </div>
       </div>
     </div>
   );
@@ -776,6 +936,24 @@ function NavIcon({ name }) {
       viewBox="0 0 24 24"
     >
       <path d={navIconPaths[name] ?? navIconPaths.dashboard} />
+    </svg>
+  );
+}
+
+function UiIcon({ name }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="ui-icon"
+      fill="none"
+      focusable="false"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d={uiIconPaths[name] ?? uiIconPaths.search} />
     </svg>
   );
 }

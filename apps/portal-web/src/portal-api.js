@@ -242,14 +242,24 @@ function buildSettlementMeta(entries) {
   };
 }
 
-function resolveRangeBounds(rangeDays = 7) {
-  const endsAt = new Date();
+function resolveRangeBounds(rangeDays = 7, anchorDate = new Date()) {
+  const endsAt = new Date(anchorDate);
   endsAt.setHours(23, 59, 59, 999);
   const startsAt = new Date(endsAt);
   startsAt.setDate(startsAt.getDate() - (rangeDays - 1));
   startsAt.setHours(0, 0, 0, 0);
 
   return { startsAt, endsAt };
+}
+
+function resolveLatestDate(entries, dateKey) {
+  const latestTime = entries.reduce((latest, entry) => {
+    const value = entry[dateKey] ? new Date(entry[dateKey]).getTime() : NaN;
+
+    return Number.isNaN(value) ? latest : Math.max(latest, value);
+  }, 0);
+
+  return latestTime > 0 ? new Date(latestTime) : new Date();
 }
 
 function isWithinRange(value, startsAt, endsAt) {
@@ -316,7 +326,10 @@ function buildMerchantSalesReport(query = {}) {
       )
     )
   );
-  const { startsAt, endsAt } = resolveRangeBounds(parsedQuery.range_days ?? 7);
+  const { startsAt, endsAt } = resolveRangeBounds(
+    parsedQuery.range_days ?? 7,
+    resolveLatestDate(state.reportOrders, 'placed_at')
+  );
   const orders = state.reportOrders.filter(
     (order) =>
       order.merchant_uuid === parsedQuery.merchant_uuid &&
@@ -477,7 +490,10 @@ function buildOpsDashboardOverview(query = {}) {
       )
     )
   );
-  const { startsAt, endsAt } = resolveRangeBounds(parsedQuery.range_days ?? 7);
+  const { startsAt, endsAt } = resolveRangeBounds(
+    parsedQuery.range_days ?? 7,
+    resolveLatestDate(state.reportOrders, 'placed_at')
+  );
   const orders = state.reportOrders.filter((order) =>
     isWithinRange(order.placed_at, startsAt, endsAt)
   );
