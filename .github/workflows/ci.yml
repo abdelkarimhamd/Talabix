@@ -98,6 +98,19 @@ jobs:
       - run: npm run lint
       - run: npm run i18n:audit
       - run: npm run test
+      - name: Portal admin shell browser smoke
+        id: portal_admin_shell_e2e
+        run: npm --workspace @talabix/portal-web run test:e2e:admin
+      - name: Upload portal admin shell e2e artifacts
+        if: failure() && steps.portal_admin_shell_e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: portal-admin-shell-e2e-artifacts
+          path: |
+            apps/portal-web/test-results/
+            apps/portal-web/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Customer app browser e2e
         id: customer_e2e
         run: npm --workspace @talabix/customer-app run test:e2e

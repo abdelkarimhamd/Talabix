@@ -13,6 +13,7 @@ const ignores = [
   '**/node_modules/**',
   'apps/api/**',
   'apps/**/.expo/**',
+  'design/**',
 ];
 
 export default [
@@ -64,10 +65,7 @@ export default [
     },
   },
   {
-    files: [
-      'apps/customer-app/**/*.{js,jsx}',
-      'apps/rider-app/**/*.{js,jsx}',
-    ],
+    files: ['apps/customer-app/**/*.{js,jsx}', 'apps/rider-app/**/*.{js,jsx}'],
     rules: {
       'react-native/no-inline-styles': 'off',
     },

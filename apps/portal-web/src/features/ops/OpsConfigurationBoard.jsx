@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
+// i18n-audit: strict
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useI18n } from '../../use-i18n.js';
 import { useSession } from '../../use-session.js';
 
-function zoneFormFromBranch(branch, zone) {
+function zoneFormFromBranch(branch, zone, defaultCity = '') {
   return {
     uuid: zone?.uuid ?? '',
     name: zone?.name ?? '',
-    city: zone?.city ?? branch?.city ?? 'Riyadh',
+    city: zone?.city ?? branch?.city ?? defaultCity,
     postal_code: zone?.postal_code ?? '',
     center_latitude: String(
       zone?.center_latitude ?? branch?.latitude ?? 24.7136
@@ -28,21 +30,23 @@ function feeBandFormFromValue(feeBand) {
   };
 }
 
-const emptyStoreSetupForm = {
-  name: '',
-  slug: '',
-  commission_percent: '12',
-  branch_name: 'Main branch',
-  city: 'Riyadh',
-  address_line: '',
-  latitude: '24.7136',
-  longitude: '46.6753',
-  zone_name: 'Primary delivery zone',
-  radius_meters: '5000',
-  fee_minor: '1500',
-  opens_at: '09:00',
-  closes_at: '23:00',
-};
+function createEmptyStoreSetupForm(t) {
+  return {
+    name: '',
+    slug: '',
+    commission_percent: '12',
+    branch_name: t('ops.configuration.defaults.branchName'),
+    city: t('ops.configuration.defaults.city'),
+    address_line: '',
+    latitude: '24.7136',
+    longitude: '46.6753',
+    zone_name: t('ops.configuration.defaults.zoneName'),
+    radius_meters: '5000',
+    fee_minor: '1500',
+    opens_at: '09:00',
+    closes_at: '23:00',
+  };
+}
 
 function slugFromName(value) {
   return value
@@ -98,6 +102,7 @@ function StoreSetupForm({
   onCancel,
   onFieldChange,
   onSubmit,
+  t,
 }) {
   return (
     <form
@@ -109,14 +114,16 @@ function StoreSetupForm({
     >
       <div className="board-header">
         <div>
-          <span className="eyebrow">Store setup</span>
-          <h3>Store and first branch</h3>
+          <span className="eyebrow">
+            {t('ops.configuration.setup.eyebrow')}
+          </span>
+          <h3>{t('ops.configuration.setup.title')}</h3>
         </div>
       </div>
 
       <div className="field-grid">
         <label className="field-stack">
-          <span>Store name</span>
+          <span>{t('ops.configuration.fields.storeName')}</span>
           <input
             onChange={(event) => onFieldChange('name', event.target.value)}
             required
@@ -124,7 +131,7 @@ function StoreSetupForm({
           />
         </label>
         <label className="field-stack">
-          <span>Store URL slug</span>
+          <span>{t('ops.configuration.fields.storeSlug')}</span>
           <input
             onChange={(event) => onFieldChange('slug', event.target.value)}
             required
@@ -132,7 +139,7 @@ function StoreSetupForm({
           />
         </label>
         <label className="field-stack">
-          <span>Commission percent</span>
+          <span>{t('ops.configuration.fields.commissionPercent')}</span>
           <input
             inputMode="decimal"
             min="0"
@@ -146,7 +153,7 @@ function StoreSetupForm({
           />
         </label>
         <label className="field-stack">
-          <span>Branch name</span>
+          <span>{t('ops.configuration.fields.branchName')}</span>
           <input
             onChange={(event) =>
               onFieldChange('branch_name', event.target.value)
@@ -156,7 +163,7 @@ function StoreSetupForm({
           />
         </label>
         <label className="field-stack">
-          <span>City</span>
+          <span>{t('ops.configuration.fields.city')}</span>
           <input
             onChange={(event) => onFieldChange('city', event.target.value)}
             required
@@ -164,7 +171,7 @@ function StoreSetupForm({
           />
         </label>
         <label className="field-stack">
-          <span>Branch address</span>
+          <span>{t('ops.configuration.fields.branchAddress')}</span>
           <input
             onChange={(event) =>
               onFieldChange('address_line', event.target.value)
@@ -174,7 +181,7 @@ function StoreSetupForm({
           />
         </label>
         <label className="field-stack">
-          <span>Latitude</span>
+          <span>{t('ops.configuration.fields.latitude')}</span>
           <input
             inputMode="decimal"
             onChange={(event) => onFieldChange('latitude', event.target.value)}
@@ -184,7 +191,7 @@ function StoreSetupForm({
           />
         </label>
         <label className="field-stack">
-          <span>Longitude</span>
+          <span>{t('ops.configuration.fields.longitude')}</span>
           <input
             inputMode="decimal"
             onChange={(event) => onFieldChange('longitude', event.target.value)}
@@ -197,7 +204,7 @@ function StoreSetupForm({
 
       <div className="field-grid">
         <label className="field-stack">
-          <span>Opening time</span>
+          <span>{t('ops.configuration.fields.openingTime')}</span>
           <input
             onChange={(event) => onFieldChange('opens_at', event.target.value)}
             type="time"
@@ -205,7 +212,7 @@ function StoreSetupForm({
           />
         </label>
         <label className="field-stack">
-          <span>Closing time</span>
+          <span>{t('ops.configuration.fields.closingTime')}</span>
           <input
             onChange={(event) => onFieldChange('closes_at', event.target.value)}
             type="time"
@@ -213,7 +220,7 @@ function StoreSetupForm({
           />
         </label>
         <label className="field-stack">
-          <span>Service zone name</span>
+          <span>{t('ops.configuration.fields.serviceZoneName')}</span>
           <input
             onChange={(event) => onFieldChange('zone_name', event.target.value)}
             required
@@ -221,7 +228,7 @@ function StoreSetupForm({
           />
         </label>
         <label className="field-stack">
-          <span>Delivery radius meters</span>
+          <span>{t('ops.configuration.fields.deliveryRadiusMeters')}</span>
           <input
             inputMode="numeric"
             min="100"
@@ -234,7 +241,7 @@ function StoreSetupForm({
           />
         </label>
         <label className="field-stack">
-          <span>Delivery fee minor units</span>
+          <span>{t('ops.configuration.fields.deliveryFeeMinorUnits')}</span>
           <input
             inputMode="numeric"
             min="0"
@@ -248,7 +255,9 @@ function StoreSetupForm({
 
       <div className="card-actions">
         <button className="action-button" disabled={isSubmitting} type="submit">
-          {isSubmitting ? 'Creating store...' : 'Create store'}
+          {isSubmitting
+            ? t('ops.configuration.actions.creatingStore')
+            : t('ops.configuration.actions.createStore')}
         </button>
         {onCancel ? (
           <button
@@ -256,7 +265,7 @@ function StoreSetupForm({
             onClick={onCancel}
             type="button"
           >
-            Cancel
+            {t('ops.configuration.actions.cancel')}
           </button>
         ) : null}
       </div>
@@ -266,14 +275,18 @@ function StoreSetupForm({
 
 export function OpsConfigurationBoard() {
   const { api } = useSession();
+  const { formatCurrency, formatNumber, t, tp } = useI18n();
   const queryClient = useQueryClient();
+  const defaultCity = t('ops.configuration.defaults.city');
   const [selectedMerchantUuid, setSelectedMerchantUuid] = useState('');
   const [selectedBranchUuid, setSelectedBranchUuid] = useState('');
   const [merchantStatus, setMerchantStatus] = useState('active');
   const [commissionBps, setCommissionBps] = useState('1200');
   const [branchStatus, setBranchStatus] = useState('active');
   const [branchAcceptsOrders, setBranchAcceptsOrders] = useState(true);
-  const [zoneForm, setZoneForm] = useState(zoneFormFromBranch());
+  const [zoneForm, setZoneForm] = useState(() =>
+    zoneFormFromBranch(undefined, undefined, defaultCity)
+  );
   const [feeBandForm, setFeeBandForm] = useState(feeBandFormFromValue());
   const [mapsApiKey, setMapsApiKey] = useState('');
   const [mapsForm, setMapsForm] = useState({
@@ -284,7 +297,9 @@ export function OpsConfigurationBoard() {
     fallback_to_demo: true,
     clearApiKey: false,
   });
-  const [storeSetupForm, setStoreSetupForm] = useState(emptyStoreSetupForm);
+  const [storeSetupForm, setStoreSetupForm] = useState(() =>
+    createEmptyStoreSetupForm(t)
+  );
   const [showStoreSetupForm, setShowStoreSetupForm] = useState(false);
   const [feedback, setFeedback] = useState('');
 
@@ -373,9 +388,9 @@ export function OpsConfigurationBoard() {
 
     setBranchStatus(selectedBranch.status);
     setBranchAcceptsOrders(selectedBranch.accepts_orders);
-    setZoneForm(zoneFormFromBranch(selectedBranch));
+    setZoneForm(zoneFormFromBranch(selectedBranch, undefined, defaultCity));
     setFeeBandForm(feeBandFormFromValue());
-  }, [selectedBranch]);
+  }, [defaultCity, selectedBranch]);
 
   const mapsMutation = useMutation({
     mutationFn: () =>
@@ -398,11 +413,11 @@ export function OpsConfigurationBoard() {
         ...current,
         clearApiKey: false,
       }));
-      setFeedback('Google Maps configuration saved.');
+      setFeedback(t('ops.configuration.feedback.mapsSaved'));
     },
     onError: (error) => {
       setFeedback(
-        error.message ?? 'Google Maps configuration could not be saved.'
+        error.message ?? t('ops.configuration.feedback.mapsSaveFailed')
       );
     },
   });
@@ -411,14 +426,20 @@ export function OpsConfigurationBoard() {
     mutationFn: () => api.createMerchant(createStorePayload(storeSetupForm)),
     onSuccess: async (merchant) => {
       setSelectedMerchantUuid(merchant.uuid);
-      setStoreSetupForm(emptyStoreSetupForm);
+      setStoreSetupForm(createEmptyStoreSetupForm(t));
       setShowStoreSetupForm(false);
       await queryClient.invalidateQueries({ queryKey: ['ops-configuration'] });
       await queryClient.invalidateQueries({ queryKey: ['managed-merchants'] });
-      setFeedback(`${merchant.name} store was created.`);
+      setFeedback(
+        t('ops.configuration.feedback.storeCreated', {
+          merchant: merchant.name,
+        })
+      );
     },
     onError: (error) => {
-      setFeedback(error.message ?? 'Store could not be created.');
+      setFeedback(
+        error.message ?? t('ops.configuration.feedback.storeCreateFailed')
+      );
     },
   });
 
@@ -431,12 +452,15 @@ export function OpsConfigurationBoard() {
     onSuccess: (merchant) => {
       queryClient.invalidateQueries({ queryKey: ['ops-configuration'] });
       setFeedback(
-        `${merchant.name} commission saved at ${(merchant.platform_commission_bps / 100).toFixed(2)}%.`
+        t('ops.configuration.feedback.merchantSaved', {
+          merchant: merchant.name,
+          commission: (merchant.platform_commission_bps / 100).toFixed(2),
+        })
       );
     },
     onError: (error) => {
       setFeedback(
-        error.message ?? 'Merchant configuration could not be saved.'
+        error.message ?? t('ops.configuration.feedback.merchantSaveFailed')
       );
     },
   });
@@ -449,10 +473,16 @@ export function OpsConfigurationBoard() {
       }),
     onSuccess: (branch) => {
       queryClient.invalidateQueries({ queryKey: ['ops-configuration'] });
-      setFeedback(`${branch.name} branch settings saved.`);
+      setFeedback(
+        t('ops.configuration.feedback.branchSaved', {
+          branch: branch.name,
+        })
+      );
     },
     onError: (error) => {
-      setFeedback(error.message ?? 'Branch configuration could not be saved.');
+      setFeedback(
+        error.message ?? t('ops.configuration.feedback.branchSaveFailed')
+      );
     },
   });
 
@@ -476,11 +506,17 @@ export function OpsConfigurationBoard() {
     },
     onSuccess: (zone) => {
       queryClient.invalidateQueries({ queryKey: ['ops-configuration'] });
-      setFeedback(`${zone.name} service zone saved.`);
-      setZoneForm(zoneFormFromBranch(selectedBranch));
+      setFeedback(
+        t('ops.configuration.feedback.serviceZoneSaved', {
+          zone: zone.name,
+        })
+      );
+      setZoneForm(zoneFormFromBranch(selectedBranch, undefined, defaultCity));
     },
     onError: (error) => {
-      setFeedback(error.message ?? 'Service zone could not be saved.');
+      setFeedback(
+        error.message ?? t('ops.configuration.feedback.serviceZoneSaveFailed')
+      );
     },
   });
 
@@ -501,33 +537,58 @@ export function OpsConfigurationBoard() {
     onSuccess: (feeBand) => {
       queryClient.invalidateQueries({ queryKey: ['ops-configuration'] });
       setFeedback(
-        `Fee band ${feeBand.min_distance_meters}-${feeBand.max_distance_meters} meters saved.`
+        t('ops.configuration.feedback.feeBandSaved', {
+          min: feeBand.min_distance_meters,
+          max: feeBand.max_distance_meters,
+        })
       );
       setFeeBandForm(feeBandFormFromValue());
     },
     onError: (error) => {
-      setFeedback(error.message ?? 'Fee band could not be saved.');
+      setFeedback(
+        error.message ?? t('ops.configuration.feedback.feeBandSaveFailed')
+      );
     },
   });
+
+  const mapsProviderLabel = (provider) =>
+    provider === 'demo'
+      ? t('ops.configuration.maps.providerDemo')
+      : t('ops.configuration.maps.providerGoogleMaps');
+  const statusLabel = (status) =>
+    status === 'inactive'
+      ? t('ops.configuration.values.inactive')
+      : t('ops.configuration.values.active');
+  const mapsStatusLabel =
+    mapsProviderConfiguration?.google_maps.api_key_source === 'admin'
+      ? t('ops.configuration.maps.configuredViaAdmin')
+      : mapsProviderConfiguration?.google_maps.api_key_source === 'env'
+        ? t('ops.configuration.maps.configuredViaEnvironment')
+        : t('ops.configuration.maps.apiKeyNotConfigured');
+  const mapsRuntimeMessage = !mapsProviderConfiguration
+    ? t('ops.configuration.maps.loading')
+    : mapsProviderConfiguration.runtime.ready
+      ? t('ops.configuration.maps.runtimeGoogleReady')
+      : mapsProviderConfiguration.provider === 'demo'
+        ? t('ops.configuration.maps.runtimeDemoActive')
+        : t('ops.configuration.maps.runtimeFallback');
 
   if (!selectedMerchant || !selectedBranch) {
     return (
       <section className="board panel">
         <div className="board-header">
           <div>
-            <span className="eyebrow">Ops configuration</span>
-            <h2>Create your first store</h2>
+            <span className="eyebrow">
+              {t('ops.configuration.page.eyebrow')}
+            </span>
+            <h2>{t('ops.configuration.empty.title')}</h2>
           </div>
           <span className="status-pill" data-tone="warm">
-            No stores yet
+            {t('ops.configuration.empty.badge')}
           </span>
         </div>
 
-        <p>
-          Add a store, its first branch, opening hours, service zone, and
-          delivery fee. After this, this page will show the normal configuration
-          controls.
-        </p>
+        <p>{t('ops.configuration.empty.description')}</p>
 
         {feedback ? (
           <div aria-live="polite" className="inline-feedback" role="status">
@@ -540,6 +601,7 @@ export function OpsConfigurationBoard() {
           isSubmitting={createMerchantMutation.isPending}
           onFieldChange={updateStoreSetupField}
           onSubmit={() => createMerchantMutation.mutate()}
+          t={t}
         />
       </section>
     );
@@ -549,21 +611,21 @@ export function OpsConfigurationBoard() {
     <section className="board panel">
       <div className="board-header">
         <div>
-          <span className="eyebrow">Ops configuration</span>
-          <h2>
-            Control commissions, branch order-taking, service zones, and fees
-          </h2>
+          <span className="eyebrow">{t('ops.configuration.page.eyebrow')}</span>
+          <h2>{t('ops.configuration.page.title')}</h2>
         </div>
         <div className="card-actions">
           <span className="status-pill" data-tone="info">
-            {merchants.length} merchants
+            {tp('ops.configuration.counts.merchants', merchants.length)}
           </span>
           <button
             className="action-button secondary"
             onClick={() => setShowStoreSetupForm((current) => !current)}
             type="button"
           >
-            {showStoreSetupForm ? 'Hide store form' : 'Add store'}
+            {showStoreSetupForm
+              ? t('ops.configuration.actions.hideStoreForm')
+              : t('ops.configuration.actions.addStore')}
           </button>
         </div>
       </div>
@@ -575,14 +637,17 @@ export function OpsConfigurationBoard() {
           onCancel={() => setShowStoreSetupForm(false)}
           onFieldChange={updateStoreSetupField}
           onSubmit={() => createMerchantMutation.mutate()}
+          t={t}
         />
       ) : null}
 
       <section className="catalog-panel panel">
         <div className="board-header">
           <div>
-            <span className="eyebrow">Maps provider</span>
-            <h3>Google Maps provider</h3>
+            <span className="eyebrow">
+              {t('ops.configuration.maps.eyebrow')}
+            </span>
+            <h3>{t('ops.configuration.maps.title')}</h3>
           </div>
           <span
             className="status-pill"
@@ -590,42 +655,43 @@ export function OpsConfigurationBoard() {
               mapsProviderConfiguration?.runtime.ready ? 'success' : 'warning'
             }
           >
-            {mapsProviderConfiguration?.google_maps.api_key_source === 'admin'
-              ? 'Configured via admin'
-              : mapsProviderConfiguration?.google_maps.api_key_source === 'env'
-                ? 'Configured via environment'
-                : 'API key not configured'}
+            {mapsStatusLabel}
           </span>
         </div>
 
         <div className="summary-pairs">
           <div>
-            <span className="eyebrow">Provider</span>
+            <span className="eyebrow">
+              {t('ops.configuration.maps.provider')}
+            </span>
             <strong>
-              {mapsProviderConfiguration?.provider ?? 'google_maps'}
+              {mapsProviderLabel(
+                mapsProviderConfiguration?.provider ?? mapsForm.provider
+              )}
             </strong>
           </div>
           <div>
-            <span className="eyebrow">Key preview</span>
+            <span className="eyebrow">
+              {t('ops.configuration.maps.keyPreview')}
+            </span>
             <strong>
               {mapsProviderConfiguration?.google_maps.api_key_preview ??
-                'Not stored'}
+                t('ops.configuration.maps.notStored')}
             </strong>
           </div>
           <div>
-            <span className="eyebrow">Runtime</span>
-            <strong>
-              {mapsProviderConfiguration?.runtime.message ??
-                'Loading maps configuration.'}
-            </strong>
+            <span className="eyebrow">
+              {t('ops.configuration.maps.runtime')}
+            </span>
+            <strong>{mapsRuntimeMessage}</strong>
           </div>
         </div>
 
         <div className="field-grid">
           <label className="field-stack">
-            <span>Maps provider</span>
+            <span>{t('ops.configuration.fields.mapsProvider')}</span>
             <select
-              aria-label="Maps provider"
+              aria-label={t('ops.configuration.fields.mapsProvider')}
               onChange={(event) =>
                 setMapsForm((current) => ({
                   ...current,
@@ -634,25 +700,29 @@ export function OpsConfigurationBoard() {
               }
               value={mapsForm.provider}
             >
-              <option value="google_maps">google_maps</option>
-              <option value="demo">demo</option>
+              <option value="google_maps">
+                {t('ops.configuration.maps.providerGoogleMaps')}
+              </option>
+              <option value="demo">
+                {t('ops.configuration.maps.providerDemo')}
+              </option>
             </select>
           </label>
           <label className="field-stack">
-            <span>Google Maps API key</span>
+            <span>{t('ops.configuration.fields.googleMapsApiKey')}</span>
             <input
-              aria-label="Google Maps API key"
+              aria-label={t('ops.configuration.fields.googleMapsApiKey')}
               autoComplete="off"
               onChange={(event) => setMapsApiKey(event.target.value)}
-              placeholder="Paste key when ready"
+              placeholder={t('ops.configuration.maps.apiKeyPlaceholder')}
               type="password"
               value={mapsApiKey}
             />
           </label>
           <label className="field-stack">
-            <span>Google Maps region</span>
+            <span>{t('ops.configuration.fields.googleMapsRegion')}</span>
             <input
-              aria-label="Google Maps region"
+              aria-label={t('ops.configuration.fields.googleMapsRegion')}
               onChange={(event) =>
                 setMapsForm((current) => ({
                   ...current,
@@ -663,9 +733,9 @@ export function OpsConfigurationBoard() {
             />
           </label>
           <label className="field-stack">
-            <span>Location bias</span>
+            <span>{t('ops.configuration.fields.locationBias')}</span>
             <input
-              aria-label="Google Maps location bias"
+              aria-label={t('ops.configuration.fields.googleMapsLocationBias')}
               onChange={(event) =>
                 setMapsForm((current) => ({
                   ...current,
@@ -676,9 +746,11 @@ export function OpsConfigurationBoard() {
             />
           </label>
           <label className="field-stack">
-            <span>Timeout seconds</span>
+            <span>{t('ops.configuration.fields.timeoutSeconds')}</span>
             <input
-              aria-label="Google Maps timeout seconds"
+              aria-label={t(
+                'ops.configuration.fields.googleMapsTimeoutSeconds'
+              )}
               onChange={(event) =>
                 setMapsForm((current) => ({
                   ...current,
@@ -690,7 +762,7 @@ export function OpsConfigurationBoard() {
           </label>
           <label className="checkbox-row">
             <input
-              aria-label="Google Maps fallback to demo"
+              aria-label={t('ops.configuration.fields.googleMapsFallback')}
               checked={mapsForm.fallback_to_demo}
               onChange={(event) =>
                 setMapsForm((current) => ({
@@ -700,11 +772,11 @@ export function OpsConfigurationBoard() {
               }
               type="checkbox"
             />
-            <span>Use demo fallback when Google Maps fails</span>
+            <span>{t('ops.configuration.maps.useDemoFallback')}</span>
           </label>
           <label className="checkbox-row">
             <input
-              aria-label="Clear stored maps key"
+              aria-label={t('ops.configuration.fields.clearStoredMapsKey')}
               checked={mapsForm.clearApiKey}
               onChange={(event) =>
                 setMapsForm((current) => ({
@@ -714,7 +786,7 @@ export function OpsConfigurationBoard() {
               }
               type="checkbox"
             />
-            <span>Clear stored API key</span>
+            <span>{t('ops.configuration.maps.clearStoredApiKey')}</span>
           </label>
         </div>
 
@@ -725,7 +797,7 @@ export function OpsConfigurationBoard() {
             onClick={() => mapsMutation.mutate()}
             type="button"
           >
-            Save maps provider configuration
+            {t('ops.configuration.actions.saveMapsProvider')}
           </button>
         </div>
       </section>
@@ -733,11 +805,15 @@ export function OpsConfigurationBoard() {
       <div className="catalog-layout">
         <aside className="catalog-sidebar">
           <section className="catalog-panel panel">
-            <span className="eyebrow">Scope</span>
+            <span className="eyebrow">
+              {t('ops.configuration.scope.eyebrow')}
+            </span>
             <div className="field-stack">
-              <span>Select merchant</span>
+              <span>{t('ops.configuration.scope.selectMerchant')}</span>
               <select
-                aria-label="Select merchant configuration"
+                aria-label={t(
+                  'ops.configuration.scope.selectMerchantConfiguration'
+                )}
                 onChange={(event) =>
                   setSelectedMerchantUuid(event.target.value)
                 }
@@ -751,9 +827,11 @@ export function OpsConfigurationBoard() {
               </select>
             </div>
             <div className="field-stack">
-              <span>Select branch</span>
+              <span>{t('ops.configuration.scope.selectBranch')}</span>
               <select
-                aria-label="Select branch configuration"
+                aria-label={t(
+                  'ops.configuration.scope.selectBranchConfiguration'
+                )}
                 onChange={(event) => setSelectedBranchUuid(event.target.value)}
                 value={selectedBranch.uuid}
               >
@@ -767,11 +845,15 @@ export function OpsConfigurationBoard() {
             <div className="catalog-summary">
               <div className="summary-pairs">
                 <div>
-                  <span className="eyebrow">Merchant status</span>
-                  <strong>{selectedMerchant.status}</strong>
+                  <span className="eyebrow">
+                    {t('ops.configuration.fields.merchantStatus')}
+                  </span>
+                  <strong>{statusLabel(selectedMerchant.status)}</strong>
                 </div>
                 <div>
-                  <span className="eyebrow">Commission</span>
+                  <span className="eyebrow">
+                    {t('ops.configuration.scope.commission')}
+                  </span>
                   <strong>
                     {(selectedMerchant.platform_commission_bps / 100).toFixed(
                       2
@@ -780,13 +862,19 @@ export function OpsConfigurationBoard() {
                   </strong>
                 </div>
                 <div>
-                  <span className="eyebrow">Branch status</span>
-                  <strong>{selectedBranch.status}</strong>
+                  <span className="eyebrow">
+                    {t('ops.configuration.fields.branchStatus')}
+                  </span>
+                  <strong>{statusLabel(selectedBranch.status)}</strong>
                 </div>
                 <div>
-                  <span className="eyebrow">Accepting orders</span>
+                  <span className="eyebrow">
+                    {t('ops.configuration.scope.acceptingOrders')}
+                  </span>
                   <strong>
-                    {selectedBranch.accepts_orders ? 'Yes' : 'No'}
+                    {selectedBranch.accepts_orders
+                      ? t('ops.configuration.values.yes')
+                      : t('ops.configuration.values.no')}
                   </strong>
                 </div>
               </div>
@@ -794,11 +882,20 @@ export function OpsConfigurationBoard() {
           </section>
 
           <section className="catalog-panel panel">
-            <span className="eyebrow">Current rules</span>
+            <span className="eyebrow">
+              {t('ops.configuration.rules.currentRules')}
+            </span>
             <p>
-              {selectedBranch.service_zones.length} active zone entries and{' '}
-              {selectedBranch.fee_bands.length} fee bands shape this branch’s
-              delivery coverage.
+              {t('ops.configuration.rules.currentRulesText', {
+                zones: tp(
+                  'ops.configuration.counts.activeZoneEntries',
+                  selectedBranch.service_zones.length
+                ),
+                bands: tp(
+                  'ops.configuration.counts.feeBands',
+                  selectedBranch.fee_bands.length
+                ),
+              })}
             </p>
           </section>
         </aside>
@@ -807,28 +904,44 @@ export function OpsConfigurationBoard() {
           <section className="catalog-panel panel">
             <div className="board-header">
               <div>
-                <span className="eyebrow">Merchant commission</span>
-                <h3>Finance defaults for {selectedMerchant.name}</h3>
+                <span className="eyebrow">
+                  {t('ops.configuration.merchant.eyebrow')}
+                </span>
+                <h3>
+                  {t('ops.configuration.merchant.financeDefaultsFor', {
+                    merchant: selectedMerchant.name,
+                  })}
+                </h3>
               </div>
               <span className="status-pill">{selectedMerchant.slug}</span>
             </div>
 
             <div className="field-grid">
               <label className="field-stack">
-                <span>Merchant status</span>
+                <span>{t('ops.configuration.fields.merchantStatus')}</span>
                 <select
-                  aria-label="Merchant configuration status"
+                  aria-label={t(
+                    'ops.configuration.fields.merchantConfigurationStatus'
+                  )}
                   onChange={(event) => setMerchantStatus(event.target.value)}
                   value={merchantStatus}
                 >
-                  <option value="active">active</option>
-                  <option value="inactive">inactive</option>
+                  <option value="active">
+                    {t('ops.configuration.values.active')}
+                  </option>
+                  <option value="inactive">
+                    {t('ops.configuration.values.inactive')}
+                  </option>
                 </select>
               </label>
               <label className="field-stack">
-                <span>Platform commission (bps)</span>
+                <span>
+                  {t('ops.configuration.fields.platformCommissionBps')}
+                </span>
                 <input
-                  aria-label="Merchant platform commission bps"
+                  aria-label={t(
+                    'ops.configuration.fields.merchantPlatformCommissionBps'
+                  )}
                   onChange={(event) => setCommissionBps(event.target.value)}
                   value={commissionBps}
                 />
@@ -841,7 +954,7 @@ export function OpsConfigurationBoard() {
                 onClick={() => merchantMutation.mutate()}
                 type="button"
               >
-                Save merchant configuration
+                {t('ops.configuration.actions.saveMerchant')}
               </button>
             </div>
           </section>
@@ -849,39 +962,49 @@ export function OpsConfigurationBoard() {
           <section className="catalog-panel panel">
             <div className="board-header">
               <div>
-                <span className="eyebrow">Branch controls</span>
+                <span className="eyebrow">
+                  {t('ops.configuration.branch.eyebrow')}
+                </span>
                 <h3>{selectedBranch.name}</h3>
               </div>
               <span
                 className="status-pill"
                 data-tone={selectedBranch.accepts_orders ? 'success' : 'alert'}
               >
-                {selectedBranch.accepts_orders ? 'accepting orders' : 'paused'}
+                {selectedBranch.accepts_orders
+                  ? t('ops.configuration.values.acceptingOrders')
+                  : t('ops.configuration.values.paused')}
               </span>
             </div>
 
             <div className="field-grid">
               <label className="field-stack">
-                <span>Branch status</span>
+                <span>{t('ops.configuration.fields.branchStatus')}</span>
                 <select
-                  aria-label="Branch configuration status"
+                  aria-label={t(
+                    'ops.configuration.fields.branchConfigurationStatus'
+                  )}
                   onChange={(event) => setBranchStatus(event.target.value)}
                   value={branchStatus}
                 >
-                  <option value="active">active</option>
-                  <option value="inactive">inactive</option>
+                  <option value="active">
+                    {t('ops.configuration.values.active')}
+                  </option>
+                  <option value="inactive">
+                    {t('ops.configuration.values.inactive')}
+                  </option>
                 </select>
               </label>
               <label className="checkbox-row">
                 <input
-                  aria-label="Branch accepts orders"
+                  aria-label={t('ops.configuration.fields.branchAcceptsOrders')}
                   checked={branchAcceptsOrders}
                   onChange={(event) =>
                     setBranchAcceptsOrders(event.target.checked)
                   }
                   type="checkbox"
                 />
-                <span>Accept orders for this branch</span>
+                <span>{t('ops.configuration.branch.acceptOrders')}</span>
               </label>
             </div>
 
@@ -891,7 +1014,7 @@ export function OpsConfigurationBoard() {
                 onClick={() => branchMutation.mutate()}
                 type="button"
               >
-                Save branch configuration
+                {t('ops.configuration.actions.saveBranch')}
               </button>
             </div>
           </section>
@@ -899,11 +1022,20 @@ export function OpsConfigurationBoard() {
           <section className="catalog-panel panel">
             <div className="board-header">
               <div>
-                <span className="eyebrow">Service zones</span>
-                <h3>Delivery coverage for {selectedBranch.name}</h3>
+                <span className="eyebrow">
+                  {t('ops.configuration.zones.eyebrow')}
+                </span>
+                <h3>
+                  {t('ops.configuration.zones.title', {
+                    branch: selectedBranch.name,
+                  })}
+                </h3>
               </div>
               <span className="status-pill">
-                {selectedBranch.service_zones.length} zones
+                {tp(
+                  'ops.configuration.counts.zones',
+                  selectedBranch.service_zones.length
+                )}
               </span>
             </div>
 
@@ -919,19 +1051,27 @@ export function OpsConfigurationBoard() {
                       className="status-pill"
                       data-tone={zone.is_active ? 'success' : 'muted'}
                     >
-                      {zone.is_active ? 'active' : 'inactive'}
+                      {zone.is_active
+                        ? t('ops.configuration.values.active')
+                        : t('ops.configuration.values.inactive')}
                     </span>
                   </header>
-                  <p>{zone.radius_meters.toLocaleString()} meters</p>
+                  <p>
+                    {t('ops.configuration.zones.meters', {
+                      count: formatNumber(zone.radius_meters),
+                    })}
+                  </p>
                   <footer className="card-actions">
                     <button
                       className="action-button secondary"
                       onClick={() =>
-                        setZoneForm(zoneFormFromBranch(selectedBranch, zone))
+                        setZoneForm(
+                          zoneFormFromBranch(selectedBranch, zone, defaultCity)
+                        )
                       }
                       type="button"
                     >
-                      Edit zone
+                      {t('ops.configuration.actions.editZone')}
                     </button>
                   </footer>
                 </article>
@@ -940,9 +1080,9 @@ export function OpsConfigurationBoard() {
 
             <div className="field-grid">
               <label className="field-stack">
-                <span>Service zone name</span>
+                <span>{t('ops.configuration.fields.serviceZoneName')}</span>
                 <input
-                  aria-label="Service zone name"
+                  aria-label={t('ops.configuration.fields.serviceZoneName')}
                   onChange={(event) =>
                     setZoneForm((current) => ({
                       ...current,
@@ -953,9 +1093,9 @@ export function OpsConfigurationBoard() {
                 />
               </label>
               <label className="field-stack">
-                <span>Service zone city</span>
+                <span>{t('ops.configuration.fields.serviceZoneCity')}</span>
                 <input
-                  aria-label="Service zone city"
+                  aria-label={t('ops.configuration.fields.serviceZoneCity')}
                   onChange={(event) =>
                     setZoneForm((current) => ({
                       ...current,
@@ -966,9 +1106,11 @@ export function OpsConfigurationBoard() {
                 />
               </label>
               <label className="field-stack">
-                <span>Postal code</span>
+                <span>{t('ops.configuration.fields.postalCode')}</span>
                 <input
-                  aria-label="Service zone postal code"
+                  aria-label={t(
+                    'ops.configuration.fields.serviceZonePostalCode'
+                  )}
                   onChange={(event) =>
                     setZoneForm((current) => ({
                       ...current,
@@ -979,9 +1121,11 @@ export function OpsConfigurationBoard() {
                 />
               </label>
               <label className="field-stack">
-                <span>Center latitude</span>
+                <span>{t('ops.configuration.fields.centerLatitude')}</span>
                 <input
-                  aria-label="Service zone center latitude"
+                  aria-label={t(
+                    'ops.configuration.fields.serviceZoneCenterLatitude'
+                  )}
                   onChange={(event) =>
                     setZoneForm((current) => ({
                       ...current,
@@ -992,9 +1136,11 @@ export function OpsConfigurationBoard() {
                 />
               </label>
               <label className="field-stack">
-                <span>Center longitude</span>
+                <span>{t('ops.configuration.fields.centerLongitude')}</span>
                 <input
-                  aria-label="Service zone center longitude"
+                  aria-label={t(
+                    'ops.configuration.fields.serviceZoneCenterLongitude'
+                  )}
                   onChange={(event) =>
                     setZoneForm((current) => ({
                       ...current,
@@ -1005,9 +1151,11 @@ export function OpsConfigurationBoard() {
                 />
               </label>
               <label className="field-stack">
-                <span>Radius meters</span>
+                <span>{t('ops.configuration.fields.radiusMeters')}</span>
                 <input
-                  aria-label="Service zone radius meters"
+                  aria-label={t(
+                    'ops.configuration.fields.serviceZoneRadiusMeters'
+                  )}
                   onChange={(event) =>
                     setZoneForm((current) => ({
                       ...current,
@@ -1019,7 +1167,7 @@ export function OpsConfigurationBoard() {
               </label>
               <label className="checkbox-row">
                 <input
-                  aria-label="Service zone active"
+                  aria-label={t('ops.configuration.fields.serviceZoneActive')}
                   checked={zoneForm.is_active}
                   onChange={(event) =>
                     setZoneForm((current) => ({
@@ -1029,7 +1177,7 @@ export function OpsConfigurationBoard() {
                   }
                   type="checkbox"
                 />
-                <span>Zone is active</span>
+                <span>{t('ops.configuration.zones.zoneIsActive')}</span>
               </label>
             </div>
 
@@ -1039,17 +1187,21 @@ export function OpsConfigurationBoard() {
                 onClick={() => serviceZoneMutation.mutate()}
                 type="button"
               >
-                {zoneForm.uuid ? 'Save service zone' : 'Create service zone'}
+                {zoneForm.uuid
+                  ? t('ops.configuration.actions.saveServiceZone')
+                  : t('ops.configuration.actions.createServiceZone')}
               </button>
               {zoneForm.uuid ? (
                 <button
                   className="action-button secondary"
                   onClick={() =>
-                    setZoneForm(zoneFormFromBranch(selectedBranch))
+                    setZoneForm(
+                      zoneFormFromBranch(selectedBranch, undefined, defaultCity)
+                    )
                   }
                   type="button"
                 >
-                  New zone
+                  {t('ops.configuration.actions.newZone')}
                 </button>
               ) : null}
             </div>
@@ -1058,11 +1210,16 @@ export function OpsConfigurationBoard() {
           <section className="catalog-panel panel">
             <div className="board-header">
               <div>
-                <span className="eyebrow">Fee bands</span>
-                <h3>Distance-based delivery pricing</h3>
+                <span className="eyebrow">
+                  {t('ops.configuration.fees.eyebrow')}
+                </span>
+                <h3>{t('ops.configuration.fees.title')}</h3>
               </div>
               <span className="status-pill">
-                {selectedBranch.fee_bands.length} bands
+                {tp(
+                  'ops.configuration.counts.bands',
+                  selectedBranch.fee_bands.length
+                )}
               </span>
             </div>
 
@@ -1071,14 +1228,18 @@ export function OpsConfigurationBoard() {
                 <article className="board-card" key={feeBand.uuid}>
                   <header>
                     <div>
-                      <span className="eyebrow">Distance</span>
+                      <span className="eyebrow">
+                        {t('ops.configuration.fees.distance')}
+                      </span>
                       <h3>
-                        {feeBand.min_distance_meters}-
-                        {feeBand.max_distance_meters}m
+                        {t('ops.configuration.fees.distanceRange', {
+                          min: formatNumber(feeBand.min_distance_meters),
+                          max: formatNumber(feeBand.max_distance_meters),
+                        })}
                       </h3>
                     </div>
                     <span className="status-pill" data-tone="warm">
-                      {(feeBand.fee_minor / 100).toFixed(2)} SAR
+                      {formatCurrency(feeBand.fee_minor)}
                     </span>
                   </header>
                   <footer className="card-actions">
@@ -1089,7 +1250,7 @@ export function OpsConfigurationBoard() {
                       }
                       type="button"
                     >
-                      Edit fee band
+                      {t('ops.configuration.actions.editFeeBand')}
                     </button>
                   </footer>
                 </article>
@@ -1098,9 +1259,11 @@ export function OpsConfigurationBoard() {
 
             <div className="field-grid">
               <label className="field-stack">
-                <span>Fee band min distance</span>
+                <span>{t('ops.configuration.fields.feeBandMinDistance')}</span>
                 <input
-                  aria-label="Fee band minimum distance meters"
+                  aria-label={t(
+                    'ops.configuration.fields.feeBandMinimumDistanceMeters'
+                  )}
                   onChange={(event) =>
                     setFeeBandForm((current) => ({
                       ...current,
@@ -1111,9 +1274,11 @@ export function OpsConfigurationBoard() {
                 />
               </label>
               <label className="field-stack">
-                <span>Fee band max distance</span>
+                <span>{t('ops.configuration.fields.feeBandMaxDistance')}</span>
                 <input
-                  aria-label="Fee band maximum distance meters"
+                  aria-label={t(
+                    'ops.configuration.fields.feeBandMaximumDistanceMeters'
+                  )}
                   onChange={(event) =>
                     setFeeBandForm((current) => ({
                       ...current,
@@ -1124,9 +1289,9 @@ export function OpsConfigurationBoard() {
                 />
               </label>
               <label className="field-stack">
-                <span>Fee amount (minor)</span>
+                <span>{t('ops.configuration.fields.feeAmountMinor')}</span>
                 <input
-                  aria-label="Fee band fee minor"
+                  aria-label={t('ops.configuration.fields.feeBandFeeMinor')}
                   onChange={(event) =>
                     setFeeBandForm((current) => ({
                       ...current,
@@ -1144,7 +1309,9 @@ export function OpsConfigurationBoard() {
                 onClick={() => feeBandMutation.mutate()}
                 type="button"
               >
-                {feeBandForm.uuid ? 'Save fee band' : 'Create fee band'}
+                {feeBandForm.uuid
+                  ? t('ops.configuration.actions.saveFeeBand')
+                  : t('ops.configuration.actions.createFeeBand')}
               </button>
               {feeBandForm.uuid ? (
                 <button
@@ -1152,7 +1319,7 @@ export function OpsConfigurationBoard() {
                   onClick={() => setFeeBandForm(feeBandFormFromValue())}
                   type="button"
                 >
-                  New fee band
+                  {t('ops.configuration.actions.newFeeBand')}
                 </button>
               ) : null}
             </div>
