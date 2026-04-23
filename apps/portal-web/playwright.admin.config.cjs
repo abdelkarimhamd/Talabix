@@ -8,7 +8,7 @@ const browserChannel =
 
 module.exports = {
   testDir: './e2e',
-  testMatch: /admin-shell\.spec\.cjs/,
+  testMatch: /admin-.*\.spec\.cjs/,
   timeout: 45_000,
   expect: {
     timeout: 10_000,
