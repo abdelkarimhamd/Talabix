@@ -551,6 +551,38 @@ textarea:focus-visible,
   gap: 14px;
 }
 
+.user-directory-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  align-items: start;
+}
+
+.user-directory-grid .board-card {
+  overflow: hidden;
+}
+
+.user-directory-grid .board-card header > div {
+  min-width: 0;
+}
+
+.user-directory-grid .field-grid {
+  grid-template-columns: 1fr;
+}
+
+.user-directory-grid .field-stack input,
+.user-directory-grid .field-stack select {
+  min-width: 0;
+  width: 100%;
+}
+
+.user-email {
+  max-width: 100%;
+}
+
+.user-email span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .board-meta {
   display: flex;
   flex-wrap: wrap;

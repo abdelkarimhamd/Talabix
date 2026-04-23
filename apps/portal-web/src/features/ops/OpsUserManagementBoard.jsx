@@ -287,7 +287,7 @@ export function OpsUserManagementBoard() {
             <p>{t('ops.userManagement.loadingDescription')}</p>
           </div>
         ) : users.length > 0 ? (
-          <div className="board-grid">
+          <div className="board-grid user-directory-grid">
             {users.map((user) => (
               <OpsUserCard
                 key={user.uuid}
@@ -364,7 +364,9 @@ function OpsUserCard({ formatDateTime, session, t, updateMutation, user }) {
     <article className="board-card" data-testid={`ops-user-${user.email}`}>
       <header>
         <div>
-          <span className="eyebrow">{user.email}</span>
+          <span className="eyebrow user-email">
+            <span>{user.email}</span>
+          </span>
           <h3>{user.name}</h3>
         </div>
         <span className="status-stack">
