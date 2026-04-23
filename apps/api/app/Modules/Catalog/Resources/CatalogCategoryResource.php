@@ -16,6 +16,8 @@ class CatalogCategoryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $attributes = $this->resource->getAttributes();
+
         return [
             'uuid' => $this->uuid,
             'merchant_id' => $this->merchant_id,
@@ -24,9 +26,7 @@ class CatalogCategoryResource extends JsonResource
             'description' => $this->description,
             'is_active' => (bool) $this->is_active,
             'sort_order' => (int) $this->sort_order,
-            'item_count' => (int) (
-                $this->resource->getAttribute('item_count') ?? 0
-            ),
+            'item_count' => (int) ($attributes['item_count'] ?? 0),
         ];
     }
 }
