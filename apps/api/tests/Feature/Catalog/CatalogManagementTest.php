@@ -149,6 +149,65 @@ it('creates and updates merchant catalog items and modifier groups with audit lo
         'name' => 'Chipotle mayo',
         'price_delta_minor' => 200,
     ]);
+
+    $this->assertDatabaseHas('catalog_categories', [
+        'merchant_id' => $merchantContext['merchant']->id,
+        'name' => 'Loaded sides',
+    ]);
+});
+
+it('lets merchant users manage catalog categories before adding items', function () {
+    $this->seedRoles();
+    $merchantContext = $this->createMerchantContext();
+
+    Sanctum::actingAs($merchantContext['merchantUser'], [
+        'merchant:catalog.read',
+        'merchant:catalog.write',
+    ]);
+
+    $categoryResponse = $this->getJson("/api/v1/merchant/catalog/categories?merchant_uuid={$merchantContext['merchant']->uuid}")
+        ->assertOk()
+        ->assertJsonPath('data.0.name', 'Mains')
+        ->assertJsonPath('data.0.item_count', 1);
+
+    $categoryUuid = $categoryResponse->json('data.0.uuid');
+
+    $this->postJson('/api/v1/merchant/catalog/categories', [
+        'merchant_uuid' => $merchantContext['merchant']->uuid,
+        'name' => 'Desserts',
+        'description' => 'Sweet items prepared after the main menu.',
+        'is_active' => true,
+        'sort_order' => 2,
+    ])->assertCreated()
+        ->assertJsonPath('data.name', 'Desserts')
+        ->assertJsonPath('data.item_count', 0);
+
+    $this->patchJson("/api/v1/merchant/catalog/categories/{$categoryUuid}", [
+        'merchant_uuid' => $merchantContext['merchant']->uuid,
+        'name' => 'Signature mains',
+        'description' => 'Best sellers and primary meals.',
+        'is_active' => false,
+        'sort_order' => 1,
+    ])->assertOk()
+        ->assertJsonPath('data.name', 'Signature mains')
+        ->assertJsonPath('data.is_active', false);
+
+    $this->assertDatabaseHas('catalog_items', [
+        'id' => $merchantContext['catalogItem']->id,
+        'category_name' => 'Signature mains',
+    ]);
+
+    $this->deleteJson("/api/v1/merchant/catalog/categories/{$categoryUuid}")
+        ->assertOk()
+        ->assertJsonPath('data.uuid', $categoryUuid);
+
+    $this->assertDatabaseMissing('catalog_categories', [
+        'uuid' => $categoryUuid,
+    ]);
+    $this->assertDatabaseHas('catalog_items', [
+        'id' => $merchantContext['catalogItem']->id,
+        'category_name' => null,
+    ]);
 });
 
 it('allows ops admins to manage merchant catalog items from the ops surface', function () {
@@ -181,6 +240,10 @@ it('allows ops admins to manage merchant catalog items from the ops surface', fu
         'merchant_id' => $merchantContext['merchant']->id,
         'name' => 'Cardamom Coffee',
         'category_name' => 'Drinks',
+    ]);
+    $this->assertDatabaseHas('catalog_categories', [
+        'merchant_id' => $merchantContext['merchant']->id,
+        'name' => 'Drinks',
     ]);
 });
 

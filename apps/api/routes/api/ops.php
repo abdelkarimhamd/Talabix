@@ -30,6 +30,10 @@ Route::prefix('ops')->name('ops.')->group(function () {
 
         Route::get('merchants', [MerchantController::class, 'indexForOps']);
         Route::post('merchants', [MerchantController::class, 'store']);
+        Route::get('catalog/categories', [CatalogController::class, 'categories']);
+        Route::post('catalog/categories', [CatalogController::class, 'storeCategory']);
+        Route::patch('catalog/categories/{catalogCategory}', [CatalogController::class, 'updateCategory']);
+        Route::delete('catalog/categories/{catalogCategory}', [CatalogController::class, 'destroyCategory']);
         Route::get('catalog/items', [CatalogController::class, 'index']);
         Route::post('catalog/items', [CatalogController::class, 'store']);
         Route::patch('catalog/items/{catalogItem}', [CatalogController::class, 'update']);

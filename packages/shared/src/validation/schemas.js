@@ -595,6 +595,25 @@ export const merchantCatalogListQuerySchema = z.object({
   merchant_uuid: z.string().uuid(),
 });
 
+export const merchantCatalogCategorySchema = z.object({
+  uuid: z.string().uuid(),
+  merchant_id: z.number().int(),
+  merchant_uuid: z.string().uuid().nullable().optional(),
+  name: z.string().min(1),
+  description: z.string().nullable().optional(),
+  is_active: z.boolean(),
+  sort_order: z.number().int().nonnegative(),
+  item_count: z.number().int().nonnegative().default(0),
+});
+
+export const merchantCatalogCategoryInputSchema = z.object({
+  merchant_uuid: z.string().uuid(),
+  name: z.string().trim().min(1).max(255),
+  description: z.string().trim().max(1000).nullable().optional(),
+  is_active: z.boolean().default(true),
+  sort_order: z.number().int().nonnegative().default(0),
+});
+
 export const merchantCatalogBranchOverrideSchema = z.object({
   branch_uuid: z.string().uuid().nullable().optional(),
   branch_name: z.string().nullable().optional(),

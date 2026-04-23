@@ -72,6 +72,9 @@ function createInitialState(seed) {
     managedMerchants: clone(seed.managedMerchants),
     merchantConfigurations: clone(seed.opsMerchantConfigurations),
     merchantCatalogItems: clone(seed.merchantCatalogItems),
+    merchantCatalogCategories: deriveCatalogCategories(
+      clone(seed.merchantCatalogItems)
+    ),
     dispatchAssignments: clone(seed.dispatchAssignments),
     supportOrders: clone(seed.merchantOrders),
     notificationDeliveries: clone(seed.notificationDeliveries),
@@ -177,8 +180,7 @@ function handleApiRequest({ method, path, payload, searchParams, state }) {
     const nextUser = {
       ...currentUser,
       name: payload.name ?? currentUser.name,
-      phone:
-        payload.phone === undefined ? currentUser.phone : payload.phone,
+      phone: payload.phone === undefined ? currentUser.phone : payload.phone,
       account_status: payload.account_status ?? currentUser.account_status,
       roles: payload.role ? [payload.role] : currentUser.roles,
     };
@@ -239,8 +241,7 @@ function handleApiRequest({ method, path, payload, searchParams, state }) {
     const branch = updateBranch(state, branchUuid, (currentBranch) => ({
       ...currentBranch,
       status: payload.status ?? currentBranch.status,
-      accepts_orders:
-        payload.accepts_orders ?? currentBranch.accepts_orders,
+      accepts_orders: payload.accepts_orders ?? currentBranch.accepts_orders,
     }));
 
     deriveManagedMerchants(state);
@@ -321,8 +322,7 @@ function handleApiRequest({ method, path, payload, searchParams, state }) {
     updateBranch(state, branchUuid, (branch) => ({
       ...branch,
       fee_bands: [...branch.fee_bands, feeBand].sort(
-        (left, right) =>
-          left.min_distance_meters - right.min_distance_meters
+        (left, right) => left.min_distance_meters - right.min_distance_meters
       ),
     }));
 
@@ -367,7 +367,8 @@ function handleApiRequest({ method, path, payload, searchParams, state }) {
   }
 
   if (method === 'PATCH' && path === 'configuration/maps-provider') {
-    const provider = payload.provider ?? state.mapsProviderConfiguration.provider;
+    const provider =
+      payload.provider ?? state.mapsProviderConfiguration.provider;
     const apiKey = payload.clear_google_maps_api_key
       ? ''
       : payload.google_maps_api_key || state.mapsProviderApiKey;
@@ -394,6 +395,26 @@ function handleApiRequest({ method, path, payload, searchParams, state }) {
     return jsonResponse(state.mapsProviderConfiguration);
   }
 
+  if (method === 'GET' && path === 'catalog/categories') {
+    return jsonResponse(listCatalogCategories(state, searchParams));
+  }
+
+  if (method === 'POST' && path === 'catalog/categories') {
+    return jsonResponse(createCatalogCategory(state, payload), 201);
+  }
+
+  const catalogCategoryMatch = path.match(/^catalog\/categories\/([^/]+)$/);
+  if (method === 'PATCH' && catalogCategoryMatch) {
+    return jsonResponse(
+      updateCatalogCategory(state, catalogCategoryMatch[1], payload)
+    );
+  }
+
+  if (method === 'DELETE' && catalogCategoryMatch) {
+    deleteCatalogCategory(state, catalogCategoryMatch[1]);
+    return jsonResponse({ uuid: catalogCategoryMatch[1] });
+  }
+
   if (method === 'GET' && path === 'catalog/items') {
     const merchantUuid = searchParams.get('merchant_uuid');
     const items = merchantUuid
@@ -405,13 +426,20 @@ function handleApiRequest({ method, path, payload, searchParams, state }) {
     return jsonResponse(items);
   }
 
+  if (method === 'POST' && path === 'catalog/items') {
+    return jsonResponse(createCatalogItem(state, payload), 201);
+  }
+
+  const catalogItemMatch = path.match(/^catalog\/items\/([^/]+)$/);
+  if (method === 'PATCH' && catalogItemMatch) {
+    return jsonResponse(updateCatalogItem(state, catalogItemMatch[1], payload));
+  }
+
   if (method === 'GET' && path === 'dispatch/assignments') {
     return jsonResponse(state.dispatchAssignments);
   }
 
-  const reassignMatch = path.match(
-    /^dispatch\/orders\/([^/]+)\/reassign$/
-  );
+  const reassignMatch = path.match(/^dispatch\/orders\/([^/]+)\/reassign$/);
   if (method === 'POST' && reassignMatch) {
     return jsonResponse(
       reassignDispatchOrder(state, reassignMatch[1], payload)
@@ -424,9 +452,7 @@ function handleApiRequest({ method, path, payload, searchParams, state }) {
 
   const supportCaseMatch = path.match(/^support\/cases\/([^/]+)$/);
   if (method === 'PATCH' && supportCaseMatch) {
-    return jsonResponse(
-      updateSupportCase(state, supportCaseMatch[1], payload)
-    );
+    return jsonResponse(updateSupportCase(state, supportCaseMatch[1], payload));
   }
 
   const createSupportCaseMatch = path.match(
@@ -443,11 +469,11 @@ function handleApiRequest({ method, path, payload, searchParams, state }) {
     return jsonResponse(createSupportNote(state, supportNoteMatch[1], payload));
   }
 
-  const supportCancelMatch = path.match(
-    /^support\/orders\/([^/]+)\/cancel$/
-  );
+  const supportCancelMatch = path.match(/^support\/orders\/([^/]+)\/cancel$/);
   if (method === 'POST' && supportCancelMatch) {
-    return jsonResponse(cancelSupportOrder(state, supportCancelMatch[1], payload));
+    return jsonResponse(
+      cancelSupportOrder(state, supportCancelMatch[1], payload)
+    );
   }
 
   if (method === 'GET' && path === 'notifications') {
@@ -478,11 +504,7 @@ function handleApiRequest({ method, path, payload, searchParams, state }) {
   );
   if (method === 'POST' && settlementAdjustmentMatch) {
     return jsonResponse(
-      createSettlementAdjustment(
-        state,
-        settlementAdjustmentMatch[1],
-        payload
-      )
+      createSettlementAdjustment(state, settlementAdjustmentMatch[1], payload)
     );
   }
 
@@ -674,6 +696,243 @@ function createMerchant(state, payload) {
   };
 }
 
+function deriveCatalogCategories(items) {
+  const categories = new Map();
+
+  items.forEach((item) => {
+    const name = String(item.category_name ?? '').trim();
+
+    if (!name) {
+      return;
+    }
+
+    const key = `${item.merchant_uuid}:${name}`;
+    const current = categories.get(key);
+
+    categories.set(key, {
+      uuid: current?.uuid ?? nextUuid(),
+      merchant_id: item.merchant_id,
+      merchant_uuid: item.merchant_uuid,
+      name,
+      description: null,
+      is_active: true,
+      sort_order: current?.sort_order ?? categories.size,
+      item_count: (current?.item_count ?? 0) + 1,
+    });
+  });
+
+  return Array.from(categories.values());
+}
+
+function listCatalogCategories(state, searchParams) {
+  const merchantUuid = searchParams.get('merchant_uuid');
+
+  return state.merchantCatalogCategories
+    .filter((category) => category.merchant_uuid === merchantUuid)
+    .map((category) => ({
+      ...category,
+      item_count: state.merchantCatalogItems.filter(
+        (item) =>
+          item.merchant_uuid === merchantUuid &&
+          item.category_name === category.name
+      ).length,
+    }))
+    .sort(
+      (left, right) =>
+        left.sort_order - right.sort_order ||
+        left.name.localeCompare(right.name)
+    );
+}
+
+function createCatalogCategory(state, payload) {
+  const existingCategory = state.merchantCatalogCategories.find(
+    (category) =>
+      category.merchant_uuid === payload.merchant_uuid &&
+      category.name === payload.name
+  );
+
+  if (existingCategory) {
+    throw new Error('Category name already exists for this merchant.');
+  }
+
+  const nextCategory = {
+    uuid: nextUuid(),
+    merchant_id:
+      state.merchantCatalogItems.find(
+        (item) => item.merchant_uuid === payload.merchant_uuid
+      )?.merchant_id ?? 301,
+    merchant_uuid: payload.merchant_uuid,
+    name: payload.name,
+    description: payload.description ?? null,
+    is_active: payload.is_active ?? true,
+    sort_order: payload.sort_order ?? 0,
+    item_count: 0,
+  };
+
+  state.merchantCatalogCategories = [
+    nextCategory,
+    ...state.merchantCatalogCategories,
+  ];
+
+  return nextCategory;
+}
+
+function updateCatalogCategory(state, categoryUuid, payload) {
+  const existingCategory = state.merchantCatalogCategories.find(
+    (category) => category.uuid === categoryUuid
+  );
+
+  if (!existingCategory) {
+    throw new Error('Category could not be found.');
+  }
+
+  const nextCategory = {
+    ...existingCategory,
+    name: payload.name,
+    description: payload.description ?? null,
+    is_active: payload.is_active ?? true,
+    sort_order: payload.sort_order ?? 0,
+  };
+
+  state.merchantCatalogCategories = state.merchantCatalogCategories.map(
+    (category) => (category.uuid === categoryUuid ? nextCategory : category)
+  );
+
+  if (existingCategory.name !== nextCategory.name) {
+    state.merchantCatalogItems = state.merchantCatalogItems.map((item) =>
+      item.merchant_uuid === nextCategory.merchant_uuid &&
+      item.category_name === existingCategory.name
+        ? {
+            ...item,
+            category_name: nextCategory.name,
+          }
+        : item
+    );
+  }
+
+  return {
+    ...nextCategory,
+    item_count: state.merchantCatalogItems.filter(
+      (item) =>
+        item.merchant_uuid === nextCategory.merchant_uuid &&
+        item.category_name === nextCategory.name
+    ).length,
+  };
+}
+
+function deleteCatalogCategory(state, categoryUuid) {
+  const existingCategory = state.merchantCatalogCategories.find(
+    (category) => category.uuid === categoryUuid
+  );
+
+  if (!existingCategory) {
+    throw new Error('Category could not be found.');
+  }
+
+  state.merchantCatalogItems = state.merchantCatalogItems.map((item) =>
+    item.merchant_uuid === existingCategory.merchant_uuid &&
+    item.category_name === existingCategory.name
+      ? {
+          ...item,
+          category_name: null,
+        }
+      : item
+  );
+  state.merchantCatalogCategories = state.merchantCatalogCategories.filter(
+    (category) => category.uuid !== categoryUuid
+  );
+}
+
+function ensureCatalogCategory(state, merchantUuid, categoryName) {
+  const name = String(categoryName ?? '').trim();
+
+  if (!name) {
+    return;
+  }
+
+  if (
+    state.merchantCatalogCategories.some(
+      (category) =>
+        category.merchant_uuid === merchantUuid && category.name === name
+    )
+  ) {
+    return;
+  }
+
+  state.merchantCatalogCategories = [
+    {
+      uuid: nextUuid(),
+      merchant_id:
+        state.merchantCatalogItems.find(
+          (item) => item.merchant_uuid === merchantUuid
+        )?.merchant_id ?? 301,
+      merchant_uuid: merchantUuid,
+      name,
+      description: null,
+      is_active: true,
+      sort_order: state.merchantCatalogCategories.length,
+      item_count: 0,
+    },
+    ...state.merchantCatalogCategories,
+  ];
+}
+
+function createCatalogItem(state, payload) {
+  const nextItem = {
+    uuid: nextUuid(),
+    merchant_id:
+      state.merchantCatalogItems.find(
+        (item) => item.merchant_uuid === payload.merchant_uuid
+      )?.merchant_id ?? 301,
+    merchant_uuid: payload.merchant_uuid,
+    name: payload.name,
+    category_name: payload.category_name ?? null,
+    sku: payload.sku ?? null,
+    description: payload.description ?? null,
+    image_url: payload.image_url ?? null,
+    base_price_minor: payload.base_price_minor,
+    base_stock: payload.base_stock ?? null,
+    is_active: payload.is_active ?? true,
+    modifier_groups: [],
+    branch_overrides: [],
+  };
+
+  state.merchantCatalogItems = [nextItem, ...state.merchantCatalogItems];
+  ensureCatalogCategory(state, payload.merchant_uuid, payload.category_name);
+
+  return nextItem;
+}
+
+function updateCatalogItem(state, itemUuid, payload) {
+  const existingItem = state.merchantCatalogItems.find(
+    (item) => item.uuid === itemUuid
+  );
+
+  if (!existingItem) {
+    throw new Error('Catalog item could not be found.');
+  }
+
+  const nextItem = {
+    ...existingItem,
+    merchant_uuid: payload.merchant_uuid,
+    name: payload.name,
+    category_name: payload.category_name ?? null,
+    sku: payload.sku ?? null,
+    description: payload.description ?? null,
+    image_url: payload.image_url ?? null,
+    base_price_minor: payload.base_price_minor,
+    base_stock: payload.base_stock ?? null,
+    is_active: payload.is_active ?? true,
+  };
+
+  state.merchantCatalogItems = state.merchantCatalogItems.map((item) =>
+    item.uuid === itemUuid ? nextItem : item
+  );
+  ensureCatalogCategory(state, payload.merchant_uuid, payload.category_name);
+
+  return nextItem;
+}
+
 function findMerchantConfiguration(state, merchantUuid) {
   const merchant = state.merchantConfigurations.find(
     (entry) => entry.uuid === merchantUuid
@@ -860,9 +1119,13 @@ function updateSupportCase(state, supportCaseUuid, payload) {
 function createSupportNote(state, orderUuid, payload) {
   const order = findSupportOrder(state, orderUuid);
   const note = {
-    id: Math.max(500, ...state.supportOrders.flatMap((entry) =>
-      (entry.support_notes ?? []).map((item) => item.id)
-    )) + 1,
+    id:
+      Math.max(
+        500,
+        ...state.supportOrders.flatMap((entry) =>
+          (entry.support_notes ?? []).map((item) => item.id)
+        )
+      ) + 1,
     order_id: 9000 + state.supportOrders.indexOf(order) + 1,
     order_uuid: order.uuid,
     author_user_id: 901,

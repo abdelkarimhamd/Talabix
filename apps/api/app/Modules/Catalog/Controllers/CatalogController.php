@@ -5,13 +5,16 @@ namespace App\Modules\Catalog\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\BranchCatalogOverride;
+use App\Models\CatalogCategory;
 use App\Models\CatalogItem;
 use App\Models\CatalogItemModifierGroup;
 use App\Models\Merchant;
 use App\Modules\Catalog\Requests\MerchantCatalogIndexRequest;
 use App\Modules\Catalog\Requests\StoreBranchOverrideRequest;
+use App\Modules\Catalog\Requests\StoreCatalogCategoryRequest;
 use App\Modules\Catalog\Requests\StoreCatalogItemRequest;
 use App\Modules\Catalog\Requests\StoreModifierGroupRequest;
+use App\Modules\Catalog\Resources\CatalogCategoryResource;
 use App\Modules\Catalog\Resources\CatalogItemResource;
 use App\Modules\Catalog\Resources\CatalogModifierGroupResource;
 use App\Modules\Shared\Actions\RecordAuditLogAction;
@@ -20,10 +23,169 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CatalogController extends Controller
 {
     public function __construct(private readonly RecordAuditLogAction $recordAuditLogAction) {}
+
+    public function categories(MerchantCatalogIndexRequest $request): JsonResponse
+    {
+        $this->ensureCatalogAbility($request, 'merchant:catalog.read');
+
+        $merchant = Merchant::query()
+            ->where('uuid', $request->string('merchant_uuid'))
+            ->firstOrFail();
+
+        $this->authorize('view', $merchant);
+        $this->syncCategoriesFromItems($merchant);
+
+        $categories = CatalogCategory::query()
+            ->where('merchant_id', $merchant->id)
+            ->with('merchant')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $itemCounts = CatalogItem::query()
+            ->where('merchant_id', $merchant->id)
+            ->whereNotNull('category_name')
+            ->select('category_name', DB::raw('count(*) as aggregate'))
+            ->groupBy('category_name')
+            ->pluck('aggregate', 'category_name');
+
+        $categories->each(function (CatalogCategory $category) use ($itemCounts): void {
+            $category->setAttribute('item_count', (int) ($itemCounts[$category->name] ?? 0));
+        });
+
+        return response()->json([
+            'data' => CatalogCategoryResource::collection($categories),
+        ]);
+    }
+
+    public function storeCategory(StoreCatalogCategoryRequest $request): JsonResponse
+    {
+        $this->ensureCatalogAbility($request, 'merchant:catalog.write');
+
+        $merchant = Merchant::query()
+            ->where('uuid', $request->string('merchant_uuid'))
+            ->firstOrFail();
+        $this->authorize('update', $merchant);
+
+        $name = trim($request->string('name')->toString());
+        $this->ensureCategoryNameIsNotBlank($name);
+        $this->ensureCategoryNameIsAvailable($merchant, $name);
+
+        $category = CatalogCategory::query()->create([
+            'uuid' => (string) Str::uuid(),
+            'merchant_id' => $merchant->id,
+            'name' => $name,
+            'description' => $request->input('description'),
+            'is_active' => $request->boolean('is_active', true),
+            'sort_order' => (int) ($request->input('sort_order') ?? 0),
+        ]);
+
+        $this->recordAuditLogAction->execute(
+            AuditActionType::CATALOG_UPDATED,
+            $request->user(),
+            $merchant,
+            'Catalog category created.',
+            ['catalog_category_uuid' => $category->uuid]
+        );
+
+        return response()->json([
+            'data' => new CatalogCategoryResource($category->load('merchant')),
+        ], 201);
+    }
+
+    public function updateCategory(
+        StoreCatalogCategoryRequest $request,
+        CatalogCategory $catalogCategory
+    ): JsonResponse {
+        $this->ensureCatalogAbility($request, 'merchant:catalog.write');
+        $merchant = $catalogCategory->merchant()->firstOrFail();
+        $this->authorize('update', $merchant);
+
+        abort_unless(
+            $merchant->uuid === $request->string('merchant_uuid')->toString(),
+            404
+        );
+
+        $name = trim($request->string('name')->toString());
+        $this->ensureCategoryNameIsNotBlank($name);
+        $this->ensureCategoryNameIsAvailable($merchant, $name, $catalogCategory);
+        $oldName = $catalogCategory->name;
+
+        $catalogCategory = DB::transaction(function () use (
+            $catalogCategory,
+            $name,
+            $oldName,
+            $request
+        ) {
+            $catalogCategory->update([
+                'name' => $name,
+                'description' => $request->input('description'),
+                'is_active' => $request->boolean('is_active', true),
+                'sort_order' => (int) ($request->input('sort_order') ?? 0),
+            ]);
+
+            if ($oldName !== $name) {
+                CatalogItem::query()
+                    ->where('merchant_id', $catalogCategory->merchant_id)
+                    ->where('category_name', $oldName)
+                    ->update(['category_name' => $name]);
+            }
+
+            $catalogCategory->refresh();
+            $catalogCategory->load('merchant');
+
+            return $catalogCategory;
+        });
+
+        $this->recordAuditLogAction->execute(
+            AuditActionType::CATALOG_UPDATED,
+            $request->user(),
+            $merchant,
+            'Catalog category updated.',
+            ['catalog_category_uuid' => $catalogCategory->uuid]
+        );
+
+        return response()->json([
+            'data' => new CatalogCategoryResource($catalogCategory),
+        ]);
+    }
+
+    public function destroyCategory(
+        Request $request,
+        CatalogCategory $catalogCategory
+    ): JsonResponse {
+        $this->ensureCatalogAbility($request, 'merchant:catalog.write');
+        $merchant = $catalogCategory->merchant()->firstOrFail();
+        $this->authorize('update', $merchant);
+
+        $categoryUuid = $catalogCategory->uuid;
+
+        DB::transaction(function () use ($catalogCategory): void {
+            CatalogItem::query()
+                ->where('merchant_id', $catalogCategory->merchant_id)
+                ->where('category_name', $catalogCategory->name)
+                ->update(['category_name' => null]);
+
+            $catalogCategory->delete();
+        });
+
+        $this->recordAuditLogAction->execute(
+            AuditActionType::CATALOG_UPDATED,
+            $request->user(),
+            $merchant,
+            'Catalog category deleted.',
+            ['catalog_category_uuid' => $categoryUuid]
+        );
+
+        return response()->json([
+            'data' => ['uuid' => $categoryUuid],
+        ]);
+    }
 
     public function index(MerchantCatalogIndexRequest $request): JsonResponse
     {
@@ -105,6 +267,7 @@ class CatalogController extends Controller
             'merchant_id' => $merchant->id,
             ...$request->safe()->except('merchant_uuid'),
         ]);
+        $this->ensureCategoryExists($merchant, $catalogItem->category_name);
 
         $this->recordAuditLogAction->execute(
             AuditActionType::CATALOG_UPDATED,
@@ -129,6 +292,10 @@ class CatalogController extends Controller
         $this->authorize('update', $catalogItem);
 
         $catalogItem->update($request->safe()->except('merchant_uuid'));
+        $this->ensureCategoryExists(
+            $catalogItem->merchant()->firstOrFail(),
+            $catalogItem->category_name
+        );
 
         $this->recordAuditLogAction->execute(
             AuditActionType::CATALOG_UPDATED,
@@ -323,5 +490,75 @@ class CatalogController extends Controller
         }
 
         $this->ensureAbility($request, $merchantAbility);
+    }
+
+    private function ensureCategoryNameIsAvailable(
+        Merchant $merchant,
+        string $name,
+        ?CatalogCategory $exceptCategory = null
+    ): void {
+        $query = CatalogCategory::query()
+            ->where('merchant_id', $merchant->id)
+            ->where('name', $name);
+
+        if ($exceptCategory) {
+            $query->whereKeyNot($exceptCategory->id);
+        }
+
+        if ($query->exists()) {
+            throw ValidationException::withMessages([
+                'name' => 'Category name already exists for this merchant.',
+            ]);
+        }
+    }
+
+    private function ensureCategoryNameIsNotBlank(string $name): void
+    {
+        if ($name !== '') {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'name' => 'Category name is required.',
+        ]);
+    }
+
+    private function syncCategoriesFromItems(Merchant $merchant): void
+    {
+        CatalogItem::query()
+            ->where('merchant_id', $merchant->id)
+            ->whereNotNull('category_name')
+            ->where('category_name', '<>', '')
+            ->select('category_name')
+            ->distinct()
+            ->pluck('category_name')
+            ->each(fn (string $categoryName) => $this->ensureCategoryExists(
+                $merchant,
+                $categoryName
+            ));
+    }
+
+    private function ensureCategoryExists(
+        Merchant $merchant,
+        ?string $categoryName
+    ): void {
+        $name = trim((string) $categoryName);
+
+        if ($name === '') {
+            return;
+        }
+
+        CatalogCategory::query()->firstOrCreate(
+            [
+                'merchant_id' => $merchant->id,
+                'name' => $name,
+            ],
+            [
+                'uuid' => (string) Str::uuid(),
+                'description' => null,
+                'is_active' => true,
+                'sort_order' => 0,
+            ]
+        );
     }
 }

@@ -469,6 +469,10 @@ textarea:focus-visible,
   box-shadow: none;
 }
 
+.action-button.danger {
+  color: #991b1b;
+}
+
 .board {
   display: grid;
   gap: 18px;
@@ -856,6 +860,105 @@ button:disabled {
   padding: 18px;
   display: grid;
   gap: 16px;
+}
+
+.catalog-setup-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.setup-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(17, 33, 52, 0.08);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.setup-step > span {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(17, 33, 52, 0.08);
+  font-weight: 800;
+}
+
+.setup-step[data-state='done'] > span {
+  background: rgba(20, 184, 166, 0.16);
+  color: #0f766e;
+}
+
+.setup-step div {
+  min-width: 0;
+}
+
+.setup-step strong,
+.setup-step p {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.setup-step p {
+  margin: 2px 0 0;
+  color: #617181;
+}
+
+.setup-step .action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.catalog-category-list {
+  display: grid;
+  gap: 10px;
+}
+
+.category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 10px 12px;
+  border: 1px solid rgba(17, 33, 52, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #112134;
+  text-align: start;
+}
+
+.category-row.selected {
+  border-color: rgba(255, 140, 66, 0.46);
+  background: rgba(255, 140, 66, 0.08);
+}
+
+.category-row span,
+.category-row small {
+  display: grid;
+  gap: 2px;
+}
+
+.category-row small,
+.category-row em {
+  color: #617181;
+  font-style: normal;
+}
+
+.catalog-form.compact {
+  gap: 12px;
+  padding-top: 4px;
 }
 
 .catalog-list {
@@ -1319,6 +1422,8 @@ body {
 .dispatch-route-card,
 .candidate-row,
 .timeline-entry,
+.setup-step,
+.category-row,
 .catalog-override-card,
 .catalog-modifier-card,
 .report-stats div,
@@ -2076,6 +2181,10 @@ body {
   box-shadow: none;
 }
 
+.action-button.danger {
+  color: #991b1b;
+}
+
 .toolbar button:hover,
 .action-button:hover {
   box-shadow: 0 10px 20px rgba(255, 140, 66, 0.22);
@@ -2113,6 +2222,10 @@ body {
 
 @media (max-width: 1024px) {
   .portal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-setup-flow {
     grid-template-columns: 1fr;
   }
 

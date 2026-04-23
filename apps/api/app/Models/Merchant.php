@@ -59,4 +59,10 @@ class Merchant extends Model
     {
         return $this->hasMany(CatalogItem::class);
     }
+
+    /** @return HasMany<CatalogCategory, $this> */
+    public function catalogCategories(): HasMany
+    {
+        return $this->hasMany(CatalogCategory::class);
+    }
 }

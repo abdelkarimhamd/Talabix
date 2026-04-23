@@ -209,6 +209,18 @@ describe('portal routing', () => {
     ).toBeInTheDocument();
     expect(await screen.findByText(/double burger/i)).toBeInTheDocument();
 
+    fireEvent.change(screen.getByLabelText(/new category name/i), {
+      target: { value: 'Sides' },
+    });
+    fireEvent.change(screen.getByLabelText(/new category description/i), {
+      target: { value: 'Small plates and add-ons.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^create category$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/sides category created/i)).toBeInTheDocument();
+    });
+
     fireEvent.change(screen.getByLabelText(/new catalog item name/i), {
       target: { value: 'Halloumi Fries' },
     });
@@ -293,6 +305,17 @@ describe('portal routing', () => {
     await waitFor(() => {
       expect(
         screen.getByText(/olaya branch override saved/i)
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/^category name$/i), {
+      target: { value: 'Shareables' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^save category$/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/shareables category updated/i)
       ).toBeInTheDocument();
     });
   });

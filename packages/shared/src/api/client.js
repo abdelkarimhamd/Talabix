@@ -25,6 +25,8 @@ import {
   mapsProviderConfigurationSchema,
   merchantSalesReportQuerySchema,
   merchantSalesReportSchema,
+  merchantCatalogCategoryInputSchema,
+  merchantCatalogCategorySchema,
   merchantCatalogModifierGroupInputSchema,
   merchantCatalogModifierGroupSchema,
   merchantCatalogItemInputSchema,
@@ -283,6 +285,44 @@ export function createMerchantApi({ baseURL, token } = {}) {
       );
 
       return merchantSalesReportSchema.parse(data);
+    },
+    async listCatalogCategories(query) {
+      const parsedQuery = merchantCatalogListQuerySchema.parse(
+        compactParams(query)
+      );
+      const data = unwrapData(
+        await client.get('catalog/categories', {
+          params: compactParams(parsedQuery),
+        })
+      );
+
+      return z.array(merchantCatalogCategorySchema).parse(data);
+    },
+    async createCatalogCategory(payload) {
+      const parsedPayload = merchantCatalogCategoryInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.post('catalog/categories', parsedPayload)
+      );
+
+      return merchantCatalogCategorySchema.parse(data);
+    },
+    async updateCatalogCategory(catalogCategoryUuid, payload) {
+      const parsedPayload = merchantCatalogCategoryInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.patch(
+          `catalog/categories/${catalogCategoryUuid}`,
+          parsedPayload
+        )
+      );
+
+      return merchantCatalogCategorySchema.parse(data);
+    },
+    async deleteCatalogCategory(catalogCategoryUuid) {
+      const data = unwrapData(
+        await client.delete(`catalog/categories/${catalogCategoryUuid}`)
+      );
+
+      return z.object({ uuid: z.string().uuid() }).parse(data);
     },
     async listCatalogItems(query) {
       const parsedQuery = merchantCatalogListQuerySchema.parse(
@@ -635,6 +675,44 @@ export function createOpsApi({ baseURL, token } = {}) {
       const data = unwrapData(await client.post('merchants', parsedPayload));
 
       return managedMerchantSchema.parse(data);
+    },
+    async listCatalogCategories(query) {
+      const parsedQuery = merchantCatalogListQuerySchema.parse(
+        compactParams(query)
+      );
+      const data = unwrapData(
+        await client.get('catalog/categories', {
+          params: compactParams(parsedQuery),
+        })
+      );
+
+      return z.array(merchantCatalogCategorySchema).parse(data);
+    },
+    async createCatalogCategory(payload) {
+      const parsedPayload = merchantCatalogCategoryInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.post('catalog/categories', parsedPayload)
+      );
+
+      return merchantCatalogCategorySchema.parse(data);
+    },
+    async updateCatalogCategory(catalogCategoryUuid, payload) {
+      const parsedPayload = merchantCatalogCategoryInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.patch(
+          `catalog/categories/${catalogCategoryUuid}`,
+          parsedPayload
+        )
+      );
+
+      return merchantCatalogCategorySchema.parse(data);
+    },
+    async deleteCatalogCategory(catalogCategoryUuid) {
+      const data = unwrapData(
+        await client.delete(`catalog/categories/${catalogCategoryUuid}`)
+      );
+
+      return z.object({ uuid: z.string().uuid() }).parse(data);
     },
     async listCatalogItems(query) {
       const parsedQuery = merchantCatalogListQuerySchema.parse(

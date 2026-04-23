@@ -14,6 +14,8 @@ import {
   mapsProviderConfigurationSchema,
   merchantSalesReportQuerySchema,
   merchantSalesReportSchema,
+  merchantCatalogCategoryInputSchema,
+  merchantCatalogCategorySchema,
   merchantCatalogModifierGroupInputSchema,
   merchantCatalogModifierGroupSchema,
   merchantCatalogBranchOverrideSchema,
@@ -105,6 +107,9 @@ function createInitialState() {
     }),
     merchantCatalogItems: clone(seedMerchantCatalogItems).map((item) =>
       merchantCatalogItemSchema.parse(item)
+    ),
+    merchantCatalogCategories: deriveMerchantCatalogCategories(
+      clone(seedMerchantCatalogItems)
     ),
     promotionOffers: clone(seedPromotionOffers).map((offer) =>
       promotionOfferSchema.parse(offer)
@@ -926,6 +931,109 @@ function listMerchantCatalogItems(items, query = {}) {
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
+function deriveMerchantCatalogCategories(items) {
+  const categories = new Map();
+
+  items.forEach((item) => {
+    const name = String(item.category_name ?? '').trim();
+
+    if (!name) {
+      return;
+    }
+
+    const key = `${item.merchant_uuid}:${name}`;
+    const current = categories.get(key);
+
+    categories.set(key, {
+      uuid: current?.uuid ?? createUuid(),
+      merchant_id: item.merchant_id,
+      merchant_uuid: item.merchant_uuid,
+      name,
+      description: null,
+      is_active: true,
+      sort_order: current?.sort_order ?? categories.size,
+      item_count: (current?.item_count ?? 0) + 1,
+    });
+  });
+
+  return Array.from(categories.values()).map((category) =>
+    merchantCatalogCategorySchema.parse(category)
+  );
+}
+
+function listMerchantCatalogCategories(state, query = {}) {
+  const parsedQuery = merchantCatalogListQuerySchema.parse(
+    Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== ''
+      )
+    )
+  );
+
+  return state.merchantCatalogCategories
+    .filter((category) => category.merchant_uuid === parsedQuery.merchant_uuid)
+    .map((category) =>
+      merchantCatalogCategorySchema.parse({
+        ...category,
+        item_count: state.merchantCatalogItems.filter(
+          (item) =>
+            item.merchant_uuid === parsedQuery.merchant_uuid &&
+            item.category_name === category.name
+        ).length,
+      })
+    )
+    .sort(
+      (left, right) =>
+        left.sort_order - right.sort_order ||
+        left.name.localeCompare(right.name)
+    );
+}
+
+function ensureMerchantCatalogCategory(state, merchantUuid, categoryName) {
+  const name = String(categoryName ?? '').trim();
+
+  if (!name) {
+    return null;
+  }
+
+  const existingCategory = state.merchantCatalogCategories.find(
+    (category) =>
+      category.merchant_uuid === merchantUuid && category.name === name
+  );
+
+  if (existingCategory) {
+    return existingCategory;
+  }
+
+  const merchant = state.managedMerchants.find(
+    (entry) => entry.uuid === merchantUuid
+  );
+  const merchantItem = state.merchantCatalogItems.find(
+    (item) => item.merchant_uuid === merchantUuid
+  );
+  const nextCategory = merchantCatalogCategorySchema.parse({
+    uuid: createUuid(),
+    merchant_id: merchantItem?.merchant_id ?? 301,
+    merchant_uuid: merchantUuid,
+    name,
+    description: null,
+    is_active: true,
+    sort_order: state.merchantCatalogCategories.length,
+    item_count: 0,
+  });
+
+  if (!merchant && !merchantItem) {
+    throw new Error('Merchant could not be found for category scope.');
+  }
+
+  state.merchantCatalogCategories = [
+    nextCategory,
+    ...state.merchantCatalogCategories,
+  ];
+
+  return nextCategory;
+}
+
 function findMerchantConfiguration(merchantUuid) {
   return state.merchantConfigurations.find(
     (merchant) => merchant.uuid === merchantUuid
@@ -1693,6 +1801,137 @@ export function createPortalApi(session) {
 
       return { uuid: promotionOfferUuid };
     },
+    async listCatalogCategories(query = {}) {
+      if (liveOpsApi) {
+        return liveOpsApi.listCatalogCategories(query);
+      }
+
+      return listMerchantCatalogCategories(state, query);
+    },
+    async createCatalogCategory(payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.createCatalogCategory(payload);
+      }
+
+      const parsedPayload = merchantCatalogCategoryInputSchema.parse(payload);
+      const existingCategory = state.merchantCatalogCategories.find(
+        (category) =>
+          category.merchant_uuid === parsedPayload.merchant_uuid &&
+          category.name === parsedPayload.name
+      );
+
+      if (existingCategory) {
+        throw new Error('Category name already exists for this merchant.');
+      }
+
+      const nextCategory = merchantCatalogCategorySchema.parse({
+        uuid: createUuid(),
+        merchant_id:
+          state.merchantCatalogItems.find(
+            (item) => item.merchant_uuid === parsedPayload.merchant_uuid
+          )?.merchant_id ?? 301,
+        merchant_uuid: parsedPayload.merchant_uuid,
+        name: parsedPayload.name,
+        description: parsedPayload.description ?? null,
+        is_active: parsedPayload.is_active ?? true,
+        sort_order: parsedPayload.sort_order ?? 0,
+        item_count: 0,
+      });
+
+      state.merchantCatalogCategories = [
+        nextCategory,
+        ...state.merchantCatalogCategories,
+      ];
+
+      return nextCategory;
+    },
+    async updateCatalogCategory(catalogCategoryUuid, payload) {
+      if (liveOpsApi) {
+        return liveOpsApi.updateCatalogCategory(catalogCategoryUuid, payload);
+      }
+
+      const parsedPayload = merchantCatalogCategoryInputSchema.parse(payload);
+      const existingCategory = state.merchantCatalogCategories.find(
+        (category) => category.uuid === catalogCategoryUuid
+      );
+
+      if (!existingCategory) {
+        throw new Error('Category could not be found.');
+      }
+
+      const duplicateCategory = state.merchantCatalogCategories.find(
+        (category) =>
+          category.uuid !== catalogCategoryUuid &&
+          category.merchant_uuid === parsedPayload.merchant_uuid &&
+          category.name === parsedPayload.name
+      );
+
+      if (duplicateCategory) {
+        throw new Error('Category name already exists for this merchant.');
+      }
+
+      const nextCategory = merchantCatalogCategorySchema.parse({
+        ...existingCategory,
+        name: parsedPayload.name,
+        description: parsedPayload.description ?? null,
+        is_active: parsedPayload.is_active ?? true,
+        sort_order: parsedPayload.sort_order ?? 0,
+      });
+
+      state.merchantCatalogCategories = state.merchantCatalogCategories.map(
+        (category) =>
+          category.uuid === catalogCategoryUuid ? nextCategory : category
+      );
+
+      if (existingCategory.name !== nextCategory.name) {
+        state.merchantCatalogItems = state.merchantCatalogItems.map((item) =>
+          item.merchant_uuid === nextCategory.merchant_uuid &&
+          item.category_name === existingCategory.name
+            ? merchantCatalogItemSchema.parse({
+                ...item,
+                category_name: nextCategory.name,
+              })
+            : item
+        );
+      }
+
+      return merchantCatalogCategorySchema.parse({
+        ...nextCategory,
+        item_count: state.merchantCatalogItems.filter(
+          (item) =>
+            item.merchant_uuid === nextCategory.merchant_uuid &&
+            item.category_name === nextCategory.name
+        ).length,
+      });
+    },
+    async deleteCatalogCategory(catalogCategoryUuid) {
+      if (liveOpsApi) {
+        return liveOpsApi.deleteCatalogCategory(catalogCategoryUuid);
+      }
+
+      const existingCategory = state.merchantCatalogCategories.find(
+        (category) => category.uuid === catalogCategoryUuid
+      );
+
+      if (!existingCategory) {
+        throw new Error('Category could not be found.');
+      }
+
+      state.merchantCatalogItems = state.merchantCatalogItems.map((item) =>
+        item.merchant_uuid === existingCategory.merchant_uuid &&
+        item.category_name === existingCategory.name
+          ? merchantCatalogItemSchema.parse({
+              ...item,
+              category_name: null,
+            })
+          : item
+      );
+      state.merchantCatalogCategories = state.merchantCatalogCategories.filter(
+        (category) => category.uuid !== catalogCategoryUuid
+      );
+
+      return { uuid: catalogCategoryUuid };
+    },
     async listCatalogItems(query = {}) {
       if (liveOpsApi) {
         return liveOpsApi.listCatalogItems(query);
@@ -1725,6 +1964,11 @@ export function createPortalApi(session) {
       });
 
       state.merchantCatalogItems = [nextItem, ...state.merchantCatalogItems];
+      ensureMerchantCatalogCategory(
+        state,
+        parsedPayload.merchant_uuid,
+        parsedPayload.category_name
+      );
 
       return nextItem;
     },
@@ -1757,6 +2001,11 @@ export function createPortalApi(session) {
 
       state.merchantCatalogItems = state.merchantCatalogItems.map((entry) =>
         entry.uuid === catalogItemUuid ? nextItem : entry
+      );
+      ensureMerchantCatalogCategory(
+        state,
+        parsedPayload.merchant_uuid,
+        parsedPayload.category_name
       );
 
       return nextItem;

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { startTransition, useDeferredValue, useState } from 'react';
+import { startTransition, useDeferredValue, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useSession } from '../../use-session.js';
 
 const emptyCreateForm = {
@@ -11,6 +12,13 @@ const emptyCreateForm = {
   image_url: '',
   base_price_minor: '',
   base_stock: '',
+  is_active: true,
+};
+
+const emptyCategoryForm = {
+  name: '',
+  description: '',
+  sort_order: '0',
   is_active: true,
 };
 
@@ -72,6 +80,19 @@ function itemDraft(item) {
     base_price_minor: numberDraft(item.base_price_minor),
     base_stock: numberDraft(item.base_stock),
     is_active: item.is_active,
+  };
+}
+
+function categoryDraft(category) {
+  if (!category) {
+    return { ...emptyCategoryForm };
+  }
+
+  return {
+    name: category.name ?? '',
+    description: textValue(category.description),
+    sort_order: numberDraft(category.sort_order ?? 0),
+    is_active: category.is_active ?? true,
   };
 }
 
@@ -154,7 +175,11 @@ export function MerchantCatalogManager() {
   const { api, session } = useSession();
   const queryClient = useQueryClient();
   const [selectedMerchantUuid, setSelectedMerchantUuid] = useState();
+  const [selectedCategoryUuid, setSelectedCategoryUuid] = useState();
   const [selectedItemUuid, setSelectedItemUuid] = useState();
+  const [createCategoryForm, setCreateCategoryForm] =
+    useState(emptyCategoryForm);
+  const [editCategoryForm, setEditCategoryForm] = useState(categoryDraft());
   const [createForm, setCreateForm] = useState(emptyCreateForm);
   const [editForm, setEditForm] = useState(itemDraft());
   const [createGroupForm, setCreateGroupForm] = useState(modifierGroupDraft());
@@ -179,15 +204,85 @@ export function MerchantCatalogManager() {
       api.listCatalogItems({ merchant_uuid: selectedMerchantUuid }),
   });
 
+  const catalogCategoriesQuery = useQuery({
+    queryKey: ['merchant-catalog-categories', selectedMerchantUuid],
+    enabled: Boolean(selectedMerchantUuid),
+    queryFn: () =>
+      api.listCatalogCategories({ merchant_uuid: selectedMerchantUuid }),
+  });
+
+  const createCatalogCategoryMutation = useMutation({
+    mutationFn: (payload) => api.createCatalogCategory(payload),
+    onSuccess: async (category) => {
+      setFeedback(`${category.name} category created.`);
+      setCreateCategoryForm(emptyCategoryForm);
+      setSelectedCategoryUuid(category.uuid);
+      setCreateForm((current) => ({
+        ...current,
+        category_name: category.name,
+      }));
+      await queryClient.invalidateQueries({
+        queryKey: ['merchant-catalog-categories', selectedMerchantUuid],
+      });
+    },
+    onError: (error) => {
+      setFeedback(errorMessage(error));
+    },
+  });
+
+  const updateCatalogCategoryMutation = useMutation({
+    mutationFn: ({ catalogCategoryUuid, payload }) =>
+      api.updateCatalogCategory(catalogCategoryUuid, payload),
+    onSuccess: async (category) => {
+      setFeedback(`${category.name} category updated.`);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['merchant-catalog-categories', selectedMerchantUuid],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['merchant-catalog-items', selectedMerchantUuid],
+        }),
+      ]);
+    },
+    onError: (error) => {
+      setFeedback(errorMessage(error));
+    },
+  });
+
+  const deleteCatalogCategoryMutation = useMutation({
+    mutationFn: (catalogCategoryUuid) =>
+      api.deleteCatalogCategory(catalogCategoryUuid),
+    onSuccess: async () => {
+      setFeedback('Category deleted and removed from matching items.');
+      setSelectedCategoryUuid(undefined);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['merchant-catalog-categories', selectedMerchantUuid],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['merchant-catalog-items', selectedMerchantUuid],
+        }),
+      ]);
+    },
+    onError: (error) => {
+      setFeedback(errorMessage(error));
+    },
+  });
+
   const createCatalogItemMutation = useMutation({
     mutationFn: (payload) => api.createCatalogItem(payload),
     onSuccess: async (item) => {
       setFeedback(`${item.name} created in the shared merchant catalog.`);
       setCreateForm(emptyCreateForm);
       setSelectedItemUuid(item.uuid);
-      await queryClient.invalidateQueries({
-        queryKey: ['merchant-catalog-items', selectedMerchantUuid],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['merchant-catalog-items', selectedMerchantUuid],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['merchant-catalog-categories', selectedMerchantUuid],
+        }),
+      ]);
     },
     onError: (error) => {
       setFeedback(errorMessage(error));
@@ -199,9 +294,14 @@ export function MerchantCatalogManager() {
       api.updateCatalogItem(catalogItemUuid, payload),
     onSuccess: async (item) => {
       setFeedback(`${item.name} base item updated.`);
-      await queryClient.invalidateQueries({
-        queryKey: ['merchant-catalog-items', selectedMerchantUuid],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['merchant-catalog-items', selectedMerchantUuid],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['merchant-catalog-categories', selectedMerchantUuid],
+        }),
+      ]);
     },
     onError: (error) => {
       setFeedback(errorMessage(error));
@@ -262,6 +362,17 @@ export function MerchantCatalogManager() {
       (merchant) => merchant.uuid === selectedMerchantUuid
     ) ?? null;
   const allCatalogItems = catalogItemsQuery.data ?? [];
+  const catalogCategories = useMemo(
+    () => catalogCategoriesQuery.data ?? [],
+    [catalogCategoriesQuery.data]
+  );
+  const activeCategoryNames = useMemo(
+    () =>
+      catalogCategories
+        .filter((category) => category.is_active)
+        .map((category) => category.name),
+    [catalogCategories]
+  );
   const filteredCatalogItems = allCatalogItems.filter((item) => {
     const term = deferredSearchTerm.trim().toLowerCase();
 
@@ -278,12 +389,28 @@ export function MerchantCatalogManager() {
     filteredCatalogItems[0] ??
     allCatalogItems[0] ??
     null;
+  const selectedCategory =
+    catalogCategories.find(
+      (category) => category.uuid === selectedCategoryUuid
+    ) ??
+    catalogCategories[0] ??
+    null;
 
   useEffect(() => {
     if (!selectedItemUuid && filteredCatalogItems.length > 0) {
       setSelectedItemUuid(filteredCatalogItems[0].uuid);
     }
   }, [filteredCatalogItems, selectedItemUuid]);
+
+  useEffect(() => {
+    if (!selectedCategoryUuid && catalogCategories.length > 0) {
+      setSelectedCategoryUuid(catalogCategories[0].uuid);
+    }
+  }, [catalogCategories, selectedCategoryUuid]);
+
+  useEffect(() => {
+    setEditCategoryForm(categoryDraft(selectedCategory));
+  }, [selectedCategory]);
 
   useEffect(() => {
     setEditForm(itemDraft(selectedItem));
@@ -313,6 +440,48 @@ export function MerchantCatalogManager() {
         sort_order: Number.parseInt(option.sort_order || String(index), 10),
       })),
     };
+  }
+
+  function parseCategoryPayload(draft) {
+    return {
+      merchant_uuid: selectedMerchantUuid,
+      name: draft.name.trim(),
+      description: draft.description.trim() || null,
+      sort_order: Number.parseInt(draft.sort_order || '0', 10),
+      is_active: draft.is_active,
+    };
+  }
+
+  function handleCreateCategorySubmit(event) {
+    event.preventDefault();
+    setFeedback('');
+
+    createCatalogCategoryMutation.mutate(
+      parseCategoryPayload(createCategoryForm)
+    );
+  }
+
+  function handleUpdateCategorySubmit(event) {
+    event.preventDefault();
+
+    if (!selectedCategory) {
+      return;
+    }
+
+    setFeedback('');
+    updateCatalogCategoryMutation.mutate({
+      catalogCategoryUuid: selectedCategory.uuid,
+      payload: parseCategoryPayload(editCategoryForm),
+    });
+  }
+
+  function handleDeleteCategory() {
+    if (!selectedCategory) {
+      return;
+    }
+
+    setFeedback('');
+    deleteCatalogCategoryMutation.mutate(selectedCategory.uuid);
   }
 
   function handleCreateSubmit(event) {
@@ -459,6 +628,7 @@ export function MerchantCatalogManager() {
           onChange={(event) =>
             startTransition(() => {
               setSelectedMerchantUuid(event.target.value);
+              setSelectedCategoryUuid(undefined);
               setSelectedItemUuid(undefined);
             })
           }
@@ -507,8 +677,250 @@ export function MerchantCatalogManager() {
         </div>
       ) : null}
 
+      <datalist id="catalog-category-options">
+        {activeCategoryNames.map((categoryName) => (
+          <option key={categoryName} value={categoryName} />
+        ))}
+      </datalist>
+
+      <section className="catalog-setup-flow" aria-label="Catalog setup flow">
+        <div
+          className="setup-step"
+          data-state={selectedMerchant ? 'done' : 'todo'}
+        >
+          <span>1</span>
+          <div>
+            <strong>Add store</strong>
+            <p>{selectedMerchant?.name ?? 'Choose or create a store first'}</p>
+          </div>
+          {session.actor === 'ops' ? (
+            <Link className="action-button secondary" to="/ops/configuration">
+              Manage stores
+            </Link>
+          ) : null}
+        </div>
+        <div
+          className="setup-step"
+          data-state={catalogCategories.length > 0 ? 'done' : 'todo'}
+        >
+          <span>2</span>
+          <div>
+            <strong>Add categories</strong>
+            <p>{catalogCategories.length} category groups ready</p>
+          </div>
+        </div>
+        <div
+          className="setup-step"
+          data-state={allCatalogItems.length > 0 ? 'done' : 'todo'}
+        >
+          <span>3</span>
+          <div>
+            <strong>Add items</strong>
+            <p>{allCatalogItems.length} menu items in the shared catalog</p>
+          </div>
+        </div>
+      </section>
+
       <div className="catalog-layout">
         <aside className="catalog-sidebar">
+          <section className="panel catalog-panel">
+            <div className="lane-header">
+              <div>
+                <span className="eyebrow">Categories</span>
+                <h3>{catalogCategories.length} menu groups</h3>
+              </div>
+              <p>Create groups first, then attach items to them.</p>
+            </div>
+
+            {catalogCategoriesQuery.isLoading ? (
+              <div className="lane-empty">Loading categories.</div>
+            ) : catalogCategories.length === 0 ? (
+              <div className="lane-empty">
+                No categories yet. Add the first group before creating items.
+              </div>
+            ) : (
+              <div className="catalog-category-list">
+                {catalogCategories.map((category) => (
+                  <button
+                    className={`category-row${
+                      selectedCategory?.uuid === category.uuid
+                        ? ' selected'
+                        : ''
+                    }`}
+                    key={category.uuid}
+                    onClick={() => setSelectedCategoryUuid(category.uuid)}
+                    type="button"
+                  >
+                    <span>
+                      <strong>{category.name}</strong>
+                      <small>
+                        {category.item_count} item
+                        {category.item_count === 1 ? '' : 's'}
+                      </small>
+                    </span>
+                    <em>{category.is_active ? 'Active' : 'Archived'}</em>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {canWrite ? (
+              <form
+                className="catalog-form compact"
+                onSubmit={handleCreateCategorySubmit}
+              >
+                <div className="field-grid">
+                  <label className="field-stack">
+                    <span>New category name</span>
+                    <input
+                      onChange={(event) =>
+                        setCreateCategoryForm((current) => ({
+                          ...current,
+                          name: event.target.value,
+                        }))
+                      }
+                      required
+                      type="text"
+                      value={createCategoryForm.name}
+                    />
+                  </label>
+                  <label className="field-stack">
+                    <span>New category sort order</span>
+                    <input
+                      inputMode="numeric"
+                      min="0"
+                      onChange={(event) =>
+                        setCreateCategoryForm((current) => ({
+                          ...current,
+                          sort_order: event.target.value,
+                        }))
+                      }
+                      type="number"
+                      value={createCategoryForm.sort_order}
+                    />
+                  </label>
+                </div>
+                <label className="field-stack">
+                  <span>New category description</span>
+                  <textarea
+                    onChange={(event) =>
+                      setCreateCategoryForm((current) => ({
+                        ...current,
+                        description: event.target.value,
+                      }))
+                    }
+                    rows={2}
+                    value={createCategoryForm.description}
+                  />
+                </label>
+                <button
+                  className="action-button"
+                  disabled={
+                    createCatalogCategoryMutation.isPending ||
+                    !selectedMerchantUuid
+                  }
+                  type="submit"
+                >
+                  {createCatalogCategoryMutation.isPending
+                    ? 'Creating category...'
+                    : 'Create category'}
+                </button>
+              </form>
+            ) : null}
+
+            {canWrite && selectedCategory ? (
+              <form
+                className="catalog-form compact"
+                onSubmit={handleUpdateCategorySubmit}
+              >
+                <div className="lane-header subtle">
+                  <div>
+                    <span className="eyebrow">Selected category</span>
+                    <h3>Edit {selectedCategory.name}</h3>
+                  </div>
+                </div>
+                <div className="field-grid">
+                  <label className="field-stack">
+                    <span>Category name</span>
+                    <input
+                      onChange={(event) =>
+                        setEditCategoryForm((current) => ({
+                          ...current,
+                          name: event.target.value,
+                        }))
+                      }
+                      required
+                      type="text"
+                      value={editCategoryForm.name}
+                    />
+                  </label>
+                  <label className="field-stack">
+                    <span>Category sort order</span>
+                    <input
+                      inputMode="numeric"
+                      min="0"
+                      onChange={(event) =>
+                        setEditCategoryForm((current) => ({
+                          ...current,
+                          sort_order: event.target.value,
+                        }))
+                      }
+                      type="number"
+                      value={editCategoryForm.sort_order}
+                    />
+                  </label>
+                </div>
+                <label className="field-stack">
+                  <span>Category description</span>
+                  <textarea
+                    onChange={(event) =>
+                      setEditCategoryForm((current) => ({
+                        ...current,
+                        description: event.target.value,
+                      }))
+                    }
+                    rows={2}
+                    value={editCategoryForm.description}
+                  />
+                </label>
+                <label className="checkbox-row">
+                  <input
+                    checked={editCategoryForm.is_active}
+                    onChange={(event) =>
+                      setEditCategoryForm((current) => ({
+                        ...current,
+                        is_active: event.target.checked,
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                  <span>Category active</span>
+                </label>
+                <div className="card-actions">
+                  <button
+                    className="action-button"
+                    disabled={updateCatalogCategoryMutation.isPending}
+                    type="submit"
+                  >
+                    {updateCatalogCategoryMutation.isPending
+                      ? 'Saving category...'
+                      : 'Save category'}
+                  </button>
+                  <button
+                    className="action-button secondary danger"
+                    disabled={deleteCatalogCategoryMutation.isPending}
+                    onClick={handleDeleteCategory}
+                    type="button"
+                  >
+                    {deleteCatalogCategoryMutation.isPending
+                      ? 'Deleting...'
+                      : 'Delete category'}
+                  </button>
+                </div>
+              </form>
+            ) : null}
+          </section>
+
           <section className="panel catalog-panel">
             <div className="lane-header">
               <div>
@@ -615,6 +1027,7 @@ export function MerchantCatalogManager() {
                   <label className="field-stack">
                     <span>New catalog category</span>
                     <input
+                      list="catalog-category-options"
                       onChange={(event) =>
                         setCreateForm((current) => ({
                           ...current,
@@ -821,6 +1234,7 @@ export function MerchantCatalogManager() {
                             category_name: event.target.value,
                           }))
                         }
+                        list="catalog-category-options"
                         type="text"
                         value={editForm.category_name}
                       />
