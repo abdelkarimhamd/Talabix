@@ -1138,6 +1138,14 @@ function updateMerchantConfigurationState(nextMerchant) {
   );
 }
 
+function isCleanupMerchant(merchant) {
+  const cleanupName = `${merchant.name} ${merchant.slug}`.toLowerCase();
+
+  return ['smoke', 'test', 'browser'].some((term) =>
+    cleanupName.includes(term)
+  );
+}
+
 function createMerchantConfigurationState(payload) {
   const parsedPayload = createMerchantInputSchema.parse(payload);
   const branchUuid = createUuid();
@@ -1543,6 +1551,36 @@ export function createPortalApi(session) {
       deriveManagedMerchants();
 
       return nextMerchant;
+    },
+    async deleteMerchantConfiguration(merchantUuid) {
+      if (liveOpsApi) {
+        return liveOpsApi.deleteMerchantConfiguration(merchantUuid);
+      }
+
+      const existingMerchant = findMerchantConfiguration(merchantUuid);
+
+      if (!existingMerchant) {
+        throw new Error('Merchant configuration not found.');
+      }
+
+      if (!isCleanupMerchant(existingMerchant)) {
+        throw new Error(
+          'Only test, smoke, or browser cleanup stores can be deleted. Archive this store instead.'
+        );
+      }
+
+      state.merchantConfigurations = state.merchantConfigurations.filter(
+        (merchant) => merchant.uuid !== merchantUuid
+      );
+      state.merchantCatalogItems = state.merchantCatalogItems.filter(
+        (item) => item.merchant_uuid !== merchantUuid
+      );
+      state.merchantCatalogCategories = state.merchantCatalogCategories.filter(
+        (category) => category.merchant_uuid !== merchantUuid
+      );
+      deriveManagedMerchants();
+
+      return { uuid: merchantUuid };
     },
     async updateBranchConfiguration(branchUuid, payload) {
       if (liveOpsApi) {

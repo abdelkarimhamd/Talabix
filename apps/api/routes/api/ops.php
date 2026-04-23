@@ -48,6 +48,7 @@ Route::prefix('ops')->name('ops.')->group(function () {
         Route::get('configuration/merchants', [MerchantConfigurationController::class, 'index']);
         Route::get('configuration/merchants/{merchant}', [MerchantConfigurationController::class, 'show']);
         Route::patch('configuration/merchants/{merchant}', [MerchantConfigurationController::class, 'updateMerchant']);
+        Route::delete('configuration/merchants/{merchant}', [MerchantConfigurationController::class, 'destroyMerchant']);
         Route::patch('configuration/branches/{branch}', [MerchantConfigurationController::class, 'updateBranch']);
         Route::post('configuration/branches/{branch}/service-zones', [MerchantConfigurationController::class, 'storeServiceZone']);
         Route::patch('configuration/service-zones/{serviceZone}', [MerchantConfigurationController::class, 'updateServiceZone']);

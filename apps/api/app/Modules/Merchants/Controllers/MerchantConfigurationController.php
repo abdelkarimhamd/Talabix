@@ -19,6 +19,8 @@ use App\Modules\Shared\Actions\RecordAuditLogAction;
 use App\Modules\Shared\Enums\AuditActionType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class MerchantConfigurationController extends Controller
 {
@@ -96,6 +98,41 @@ class MerchantConfigurationController extends Controller
                         ]),
                 ])
             ),
+        ]);
+    }
+
+    public function destroyMerchant(Request $request, Merchant $merchant): JsonResponse
+    {
+        $this->ensureAbility($request, 'ops:merchants.manage');
+        $this->authorize('update', $merchant);
+
+        if (! $this->isCleanupMerchant($merchant)) {
+            throw ValidationException::withMessages([
+                'merchant' => 'Only test, smoke, or browser cleanup stores can be deleted. Archive this store instead.',
+            ]);
+        }
+
+        $merchantUuid = $merchant->uuid;
+        $merchantName = $merchant->name;
+
+        $this->recordAuditLogAction->execute(
+            AuditActionType::BRANCH_UPDATED,
+            $request->user(),
+            $merchant,
+            'Test merchant deleted from ops cleanup.',
+            [
+                'merchant_uuid' => $merchantUuid,
+                'merchant_name' => $merchantName,
+                'scope' => 'merchant_cleanup',
+            ]
+        );
+
+        $merchant->delete();
+
+        return response()->json([
+            'data' => [
+                'uuid' => $merchantUuid,
+            ],
         ]);
     }
 
@@ -232,5 +269,12 @@ class MerchantConfigurationController extends Controller
         return response()->json([
             'data' => new BranchFeeBandResource($feeBand->fresh()),
         ]);
+    }
+
+    private function isCleanupMerchant(Merchant $merchant): bool
+    {
+        $cleanupName = Str::lower("{$merchant->name} {$merchant->slug}");
+
+        return Str::contains($cleanupName, ['smoke', 'test', 'browser']);
     }
 }

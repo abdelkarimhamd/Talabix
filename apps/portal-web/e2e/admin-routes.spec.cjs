@@ -110,6 +110,38 @@ test('ops users page supports invite and disable clicks', async ({ page }) => {
   await expectCleanAdminPage(context);
 });
 
+test('ops users crowded directory keeps lower-card actions clickable', async ({
+  page,
+}) => {
+  const context = await setupAdminPage(page, '/ops/users', {
+    crowdedOpsUsers: true,
+  });
+  const targetEmail =
+    'crowded.ops.user.18.long.directory.address@talabix.test';
+  const targetCard = page.getByTestId(`ops-user-${targetEmail}`);
+  const disableButton = targetCard.getByRole('button', {
+    name: 'Disable user',
+  });
+
+  await targetCard.scrollIntoViewIfNeeded();
+  await expect(targetCard).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await expectLocatorCenterWithin(
+    page,
+    disableButton,
+    `ops-user-${targetEmail}`
+  );
+
+  await disableButton.click();
+
+  await expect(page.getByRole('status')).toContainText(
+    'Crowded Ops 18 was updated.'
+  );
+  await expect(targetCard).toContainText('Suspended');
+
+  await expectCleanAdminPage(context);
+});
+
 test('ops configuration page supports store, fee, zone, and maps clicks', async ({
   page,
 }) => {
@@ -174,6 +206,45 @@ test('ops configuration page supports store, fee, zone, and maps clicks', async 
     'Google Maps configuration saved.'
   );
   await expect(page.getByText('Configured via admin')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Archive store' }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Browser Bistro was archived.'
+  );
+
+  await page.getByRole('button', { name: 'Delete test store' }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Browser Bistro test store was deleted.'
+  );
+  await expect(
+    page
+      .getByLabel('Select merchant configuration')
+      .locator('option', { hasText: 'Browser Bistro' })
+  ).toHaveCount(0);
+
+  await expectCleanAdminPage(context);
+});
+
+test('catalog page supports category reorder clicks', async ({ page }) => {
+  const context = await setupAdminPage(page, '/ops/catalog');
+  const categories = page.locator('.category-row');
+
+  await expect(categories.nth(1)).toBeVisible();
+
+  const firstCategoryName = await categories
+    .first()
+    .locator('strong')
+    .innerText();
+
+  await categories
+    .nth(1)
+    .getByRole('button', { name: /^Move .* up$/ })
+    .click();
+
+  await expect(page.getByRole('status')).toContainText(/Moved .* up\./);
+  await expect(categories.first().locator('strong')).not.toHaveText(
+    firstCategoryName
+  );
 
   await expectCleanAdminPage(context);
 });
@@ -270,9 +341,9 @@ test('settlements page supports export and adjustment clicks', async ({
   await expectCleanAdminPage(context);
 });
 
-async function setupAdminPage(page, path) {
+async function setupAdminPage(page, path, mockOptions = {}) {
   const runtimeErrors = collectRuntimeErrors(page);
-  const mock = await installAdminApiMock(page);
+  const mock = await installAdminApiMock(page, mockOptions);
 
   await page.goto(path);
   await page.getByLabel('Email address').fill('admin-routes@talabix.test');
@@ -318,4 +389,24 @@ async function expectNoHorizontalOverflow(page) {
   }));
 
   expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+}
+
+async function expectLocatorCenterWithin(page, locator, expectedTestId) {
+  const box = await locator.boundingBox();
+
+  expect(box).not.toBeNull();
+
+  const hitTestId = await page.evaluate(
+    ({ x, y }) =>
+      document
+        .elementFromPoint(x, y)
+        ?.closest('[data-testid]')
+        ?.getAttribute('data-testid') ?? null,
+    {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2,
+    }
+  );
+
+  expect(hitTestId).toBe(expectedTestId);
 }

@@ -818,6 +818,13 @@ export function createOpsApi({ baseURL, token } = {}) {
 
       return opsMerchantConfigurationSchema.parse(data);
     },
+    async deleteMerchantConfiguration(merchantUuid) {
+      const data = unwrapData(
+        await client.delete(`configuration/merchants/${merchantUuid}`)
+      );
+
+      return z.object({ uuid: z.string().uuid() }).parse(data);
+    },
     async updateBranchConfiguration(branchUuid, payload) {
       const parsedPayload = updateBranchConfigurationSchema.parse(
         compactParams(payload)

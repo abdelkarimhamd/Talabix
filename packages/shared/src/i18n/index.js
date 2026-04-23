@@ -886,12 +886,20 @@ export const translations = {
           saveFeeBand: 'Save fee band',
           createFeeBand: 'Create fee band',
           newFeeBand: 'New fee band',
+          archiveStore: 'Archive store',
+          archivingStore: 'Archiving store...',
+          deleteTestStore: 'Delete test store',
+          deletingTestStore: 'Deleting test store...',
         },
         feedback: {
           mapsSaved: 'Google Maps configuration saved.',
           mapsSaveFailed: 'Google Maps configuration could not be saved.',
           storeCreated: '{merchant} store was created.',
           storeCreateFailed: 'Store could not be created.',
+          storeArchived: '{merchant} was archived.',
+          storeArchiveFailed: 'Store could not be archived.',
+          testStoreDeleted: '{merchant} test store was deleted.',
+          testStoreDeleteFailed: 'Test store could not be deleted.',
           merchantSaved: '{merchant} commission saved at {commission}%.',
           merchantSaveFailed: 'Merchant configuration could not be saved.',
           branchSaved: '{branch} branch settings saved.',
@@ -906,6 +914,12 @@ export const translations = {
           badge: 'No stores yet',
           description:
             'Add a store, its first branch, opening hours, service zone, and delivery fee. After this, this page will show the normal configuration controls.',
+        },
+        cleanup: {
+          archiveOnly:
+            'Archive real stores to hide them from live ordering. Hard delete is only available for smoke, test, or browser cleanup stores.',
+          testStoreDeleteAvailable:
+            'This store is marked as cleanup data, so it can be deleted after smoke checks.',
         },
         page: {
           eyebrow: 'Ops configuration',
@@ -2050,12 +2064,20 @@ export const translations = {
           saveFeeBand: 'حفظ شريحة الرسوم',
           createFeeBand: 'إنشاء شريحة رسوم',
           newFeeBand: 'شريحة جديدة',
+          archiveStore: 'أرشفة المتجر',
+          archivingStore: 'جار أرشفة المتجر...',
+          deleteTestStore: 'حذف متجر اختباري',
+          deletingTestStore: 'جار حذف المتجر الاختباري...',
         },
         feedback: {
           mapsSaved: 'تم حفظ إعدادات Google Maps.',
           mapsSaveFailed: 'تعذر حفظ إعدادات Google Maps.',
           storeCreated: 'تم إنشاء متجر {merchant}.',
           storeCreateFailed: 'تعذر إنشاء المتجر.',
+          storeArchived: 'تمت أرشفة {merchant}.',
+          storeArchiveFailed: 'تعذرت أرشفة المتجر.',
+          testStoreDeleted: 'تم حذف متجر {merchant} الاختباري.',
+          testStoreDeleteFailed: 'تعذر حذف المتجر الاختباري.',
           merchantSaved: 'تم حفظ عمولة {merchant} عند {commission}%.',
           merchantSaveFailed: 'تعذر حفظ إعدادات المتجر.',
           branchSaved: 'تم حفظ إعدادات فرع {branch}.',
@@ -2070,6 +2092,12 @@ export const translations = {
           badge: 'لا توجد متاجر بعد',
           description:
             'أضف متجرًا وفرعه الأول وساعات العمل ونطاق الخدمة ورسوم التوصيل. بعد ذلك ستعرض هذه الصفحة عناصر التحكم المعتادة للإعداد.',
+        },
+        cleanup: {
+          archiveOnly:
+            'أرشف المتاجر الحقيقية لإخفائها من الطلبات المباشرة. الحذف النهائي متاح فقط لمتاجر smoke أو test أو browser الخاصة بالتنظيف.',
+          testStoreDeleteAvailable:
+            'هذا المتجر معلّم كبيانات تنظيف، لذلك يمكن حذفه بعد فحوصات smoke.',
         },
         page: {
           eyebrow: 'إعدادات العمليات',

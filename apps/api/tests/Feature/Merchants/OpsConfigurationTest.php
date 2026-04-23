@@ -115,6 +115,47 @@ it('updates merchant and branch configuration while auditing ops changes', funct
     ]);
 });
 
+it('archives and deletes test merchants for ops cleanup', function () {
+    $this->seedRoles();
+    $merchantContext = $this->createMerchantContext();
+    $opsUser = $this->createUserWithRole('ops_admin');
+    $merchantContext['merchant']->update([
+        'name' => 'Smoke Store Cleanup',
+        'slug' => 'smoke-store-cleanup',
+    ]);
+
+    Sanctum::actingAs($opsUser, ['ops:merchants.manage']);
+
+    $this->patchJson("/api/v1/ops/configuration/merchants/{$merchantContext['merchant']->uuid}", [
+        'status' => 'inactive',
+    ])->assertOk()
+        ->assertJsonPath('data.status', 'inactive');
+
+    $this->deleteJson("/api/v1/ops/configuration/merchants/{$merchantContext['merchant']->uuid}")
+        ->assertOk()
+        ->assertJsonPath('data.uuid', $merchantContext['merchant']->uuid);
+
+    $this->assertDatabaseMissing('merchants', [
+        'id' => $merchantContext['merchant']->id,
+    ]);
+});
+
+it('rejects deletion for non-test merchants', function () {
+    $this->seedRoles();
+    $merchantContext = $this->createMerchantContext();
+    $opsUser = $this->createUserWithRole('ops_admin');
+
+    Sanctum::actingAs($opsUser, ['ops:merchants.manage']);
+
+    $this->deleteJson("/api/v1/ops/configuration/merchants/{$merchantContext['merchant']->uuid}")
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('merchant');
+
+    $this->assertDatabaseHas('merchants', [
+        'id' => $merchantContext['merchant']->id,
+    ]);
+});
+
 it('lets ops configure Google Maps without exposing the stored API key', function () {
     $this->seedRoles();
     $opsUser = $this->createUserWithRole('ops_admin');

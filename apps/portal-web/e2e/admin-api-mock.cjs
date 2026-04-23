@@ -26,9 +26,9 @@ const authSession = {
 const fixedTimestamp = '2026-04-14T10:00:00.000Z';
 let uuidSequence = 1000;
 
-async function installAdminApiMock(page) {
+async function installAdminApiMock(page, options = {}) {
   const seed = await import('../src/sample-data.js');
-  const state = createInitialState(seed);
+  const state = createInitialState(seed, options);
   const unhandledRequests = [];
 
   await page.route('**/api/v1/**', async (route) => {
@@ -67,7 +67,21 @@ async function installAdminApiMock(page) {
   };
 }
 
-function createInitialState(seed) {
+function createInitialState(seed, options = {}) {
+  const crowdedOpsUsers = options.crowdedOpsUsers
+    ? Array.from({ length: 18 }, (_, index) => ({
+        uuid: `00000000-0000-4000-8000-${String(2000 + index).padStart(12, '0')}`,
+        name: `Crowded Ops ${index + 1}`,
+        email: `crowded.ops.user.${String(index + 1).padStart(2, '0')}.long.directory.address@talabix.test`,
+        phone: `+96650000${String(index + 1).padStart(4, '0')}`,
+        account_status: 'active',
+        roles: ['ops_support'],
+        abilities: [],
+        created_at: fixedTimestamp,
+        last_login_at: null,
+      }))
+    : [];
+
   return {
     managedMerchants: clone(seed.managedMerchants),
     merchantConfigurations: clone(seed.opsMerchantConfigurations),
@@ -120,6 +134,7 @@ function createInitialState(seed) {
         created_at: fixedTimestamp,
         last_login_at: null,
       },
+      ...crowdedOpsUsers,
     ],
   };
 }
@@ -231,6 +246,11 @@ function handleApiRequest({ method, path, payload, searchParams, state }) {
     replaceMerchantConfiguration(state, nextMerchant);
     deriveManagedMerchants(state);
     return jsonResponse(nextMerchant);
+  }
+
+  if (method === 'DELETE' && merchantConfigurationMatch) {
+    deleteMerchantConfiguration(state, merchantConfigurationMatch[1]);
+    return jsonResponse({ uuid: merchantConfigurationMatch[1] });
   }
 
   const branchConfigurationMatch = path.match(
@@ -949,6 +969,35 @@ function replaceMerchantConfiguration(state, nextMerchant) {
   state.merchantConfigurations = state.merchantConfigurations.map((merchant) =>
     merchant.uuid === nextMerchant.uuid ? nextMerchant : merchant
   );
+}
+
+function isCleanupMerchant(merchant) {
+  const cleanupName = `${merchant.name} ${merchant.slug}`.toLowerCase();
+
+  return ['smoke', 'test', 'browser'].some((term) =>
+    cleanupName.includes(term)
+  );
+}
+
+function deleteMerchantConfiguration(state, merchantUuid) {
+  const merchant = findMerchantConfiguration(state, merchantUuid);
+
+  if (!isCleanupMerchant(merchant)) {
+    throw new Error(
+      'Only test, smoke, or browser cleanup stores can be deleted. Archive this store instead.'
+    );
+  }
+
+  state.merchantConfigurations = state.merchantConfigurations.filter(
+    (entry) => entry.uuid !== merchantUuid
+  );
+  state.merchantCatalogItems = state.merchantCatalogItems.filter(
+    (item) => item.merchant_uuid !== merchantUuid
+  );
+  state.merchantCatalogCategories = state.merchantCatalogCategories.filter(
+    (category) => category.merchant_uuid !== merchantUuid
+  );
+  deriveManagedMerchants(state);
 }
 
 function updateBranch(state, branchUuid, update) {

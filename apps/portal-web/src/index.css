@@ -971,6 +971,38 @@ button:disabled {
   text-align: start;
 }
 
+.category-select-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  text-align: start;
+}
+
+.category-row-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.category-reorder-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  min-height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(17, 33, 52, 0.1);
+  background: #ffffff;
+  color: #112134;
+}
+
 .category-row.selected {
   border-color: rgba(255, 140, 66, 0.46);
   background: rgba(255, 140, 66, 0.08);

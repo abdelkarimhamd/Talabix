@@ -96,6 +96,16 @@ function categoryDraft(category) {
   };
 }
 
+function categoryPayloadFromCategory(category, sortOrder = category.sort_order) {
+  return {
+    merchant_uuid: category.merchant_uuid,
+    name: category.name,
+    description: category.description ?? null,
+    sort_order: sortOrder,
+    is_active: category.is_active,
+  };
+}
+
 function modifierGroupDraft(group) {
   if (!group) {
     return {
@@ -263,6 +273,38 @@ export function MerchantCatalogManager() {
           queryKey: ['merchant-catalog-items', selectedMerchantUuid],
         }),
       ]);
+    },
+    onError: (error) => {
+      setFeedback(errorMessage(error));
+    },
+  });
+
+  const reorderCatalogCategoriesMutation = useMutation({
+    mutationFn: async ({ category, neighbor }) => {
+      const updatedCategory = await api.updateCatalogCategory(
+        category.uuid,
+        categoryPayloadFromCategory(category, neighbor.sort_order)
+      );
+
+      await api.updateCatalogCategory(
+        neighbor.uuid,
+        categoryPayloadFromCategory(neighbor, category.sort_order)
+      );
+
+      return updatedCategory;
+    },
+    onSuccess: async (category, variables) => {
+      setFeedback(
+        `Moved ${category.name} ${
+          variables.category.sort_order > variables.neighbor.sort_order
+            ? 'up'
+            : 'down'
+        }.`
+      );
+      setSelectedCategoryUuid(category.uuid);
+      await queryClient.invalidateQueries({
+        queryKey: ['merchant-catalog-categories', selectedMerchantUuid],
+      });
     },
     onError: (error) => {
       setFeedback(errorMessage(error));
@@ -452,12 +494,24 @@ export function MerchantCatalogManager() {
     };
   }
 
+  function nextCategorySortOrder() {
+    return (
+      catalogCategories.reduce(
+        (maximum, category) => Math.max(maximum, category.sort_order),
+        -1
+      ) + 1
+    );
+  }
+
   function handleCreateCategorySubmit(event) {
     event.preventDefault();
     setFeedback('');
 
     createCatalogCategoryMutation.mutate(
-      parseCategoryPayload(createCategoryForm)
+      parseCategoryPayload({
+        ...createCategoryForm,
+        sort_order: String(nextCategorySortOrder()),
+      })
     );
   }
 
@@ -482,6 +536,20 @@ export function MerchantCatalogManager() {
 
     setFeedback('');
     deleteCatalogCategoryMutation.mutate(selectedCategory.uuid);
+  }
+
+  function handleMoveCategory(category, direction) {
+    const currentIndex = catalogCategories.findIndex(
+      (entry) => entry.uuid === category.uuid
+    );
+    const neighbor = catalogCategories[currentIndex + direction];
+
+    if (!neighbor) {
+      return;
+    }
+
+    setFeedback('');
+    reorderCatalogCategoriesMutation.mutate({ category, neighbor });
   }
 
   function handleCreateSubmit(event) {
@@ -740,26 +808,58 @@ export function MerchantCatalogManager() {
               </div>
             ) : (
               <div className="catalog-category-list">
-                {catalogCategories.map((category) => (
-                  <button
+                {catalogCategories.map((category, index) => (
+                  <div
                     className={`category-row${
                       selectedCategory?.uuid === category.uuid
                         ? ' selected'
                         : ''
                     }`}
                     key={category.uuid}
-                    onClick={() => setSelectedCategoryUuid(category.uuid)}
-                    type="button"
                   >
-                    <span>
-                      <strong>{category.name}</strong>
-                      <small>
-                        {category.item_count} item
-                        {category.item_count === 1 ? '' : 's'}
-                      </small>
-                    </span>
-                    <em>{category.is_active ? 'Active' : 'Archived'}</em>
-                  </button>
+                    <button
+                      className="category-select-button"
+                      onClick={() => setSelectedCategoryUuid(category.uuid)}
+                      type="button"
+                    >
+                      <span>
+                        <strong>{category.name}</strong>
+                        <small>
+                          {category.item_count} item
+                          {category.item_count === 1 ? '' : 's'}
+                        </small>
+                      </span>
+                      <em>{category.is_active ? 'Active' : 'Archived'}</em>
+                    </button>
+                    {canWrite ? (
+                      <div className="category-row-actions">
+                        <button
+                          aria-label={`Move ${category.name} up`}
+                          className="category-reorder-button"
+                          disabled={
+                            index === 0 ||
+                            reorderCatalogCategoriesMutation.isPending
+                          }
+                          onClick={() => handleMoveCategory(category, -1)}
+                          type="button"
+                        >
+                          Up
+                        </button>
+                        <button
+                          aria-label={`Move ${category.name} down`}
+                          className="category-reorder-button"
+                          disabled={
+                            index === catalogCategories.length - 1 ||
+                            reorderCatalogCategoriesMutation.isPending
+                          }
+                          onClick={() => handleMoveCategory(category, 1)}
+                          type="button"
+                        >
+                          Down
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 ))}
               </div>
             )}
@@ -782,21 +882,6 @@ export function MerchantCatalogManager() {
                       required
                       type="text"
                       value={createCategoryForm.name}
-                    />
-                  </label>
-                  <label className="field-stack">
-                    <span>New category sort order</span>
-                    <input
-                      inputMode="numeric"
-                      min="0"
-                      onChange={(event) =>
-                        setCreateCategoryForm((current) => ({
-                          ...current,
-                          sort_order: event.target.value,
-                        }))
-                      }
-                      type="number"
-                      value={createCategoryForm.sort_order}
                     />
                   </label>
                 </div>
@@ -852,21 +937,6 @@ export function MerchantCatalogManager() {
                       required
                       type="text"
                       value={editCategoryForm.name}
-                    />
-                  </label>
-                  <label className="field-stack">
-                    <span>Category sort order</span>
-                    <input
-                      inputMode="numeric"
-                      min="0"
-                      onChange={(event) =>
-                        setEditCategoryForm((current) => ({
-                          ...current,
-                          sort_order: event.target.value,
-                        }))
-                      }
-                      type="number"
-                      value={editCategoryForm.sort_order}
                     />
                   </label>
                 </div>

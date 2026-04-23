@@ -96,6 +96,18 @@ function createStorePayload(form) {
   };
 }
 
+function isCleanupMerchant(merchant) {
+  if (!merchant) {
+    return false;
+  }
+
+  const cleanupName = `${merchant.name} ${merchant.slug}`.toLowerCase();
+
+  return ['smoke', 'test', 'browser'].some((term) =>
+    cleanupName.includes(term)
+  );
+}
+
 function StoreSetupForm({
   form,
   isSubmitting,
@@ -572,6 +584,54 @@ export function OpsConfigurationBoard() {
       : mapsProviderConfiguration.provider === 'demo'
         ? t('ops.configuration.maps.runtimeDemoActive')
         : t('ops.configuration.maps.runtimeFallback');
+  const selectedMerchantCanDelete = isCleanupMerchant(selectedMerchant);
+
+  const archiveMerchantMutation = useMutation({
+    mutationFn: () =>
+      api.updateMerchantConfiguration(selectedMerchant.uuid, {
+        status: 'inactive',
+      }),
+    onSuccess: async (merchant) => {
+      setMerchantStatus('inactive');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['ops-configuration'] }),
+        queryClient.invalidateQueries({ queryKey: ['managed-merchants'] }),
+      ]);
+      setFeedback(
+        t('ops.configuration.feedback.storeArchived', {
+          merchant: merchant.name,
+        })
+      );
+    },
+    onError: (error) => {
+      setFeedback(
+        error.message ?? t('ops.configuration.feedback.storeArchiveFailed')
+      );
+    },
+  });
+
+  const deleteMerchantMutation = useMutation({
+    mutationFn: () => api.deleteMerchantConfiguration(selectedMerchant.uuid),
+    onSuccess: async () => {
+      const deletedMerchantName = selectedMerchant.name;
+      setSelectedMerchantUuid('');
+      setSelectedBranchUuid('');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['ops-configuration'] }),
+        queryClient.invalidateQueries({ queryKey: ['managed-merchants'] }),
+      ]);
+      setFeedback(
+        t('ops.configuration.feedback.testStoreDeleted', {
+          merchant: deletedMerchantName,
+        })
+      );
+    },
+    onError: (error) => {
+      setFeedback(
+        error.message ?? t('ops.configuration.feedback.testStoreDeleteFailed')
+      );
+    },
+  });
 
   if (!selectedMerchant || !selectedBranch) {
     return (
@@ -956,7 +1016,38 @@ export function OpsConfigurationBoard() {
               >
                 {t('ops.configuration.actions.saveMerchant')}
               </button>
+              <button
+                className="action-button secondary"
+                disabled={
+                  selectedMerchant.status === 'inactive' ||
+                  archiveMerchantMutation.isPending
+                }
+                onClick={() => archiveMerchantMutation.mutate()}
+                type="button"
+              >
+                {archiveMerchantMutation.isPending
+                  ? t('ops.configuration.actions.archivingStore')
+                  : t('ops.configuration.actions.archiveStore')}
+              </button>
+              <button
+                className="action-button secondary danger"
+                disabled={
+                  !selectedMerchantCanDelete || deleteMerchantMutation.isPending
+                }
+                onClick={() => deleteMerchantMutation.mutate()}
+                type="button"
+              >
+                {deleteMerchantMutation.isPending
+                  ? t('ops.configuration.actions.deletingTestStore')
+                  : t('ops.configuration.actions.deleteTestStore')}
+              </button>
             </div>
+
+            <p className="board-note">
+              {selectedMerchantCanDelete
+                ? t('ops.configuration.cleanup.testStoreDeleteAvailable')
+                : t('ops.configuration.cleanup.archiveOnly')}
+            </p>
           </section>
 
           <section className="catalog-panel panel">
