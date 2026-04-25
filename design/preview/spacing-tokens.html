@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+        background: #f6f8fb;
+        padding: 20px;
+        color: #112134;
+      }
+      h4 {
+        margin: 0 0 10px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #516275;
+      }
+      .section {
+        margin-bottom: 18px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+      }
+      .r {
+        height: 6px;
+        background: #ff8c42;
+        border-radius: 3px;
+      }
+      .label {
+        font-size: 10px;
+        color: #516275;
+        min-width: 36px;
+      }
+
+      /* radii */
+      .rbox {
+        background: rgba(255, 140, 66, 0.12);
+        border: 1.5px solid rgba(255, 140, 66, 0.3);
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        color: #a24f13;
+        font-weight: 700;
+      }
+
+      /* shadows */
+      .sbox {
+        background: #fff;
+        padding: 10px 14px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #112134;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="section">
+      <h4>Spacing Scale</h4>
+      <div class="row">
+        <span class="label">4px</span>
+        <div class="r" style="width: 4px"></div>
+        <span class="label">8px</span>
+        <div class="r" style="width: 8px"></div>
+        <span class="label">12px</span>
+        <div class="r" style="width: 12px"></div>
+        <span class="label">16px</span>
+        <div class="r" style="width: 16px"></div>
+        <span class="label">20px</span>
+        <div class="r" style="width: 20px"></div>
+        <span class="label">24px</span>
+        <div class="r" style="width: 24px"></div>
+        <span class="label">32px</span>
+        <div class="r" style="width: 32px"></div>
+        <span class="label">40px</span>
+        <div class="r" style="width: 40px"></div>
+      </div>
+    </div>
+    <div class="section">
+      <h4>Border Radius</h4>
+      <div class="row">
+        <div class="rbox" style="border-radius: 12px">12</div>
+        <div class="rbox" style="border-radius: 14px">14</div>
+        <div class="rbox" style="border-radius: 16px">16</div>
+        <div class="rbox" style="border-radius: 18px">18</div>
+        <div class="rbox" style="border-radius: 999px; width: 56px">pill</div>
+      </div>
+    </div>
+    <div class="section">
+      <h4>Shadows</h4>
+      <div class="row">
+        <div
+          class="sbox"
+          style="
+            border-radius: 12px;
+            box-shadow: 0 5px 14px rgba(0, 0, 0, 0.05);
+          "
+        >
+          card
+        </div>
+        <div
+          class="sbox"
+          style="
+            border-radius: 16px;
+            box-shadow: 0 22px 45px rgba(17, 33, 52, 0.1);
+          "
+        >
+          panel
+        </div>
+        <div
+          class="sbox"
+          style="
+            border-radius: 14px;
+            box-shadow: 0 14px 30px rgba(255, 140, 66, 0.22);
+          "
+        >
+          CTA
+        </div>
+        <div
+          class="sbox"
+          style="
+            border-radius: 28px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+          "
+        >
+          dock
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

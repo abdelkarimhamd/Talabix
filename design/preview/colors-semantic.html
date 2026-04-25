@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+        background: #f6f8fb;
+        padding: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-content: flex-start;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+        align-items: center;
+      }
+      .label {
+        font-size: 11px;
+        color: #516275;
+        width: 60px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <span class="label">neutral</span>
+      <span
+        class="pill"
+        style="background: rgba(17, 33, 52, 0.08); color: #213547"
+        >Placed</span
+      >
+      <span
+        class="pill"
+        style="background: rgba(17, 33, 52, 0.08); color: #213547"
+        >Scheduled</span
+      >
+    </div>
+    <div class="row">
+      <span class="label">alert</span>
+      <span
+        class="pill"
+        style="background: rgba(255, 140, 66, 0.14); color: #a24f13"
+        >New order</span
+      >
+      <span
+        class="pill"
+        style="background: rgba(255, 140, 66, 0.14); color: #a24f13"
+        >Overdue</span
+      >
+    </div>
+    <div class="row">
+      <span class="label">success</span>
+      <span
+        class="pill"
+        style="background: rgba(38, 166, 154, 0.15); color: #0c665c"
+        >Delivered</span
+      >
+      <span
+        class="pill"
+        style="background: rgba(38, 166, 154, 0.15); color: #0c665c"
+        >Open now</span
+      >
+    </div>
+    <div class="row">
+      <span class="label">warm</span>
+      <span
+        class="pill"
+        style="background: rgba(255, 179, 71, 0.18); color: #9c5b13"
+        >Accepted</span
+      >
+      <span
+        class="pill"
+        style="background: rgba(255, 179, 71, 0.18); color: #9c5b13"
+        >Preparing</span
+      >
+    </div>
+    <div class="row">
+      <span class="label">info</span>
+      <span
+        class="pill"
+        style="background: rgba(17, 33, 52, 0.1); color: #1f3751"
+        >With rider</span
+      >
+      <span
+        class="pill"
+        style="background: rgba(17, 33, 52, 0.1); color: #1f3751"
+        >Picked up</span
+      >
+    </div>
+    <div class="row">
+      <span class="label">muted</span>
+      <span
+        class="pill"
+        style="background: rgba(106, 122, 137, 0.14); color: #5a6774"
+        >Cancelled</span
+      >
+      <span
+        class="pill"
+        style="background: rgba(106, 122, 137, 0.14); color: #5a6774"
+        >Inactive</span
+      >
+    </div>
+  </body>
+</html>

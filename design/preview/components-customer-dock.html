@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: #fff;
+        padding: 24px 16px;
+        display: flex;
+        justify-content: center;
+      }
+      .dock {
+        display: flex;
+        gap: 4px;
+        background: #fff;
+        border-radius: 28px;
+        padding: 8px 12px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        border: 1px solid #ececec;
+      }
+      .tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 14px;
+        border-radius: 20px;
+        cursor: pointer;
+        min-width: 52px;
+      }
+      .tab.active {
+        background: #ffe500;
+      }
+      .icon {
+        font-size: 18px;
+        font-weight: 900;
+        color: #8d9198;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+      }
+      .tab.active .icon {
+        color: #202124;
+      }
+      .label {
+        font-size: 10px;
+        font-weight: 700;
+        color: #8d9198;
+      }
+      .tab.active .label {
+        color: #202124;
+      }
+      /* search bar */
+      .search {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #fff;
+        border: 1.5px solid #ececec;
+        border-radius: 12px;
+        padding: 0 14px;
+        min-height: 50px;
+        width: 280px;
+        margin-bottom: 16px;
+      }
+      .search-icon {
+        font-size: 16px;
+        color: #8d9198;
+      }
+      .search-text {
+        font-size: 15px;
+        color: #8d9198;
+      }
+      .wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="search">
+        <span class="search-icon">🔍</span>
+        <span class="search-text">Search restaurants, markets…</span>
+      </div>
+      <div class="dock">
+        <div class="tab active">
+          <div class="icon">⌂</div>
+          <div class="label">Home</div>
+        </div>
+        <div class="tab">
+          <div class="icon">📋</div>
+          <div class="label">Orders</div>
+        </div>
+        <div class="tab">
+          <div class="icon">%</div>
+          <div class="label">Offers</div>
+        </div>
+        <div class="tab">
+          <div class="icon">★</div>
+          <div class="label">Points</div>
+        </div>
+        <div class="tab">
+          <div class="icon">◉</div>
+          <div class="label">Profile</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

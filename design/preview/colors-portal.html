@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+        background:
+          linear-gradient(135deg, rgba(255, 140, 66, 0.08), transparent 40%),
+          linear-gradient(180deg, #f6f8fb, #eef3f7 56%, #fff);
+        padding: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        min-height: 130px;
+        align-content: flex-start;
+      }
+      .swatch {
+        border-radius: 10px;
+        overflow: hidden;
+        width: 90px;
+      }
+      .chip {
+        height: 56px;
+      }
+      .info {
+        padding: 6px 8px;
+        background: rgba(255, 255, 255, 0.84);
+        border: 1px solid rgba(17, 33, 52, 0.1);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+      }
+      .name {
+        font-size: 10px;
+        font-weight: 700;
+        color: #112134;
+        display: block;
+      }
+      .hex {
+        font-size: 10px;
+        color: #516275;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="swatch">
+      <div class="chip" style="background: #112134"></div>
+      <div class="info">
+        <span class="name">navy</span><span class="hex">#112134</span>
+      </div>
+    </div>
+    <div class="swatch">
+      <div
+        class="chip"
+        style="background: linear-gradient(135deg, #112134, #ff8c42)"
+      ></div>
+      <div class="info">
+        <span class="name">brand grad</span><span class="hex">navy→orange</span>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: #ff8c42"></div>
+      <div class="info">
+        <span class="name">orange</span><span class="hex">#ff8c42</span>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: #ffb347"></div>
+      <div class="info">
+        <span class="name">orangeWarm</span><span class="hex">#ffb347</span>
+      </div>
+    </div>
+    <div class="swatch">
+      <div
+        class="chip"
+        style="background: linear-gradient(135deg, #ffb347, #ff8c42)"
+      ></div>
+      <div class="info">
+        <span class="name">CTA grad</span><span class="hex">warm→orange</span>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: #26a69a"></div>
+      <div class="info">
+        <span class="name">teal</span><span class="hex">#26a69a</span>
+      </div>
+    </div>
+    <div class="swatch">
+      <div
+        class="chip"
+        style="background: #f6f8fb; border: 1px solid rgba(17, 33, 52, 0.1)"
+      ></div>
+      <div class="info">
+        <span class="name">bgTop</span><span class="hex">#f6f8fb</span>
+      </div>
+    </div>
+    <div class="swatch">
+      <div
+        class="chip"
+        style="background: #eef3f7; border: 1px solid rgba(17, 33, 52, 0.1)"
+      ></div>
+      <div class="info">
+        <span class="name">bgBottom</span><span class="hex">#eef3f7</span>
+      </div>
+    </div>
+    <div class="swatch">
+      <div
+        class="chip"
+        style="
+          background: rgba(255, 255, 255, 0.84);
+          border: 1px solid rgba(17, 33, 52, 0.08);
+          backdrop-filter: blur(14px);
+        "
+      ></div>
+      <div class="info">
+        <span class="name">panel</span><span class="hex">white/84+blur</span>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: #5c6a78"></div>
+      <div class="info">
+        <span class="name">textMuted</span><span class="hex">#5c6a78</span>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: #516275"></div>
+      <div class="info">
+        <span class="name">eyebrow</span><span class="hex">#516275</span>
+      </div>
+    </div>
+  </body>
+</html>

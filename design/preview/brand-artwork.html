@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: #f6f6f2;
+        padding: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .art {
+        width: 90px;
+        height: 90px;
+        border-radius: 14px;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+      }
+      .art img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .art-label {
+        position: relative;
+        z-index: 1;
+        font-size: 10px;
+        font-weight: 900;
+        color: #fff;
+        padding: 6px 8px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      }
+      .shade {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to top,
+          rgba(0, 0, 0, 0.5) 0%,
+          transparent 60%
+        );
+        z-index: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="art" style="background: #b8102f">
+      <img src="../assets/product-artwork/burger.png" alt="" />
+      <div class="shade"></div>
+      <span class="art-label">Burger</span>
+    </div>
+    <div class="art" style="background: #7b1b10">
+      <img src="../assets/product-artwork/shawarma.png" alt="" />
+      <div class="shade"></div>
+      <span class="art-label">Shawarma</span>
+    </div>
+    <div class="art" style="background: #0f7f56">
+      <img src="../assets/product-artwork/market.png" alt="" />
+      <div class="shade"></div>
+      <span class="art-label">Market</span>
+    </div>
+    <div class="art" style="background: #1d5f87">
+      <img src="../assets/product-artwork/coffee.png" alt="" />
+      <div class="shade"></div>
+      <span class="art-label">Coffee</span>
+    </div>
+    <div class="art" style="background: #7132a8">
+      <img src="../assets/product-artwork/gift.png" alt="" />
+      <div class="shade"></div>
+      <span class="art-label">Gifts</span>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+        background: #f6f8fb;
+        padding: 20px;
+        display: grid;
+        gap: 12px;
+        color: #112134;
+      }
+      .row {
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+      }
+      .meta {
+        font-size: 11px;
+        color: #516275;
+        min-width: 120px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+      }
+      .eyebrow-demo {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #516275;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .eyebrow-demo::before {
+        content: '';
+        width: 24px;
+        height: 1px;
+        background: currentColor;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <span class="meta">hero h2</span
+      ><span
+        style="
+          font-size: clamp(2rem, 4vw, 3.4rem);
+          line-height: 0.95;
+          font-weight: 700;
+        "
+        >Delivery Control</span
+      >
+    </div>
+    <div class="row">
+      <span class="meta">2xl / 1.75rem</span
+      ><span style="font-size: 1.75rem; font-weight: 700">SAR 124,530</span>
+    </div>
+    <div class="row">
+      <span class="meta">xl / 1.2rem</span
+      ><span style="font-size: 1.2rem; font-weight: 700">Merchant Ranking</span>
+    </div>
+    <div class="row">
+      <span class="meta">lg / 1.05rem</span
+      ><span style="font-size: 1.05rem; font-weight: 600"
+        >Talabix Demo Kitchen</span
+      >
+    </div>
+    <div class="row">
+      <span class="meta">base / 1rem</span
+      ><span style="font-size: 1rem"
+        >Modular monolith API, actor-scoped namespaces.</span
+      >
+    </div>
+    <div class="row">
+      <span class="meta">sm / 0.84rem</span
+      ><span style="font-size: 0.84rem; color: #617181"
+        >Last 7 days · 42 orders delivered</span
+      >
+    </div>
+    <div class="row">
+      <span class="meta">xs / 0.76rem</span
+      ><span
+        style="
+          font-size: 0.76rem;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #6a7a89;
+        "
+        >Gross Sales</span
+      >
+    </div>
+    <div class="row">
+      <span class="meta">eyebrow</span
+      ><span class="eyebrow-demo">Delivery control</span>
+    </div>
+  </body>
+</html>

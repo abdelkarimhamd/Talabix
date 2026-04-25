@@ -1,0 +1,1544 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Talabix Portal — UI Kit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+      integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+      integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+      integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: 'Space Grotesk', 'IBM Plex Sans', 'Segoe UI', sans-serif;
+        color: #112134;
+        background:
+          linear-gradient(135deg, rgba(255, 140, 66, 0.08), transparent 36%),
+          linear-gradient(180deg, #f6f8fb 0%, #eef3f7 56%, #ffffff 100%);
+        min-height: 100vh;
+        font-synthesis: none;
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.5;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      // ── Tokens ────────────────────────────────────────────────────────────
+      const P = {
+        navy: '#112134',
+        orange: '#ff8c42',
+        orangeWarm: '#ffb347',
+        teal: '#26a69a',
+        bg: '#f6f8fb',
+        textMuted: '#5c6a78',
+        textSubtle: '#617181',
+        border: 'rgba(17,33,52,0.08)',
+        panel: 'rgba(255,255,255,0.84)',
+      };
+
+      const tones = {
+        neutral: { bg: 'rgba(17,33,52,.08)', color: '#213547' },
+        alert: { bg: 'rgba(255,140,66,.14)', color: '#a24f13' },
+        success: { bg: 'rgba(38,166,154,.15)', color: '#0c665c' },
+        warm: { bg: 'rgba(255,179,71,.18)', color: '#9c5b13' },
+        info: { bg: 'rgba(17,33,52,.10)', color: '#1f3751' },
+        muted: { bg: 'rgba(106,122,137,.14)', color: '#5a6774' },
+      };
+
+      // ── Base Components ───────────────────────────────────────────────────
+      function Panel({ children, style }) {
+        return (
+          <div
+            style={{
+              background: P.panel,
+              border: `1px solid ${P.border}`,
+              borderRadius: 18,
+              boxShadow: '0 22px 45px rgba(17,33,52,.10)',
+              backdropFilter: 'blur(14px)',
+              ...style,
+            }}
+          >
+            {children}
+          </div>
+        );
+      }
+
+      function Eyebrow({ children }) {
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: '0.78rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+              color: '#516275',
+            }}
+          >
+            <span
+              style={{
+                width: 24,
+                height: 1,
+                background: 'currentColor',
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+            />
+            {children}
+          </span>
+        );
+      }
+
+      function StatusPill({ label, tone = 'neutral' }) {
+        const t = tones[tone] || tones.neutral;
+        return (
+          <span
+            style={{
+              padding: '5px 10px',
+              borderRadius: 999,
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              background: t.bg,
+              color: t.color,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {label}
+          </span>
+        );
+      }
+
+      function BtnPrimary({ label, onClick, disabled }) {
+        return (
+          <button
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+              minHeight: 48,
+              border: 0,
+              padding: '0 20px',
+              borderRadius: 14,
+              color: P.navy,
+              fontWeight: 700,
+              background: `linear-gradient(135deg, ${P.orangeWarm} 0%, ${P.orange} 100%)`,
+              boxShadow: '0 14px 30px rgba(255,140,66,.22)',
+              transition: 'transform 160ms ease, box-shadow 160ms ease',
+              fontSize: 15,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow =
+                '0 18px 34px rgba(255,140,66,.28)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = '';
+              e.currentTarget.style.boxShadow =
+                '0 14px 30px rgba(255,140,66,.22)';
+            }}
+          >
+            {label}
+          </button>
+        );
+      }
+
+      function BtnSecondary({ label, onClick }) {
+        return (
+          <button
+            onClick={onClick}
+            style={{
+              minHeight: 48,
+              border: 0,
+              padding: '0 18px',
+              borderRadius: 14,
+              color: '#314153',
+              fontWeight: 700,
+              background: 'rgba(17,33,52,.08)',
+              transition: 'background 160ms ease',
+              fontSize: 15,
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = 'rgba(17,33,52,.13)')
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = 'rgba(17,33,52,.08)')
+            }
+          >
+            {label}
+          </button>
+        );
+      }
+
+      function FieldStack({ label, children }) {
+        return (
+          <div style={{ display: 'grid', gap: 6 }}>
+            <span
+              style={{ fontSize: '0.92rem', fontWeight: 600, color: '#314153' }}
+            >
+              {label}
+            </span>
+            {children}
+          </div>
+        );
+      }
+
+      function Input({ value, onChange, placeholder, type = 'text' }) {
+        return (
+          <input
+            type={type}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            style={{
+              minHeight: 48,
+              borderRadius: 14,
+              border: '1px solid rgba(17,33,52,.12)',
+              padding: '0 14px',
+              background: 'rgba(255,255,255,.88)',
+              fontSize: 15,
+              color: P.navy,
+              outline: 'none',
+            }}
+          />
+        );
+      }
+
+      function Select({ value, onChange, options }) {
+        return (
+          <select
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            style={{
+              minHeight: 48,
+              borderRadius: 14,
+              border: '1px solid rgba(17,33,52,.12)',
+              padding: '0 14px',
+              background: 'rgba(255,255,255,.88)',
+              fontSize: 15,
+              color: P.navy,
+              outline: 'none',
+            }}
+          >
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        );
+      }
+
+      function BoardCard({ children, selected, style }) {
+        return (
+          <div
+            style={{
+              display: 'grid',
+              gap: 12,
+              padding: 18,
+              borderRadius: 16,
+              background:
+                'linear-gradient(180deg, rgba(255,255,255,.96), rgba(243,247,252,.92))',
+              border: `1px solid ${selected ? 'rgba(255,140,66,.35)' : P.border}`,
+              boxShadow: selected ? '0 18px 34px rgba(255,140,66,.12)' : 'none',
+              ...style,
+            }}
+          >
+            {children}
+          </div>
+        );
+      }
+
+      function MetricCard({ eyebrow, value, description }) {
+        return (
+          <div
+            style={{
+              padding: 18,
+              borderRadius: 16,
+              background:
+                'linear-gradient(160deg, rgba(255,248,240,.92), rgba(255,255,255,.82))',
+              border: `1px solid ${P.border}`,
+            }}
+          >
+            <Eyebrow>{eyebrow}</Eyebrow>
+            <strong
+              style={{
+                display: 'block',
+                fontSize: '1.75rem',
+                marginTop: 6,
+                fontWeight: 700,
+              }}
+            >
+              {value}
+            </strong>
+            {description && (
+              <p
+                style={{ color: P.textMuted, fontSize: '0.9rem', marginTop: 4 }}
+              >
+                {description}
+              </p>
+            )}
+          </div>
+        );
+      }
+
+      function BoardHeader({ eyebrow, title, right }) {
+        return (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 14,
+            }}
+          >
+            <div>
+              {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+              <h2
+                style={{
+                  fontSize: '1.35rem',
+                  fontWeight: 700,
+                  marginTop: eyebrow ? 4 : 0,
+                }}
+              >
+                {title}
+              </h2>
+            </div>
+            {right && <div>{right}</div>}
+          </div>
+        );
+      }
+
+      function ReportTable({ headers, rows }) {
+        return (
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            <thead>
+              <tr>
+                {headers.map((h) => (
+                  <th
+                    key={h}
+                    style={{
+                      padding: '10px 12px',
+                      textAlign: 'start',
+                      fontSize: '0.76rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '.08em',
+                      color: 'rgba(17,33,52,.62)',
+                      borderBottom: `1px solid ${P.border}`,
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, i) => (
+                <tr key={i}>
+                  {row.map((cell, j) => (
+                    <td
+                      key={j}
+                      style={{
+                        padding: '10px 12px',
+                        textAlign: 'start',
+                        borderBottom: `1px solid ${P.border}`,
+                        fontSize: '0.9rem',
+                        color: j === 0 ? P.navy : P.textMuted,
+                        fontWeight: j === 0 ? 600 : 400,
+                      }}
+                    >
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+      }
+
+      function TimelineEntry({ label, time, note }) {
+        return (
+          <div
+            style={{
+              display: 'grid',
+              gap: 4,
+              padding: '14px 16px',
+              borderRadius: 16,
+              background: 'rgba(17,33,52,.04)',
+            }}
+          >
+            <strong style={{ fontSize: '0.95rem' }}>{label}</strong>
+            {time && (
+              <small style={{ color: P.textSubtle, fontSize: '0.8rem' }}>
+                {time}
+              </small>
+            )}
+            {note && (
+              <span style={{ fontSize: '0.85rem', color: P.textMuted }}>
+                {note}
+              </span>
+            )}
+          </div>
+        );
+      }
+
+      function LanguageSwitcher({ locale, onLocale }) {
+        return (
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              padding: 6,
+              borderRadius: 16,
+              background: 'rgba(17,33,52,.06)',
+            }}
+          >
+            {[
+              ['en', 'English'],
+              ['ar', 'العربية'],
+            ].map(([code, label]) => (
+              <button
+                key={code}
+                onClick={() => onLocale(code)}
+                style={{
+                  flex: 1,
+                  minHeight: 38,
+                  border: 0,
+                  borderRadius: 12,
+                  color: '#314153',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  background:
+                    locale === code ? 'rgba(255,255,255,.82)' : 'transparent',
+                  boxShadow:
+                    locale === code ? '0 8px 18px rgba(17,33,52,.08)' : 'none',
+                  transition: 'all 160ms ease',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        );
+      }
+
+      // ── Sidebar ───────────────────────────────────────────────────────────
+      function Sidebar({
+        activeRoute,
+        onRoute,
+        actor,
+        locale,
+        onLocale,
+        session,
+      }) {
+        const merchantNav = [
+          { path: 'orders', label: 'Orders', badge: 'Live' },
+          { path: 'catalog', label: 'Catalog', badge: 'Scoped' },
+          { path: 'promotions', label: 'Promotions', badge: 'Offers' },
+          { path: 'reports', label: 'Reports', badge: 'Sales' },
+          { path: 'notifications', label: 'Inbox', badge: 'Inbox' },
+        ];
+        const opsNav = [
+          { path: 'dashboard', label: 'Dashboard', badge: 'KPI' },
+          { path: 'dispatch', label: 'Dispatch', badge: 'Ops' },
+          { path: 'configuration', label: 'Configuration', badge: 'Config' },
+          { path: 'promotions', label: 'Promotions', badge: 'Offers' },
+          { path: 'settlements', label: 'Settlements', badge: 'Finance' },
+          { path: 'support', label: 'Support', badge: 'Audit' },
+        ];
+        const nav = actor === 'merchant' ? merchantNav : opsNav;
+
+        return (
+          <Panel
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 20,
+              padding: 22,
+              position: 'sticky',
+              top: 24,
+            }}
+          >
+            <div style={{ display: 'grid', gap: 10 }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 52,
+                  height: 52,
+                  borderRadius: 16,
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: 22,
+                  background:
+                    'linear-gradient(135deg, #112134 0%, #ff8c42 100%)',
+                }}
+              >
+                T
+              </div>
+              <Eyebrow>Delivery Control</Eyebrow>
+              <h1 style={{ fontSize: '1.25rem', fontWeight: 700 }}>
+                Talabix Portal
+              </h1>
+              <p style={{ color: P.textMuted, fontSize: '0.9rem' }}>
+                {actor === 'merchant'
+                  ? 'Manage your orders, catalog and reports.'
+                  : 'Ops dashboard, dispatch and settlements.'}
+              </p>
+            </div>
+            <nav style={{ display: 'grid', gap: 8 }}>
+              {nav.map((item) => (
+                <a
+                  key={item.path}
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onRoute(item.path);
+                  }}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '13px 16px',
+                    borderRadius: 16,
+                    color: activeRoute === item.path ? '#112134' : '#314153',
+                    fontWeight: 600,
+                    fontSize: '0.95rem',
+                    transition: 'all 160ms ease',
+                    background:
+                      activeRoute === item.path
+                        ? 'linear-gradient(90deg, rgba(255,140,66,.12), rgba(38,166,154,.10))'
+                        : 'transparent',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeRoute !== item.path)
+                      e.currentTarget.style.background = 'rgba(17,33,52,.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeRoute !== item.path)
+                      e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  <span>{item.label}</span>
+                  <span
+                    style={{
+                      padding: '4px 8px',
+                      borderRadius: 999,
+                      background: 'rgba(17,33,52,.08)',
+                      fontSize: '0.76rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {item.badge}
+                  </span>
+                </a>
+              ))}
+            </nav>
+            <LanguageSwitcher locale={locale} onLocale={onLocale} />
+            <div
+              style={{
+                display: 'grid',
+                gap: 12,
+                padding: 16,
+                borderRadius: 18,
+                background:
+                  'linear-gradient(160deg, rgba(17,33,52,.95), rgba(37,61,92,.92))',
+                color: '#eef6ff',
+              }}
+            >
+              <Eyebrow>Active session</Eyebrow>
+              <strong style={{ fontSize: '1rem' }}>{session.label}</strong>
+              <p style={{ fontSize: '0.85rem', color: 'rgba(238,246,255,.7)' }}>
+                {session.summary}
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {session.tags.map((t) => (
+                  <span
+                    key={t}
+                    style={{
+                      padding: '5px 9px',
+                      borderRadius: 999,
+                      background: 'rgba(255,255,255,.12)',
+                      fontSize: '0.74rem',
+                    }}
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => onRoute('__actor_merchant')}
+                style={{
+                  flex: 1,
+                  minHeight: 36,
+                  border: `1px solid ${P.border}`,
+                  borderRadius: 10,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background:
+                    actor === 'merchant'
+                      ? 'rgba(255,140,66,.1)'
+                      : 'transparent',
+                  cursor: 'pointer',
+                  color: P.navy,
+                }}
+              >
+                Merchant
+              </button>
+              <button
+                onClick={() => onRoute('__actor_ops')}
+                style={{
+                  flex: 1,
+                  minHeight: 36,
+                  border: `1px solid ${P.border}`,
+                  borderRadius: 10,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background:
+                    actor === 'ops' ? 'rgba(255,140,66,.1)' : 'transparent',
+                  cursor: 'pointer',
+                  color: P.navy,
+                }}
+              >
+                Ops
+              </button>
+            </div>
+          </Panel>
+        );
+      }
+
+      // ── Boards ────────────────────────────────────────────────────────────
+      function OpsDashboard() {
+        const [range, setRange] = React.useState('7');
+        const kpis = [
+          {
+            eyebrow: 'Gross Sales',
+            value: 'SAR 48,230',
+            description: 'Last 7 days, all merchants',
+          },
+          {
+            eyebrow: 'Platform Net',
+            value: 'SAR 9,646',
+            description: 'After merchant & rider payouts',
+          },
+          {
+            eyebrow: 'Rider Earnings',
+            value: 'SAR 6,150',
+            description: 'Total payout exposure',
+          },
+        ];
+        const statRows = [
+          ['Total orders', '184'],
+          ['Delivered', '162'],
+          ['Cancelled', '22'],
+          ['Active merchants', '8'],
+          ['Accepting branches', '14'],
+          ['Available riders', '6'],
+        ];
+        const merchantRows = [
+          ['Talabix Demo Kitchen', '72', '68', 'SAR 18,400'],
+          ['Green Market', '45', '40', 'SAR 12,200'],
+          ['Coffee Corner', '38', '35', 'SAR 8,100'],
+          ['Bloom & Rose', '29', '19', 'SAR 9,530'],
+        ];
+        return (
+          <div style={{ display: 'grid', gap: 22 }}>
+            <Panel style={{ padding: 24, display: 'grid', gap: 20 }}>
+              <BoardHeader
+                eyebrow="Ops Dashboard"
+                title="Order & fleet health"
+                right={<StatusPill label="14 active orders" tone="alert" />}
+              />
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <Select
+                  value={range}
+                  onChange={setRange}
+                  options={[
+                    { value: '7', label: 'Last 7 days' },
+                    { value: '30', label: 'Last 30 days' },
+                  ]}
+                />
+                <BtnSecondary label="Refresh" />
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px,1fr))',
+                  gap: 14,
+                }}
+              >
+                {kpis.map((k) => (
+                  <MetricCard key={k.eyebrow} {...k} />
+                ))}
+              </div>
+            </Panel>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px,1fr))',
+                gap: 18,
+              }}
+            >
+              <Panel style={{ padding: 0, overflow: 'hidden' }}>
+                <div style={{ padding: '18px 20px 12px' }}>
+                  <BoardHeader eyebrow="KPI Summary" title="Fleet snapshot" />
+                </div>
+                <ReportTable headers={['Metric', 'Value']} rows={statRows} />
+              </Panel>
+              <Panel style={{ padding: 0, overflow: 'hidden' }}>
+                <div style={{ padding: '18px 20px 12px' }}>
+                  <BoardHeader eyebrow="Merchant Sales" title="Top merchants" />
+                </div>
+                <ReportTable
+                  headers={['Merchant', 'Orders', 'Delivered', 'Gross Sales']}
+                  rows={merchantRows}
+                />
+              </Panel>
+            </div>
+          </div>
+        );
+      }
+
+      function MerchantOrders() {
+        const lanes = [
+          {
+            status: 'placed',
+            label: 'New orders',
+            tone: 'alert',
+            orders: [
+              {
+                id: 'AB4F82C1',
+                customer: 'Sahar Alotaibi',
+                items: '2 items',
+                total: 'SAR 56',
+                time: '3 min ago',
+              },
+              {
+                id: 'CD7A11E2',
+                customer: 'Khalid Al Rashid',
+                items: '1 item',
+                total: 'SAR 28',
+                time: '5 min ago',
+              },
+            ],
+          },
+          {
+            status: 'preparing',
+            label: 'Preparing',
+            tone: 'warm',
+            orders: [
+              {
+                id: 'EF2B93D4',
+                customer: 'Nour Mansoor',
+                items: '3 items',
+                total: 'SAR 84',
+                time: '12 min ago',
+              },
+            ],
+          },
+          {
+            status: 'ready',
+            label: 'Ready for pickup',
+            tone: 'success',
+            orders: [
+              {
+                id: 'GH6C41F8',
+                customer: 'Omar Fahad',
+                items: '1 item',
+                total: 'SAR 32',
+                time: '18 min ago',
+              },
+            ],
+          },
+          {
+            status: 'assigned',
+            label: 'With rider',
+            tone: 'info',
+            orders: [
+              {
+                id: 'IJ9D02A3',
+                customer: 'Reem Al Qahtani',
+                items: '2 items',
+                total: 'SAR 60',
+                time: '25 min ago',
+              },
+            ],
+          },
+        ];
+        const [selected, setSelected] = React.useState(null);
+
+        return (
+          <Panel style={{ display: 'grid', gap: 20, padding: 24 }}>
+            <BoardHeader
+              eyebrow="Merchant · Orders"
+              title="Order board"
+              right={
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <StatusPill label="5 live" tone="alert" />
+                  <BtnPrimary label="Export" />
+                </div>
+              }
+            />
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px,1fr))',
+                gap: 14,
+              }}
+            >
+              {lanes.map((lane) => (
+                <div
+                  key={lane.status}
+                  style={{ display: 'grid', gap: 10, alignContent: 'start' }}
+                >
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                  >
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700 }}>
+                      {lane.label}
+                    </h3>
+                    <StatusPill label={lane.orders.length} tone={lane.tone} />
+                  </div>
+                  {lane.orders.map((order) => (
+                    <BoardCard
+                      key={order.id}
+                      selected={selected === order.id}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div
+                        onClick={() =>
+                          setSelected(selected === order.id ? null : order.id)
+                        }
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                        }}
+                      >
+                        <div>
+                          <code
+                            style={{
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              color: P.textSubtle,
+                            }}
+                          >
+                            {order.id}
+                          </code>
+                          <div
+                            style={{
+                              fontWeight: 700,
+                              fontSize: '0.95rem',
+                              marginTop: 2,
+                            }}
+                          >
+                            {order.customer}
+                          </div>
+                        </div>
+                        <StatusPill label={lane.status} tone={lane.tone} />
+                      </div>
+                      <dl
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: '8px 14px',
+                        }}
+                      >
+                        <dt
+                          style={{
+                            fontSize: '0.74rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '.06em',
+                            color: '#6a7a89',
+                          }}
+                        >
+                          Items
+                        </dt>
+                        <dt
+                          style={{
+                            fontSize: '0.74rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '.06em',
+                            color: '#6a7a89',
+                          }}
+                        >
+                          Total
+                        </dt>
+                        <dd style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                          {order.items}
+                        </dd>
+                        <dd style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                          {order.total}
+                        </dd>
+                      </dl>
+                      <div style={{ fontSize: '0.8rem', color: P.textSubtle }}>
+                        {order.time}
+                      </div>
+                      {selected === order.id && lane.status === 'placed' && (
+                        <div
+                          style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}
+                        >
+                          <BtnPrimary
+                            label="Accept"
+                            onClick={() => setSelected(null)}
+                          />
+                          <BtnSecondary
+                            label="Reject"
+                            onClick={() => setSelected(null)}
+                          />
+                        </div>
+                      )}
+                    </BoardCard>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </Panel>
+        );
+      }
+
+      function DispatchBoard() {
+        const assignments = [
+          {
+            id: 'AB4F82C1',
+            rider: 'Faris Almutairi',
+            status: 'en_route',
+            sla: 'success',
+            eta: '6 min',
+            from: 'Olaya Branch',
+            to: 'King Fahad Rd',
+          },
+          {
+            id: 'CD7A11E2',
+            rider: 'Walid Saad',
+            status: 'picked_up',
+            sla: 'warning',
+            eta: '14 min',
+            from: 'Malaz Branch',
+            to: 'Tahlia St',
+          },
+          {
+            id: 'EF2B93D4',
+            rider: 'Nasser Alhajri',
+            status: 'assigned',
+            sla: 'success',
+            eta: '22 min',
+            from: 'North Branch',
+            to: 'Uruba Rd',
+          },
+        ];
+        return (
+          <Panel style={{ display: 'grid', gap: 20, padding: 24 }}>
+            <BoardHeader
+              eyebrow="Ops · Dispatch"
+              title="Live rider assignments"
+              right={<StatusPill label="3 active" tone="alert" />}
+            />
+
+            {/* Simplified map canvas */}
+            <div
+              style={{
+                position: 'relative',
+                minHeight: 240,
+                borderRadius: 18,
+                overflow: 'hidden',
+                background:
+                  'linear-gradient(160deg, rgba(255,248,240,.96), rgba(233,243,251,.94))',
+                border: `1px solid ${P.border}`,
+                backgroundImage: `repeating-linear-gradient(90deg, rgba(17,33,52,.05) 0, rgba(17,33,52,.05) 1px, transparent 1px, transparent 56px), repeating-linear-gradient(0deg, rgba(17,33,52,.05) 0, rgba(17,33,52,.05) 1px, transparent 1px, transparent 56px)`,
+              }}
+            >
+              {[
+                {
+                  label: 'Talabix Kitchen',
+                  style: { left: '28%', top: '40%' },
+                  color: P.orange,
+                },
+                {
+                  label: 'Green Market',
+                  style: { left: '55%', top: '28%' },
+                  color: P.orange,
+                },
+                {
+                  label: 'Faris — AB4F82C1',
+                  style: { left: '38%', top: '58%' },
+                  color: P.navy,
+                },
+                {
+                  label: 'Walid — CD7A11E2',
+                  style: { left: '62%', top: '50%' },
+                  color: P.navy,
+                },
+                {
+                  label: 'Drop: King Fahad',
+                  style: { left: '22%', top: '72%' },
+                  color: P.teal,
+                },
+                {
+                  label: 'Drop: Tahlia',
+                  style: { left: '70%', top: '68%' },
+                  color: P.teal,
+                },
+              ].map((m) => (
+                <div key={m.label} style={{ position: 'absolute', ...m.style }}>
+                  <div
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: 999,
+                      background: m.color,
+                      border: '2.5px solid rgba(255,255,255,.95)',
+                      boxShadow: '0 8px 16px rgba(17,33,52,.18)',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 18,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      whiteSpace: 'nowrap',
+                      padding: '5px 9px',
+                      borderRadius: 999,
+                      background: 'rgba(255,255,255,.92)',
+                      color: P.navy,
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      boxShadow: '0 4px 8px rgba(17,33,52,.1)',
+                    }}
+                  >
+                    {m.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px,1fr))',
+                gap: 14,
+              }}
+            >
+              {assignments.map((a) => (
+                <BoardCard key={a.id}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    <div>
+                      <code
+                        style={{
+                          fontSize: '0.78rem',
+                          color: P.textSubtle,
+                          fontWeight: 700,
+                        }}
+                      >
+                        {a.id}
+                      </code>
+                      <div style={{ fontWeight: 700, marginTop: 2 }}>
+                        {a.rider}
+                      </div>
+                    </div>
+                    <StatusPill label={`ETA ${a.eta}`} tone={a.sla} />
+                  </div>
+                  <dl
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '6px 12px',
+                      fontSize: '0.84rem',
+                    }}
+                  >
+                    <dt
+                      style={{
+                        fontSize: '0.72rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '.06em',
+                        color: '#6a7a89',
+                      }}
+                    >
+                      From
+                    </dt>
+                    <dt
+                      style={{
+                        fontSize: '0.72rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '.06em',
+                        color: '#6a7a89',
+                      }}
+                    >
+                      To
+                    </dt>
+                    <dd
+                      style={{
+                        fontWeight: 600,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {a.from}
+                    </dd>
+                    <dd
+                      style={{
+                        fontWeight: 600,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {a.to}
+                    </dd>
+                  </dl>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <StatusPill
+                      label={a.status.replace('_', ' ')}
+                      tone="info"
+                    />
+                  </div>
+                </BoardCard>
+              ))}
+            </div>
+          </Panel>
+        );
+      }
+
+      function MerchantCatalog() {
+        const [search, setSearch] = React.useState('');
+        const items = [
+          {
+            name: 'Classic Burger',
+            category: 'Burgers',
+            price: 'SAR 28.00',
+            status: 'active',
+          },
+          {
+            name: 'Double Smash',
+            category: 'Burgers',
+            price: 'SAR 38.00',
+            status: 'active',
+          },
+          {
+            name: 'Crispy Chicken',
+            category: 'Sandwiches',
+            price: 'SAR 32.00',
+            status: 'active',
+          },
+          {
+            name: 'Veggie Wrap',
+            category: 'Sandwiches',
+            price: 'SAR 24.00',
+            status: 'inactive',
+          },
+          {
+            name: 'Fresh Lemonade',
+            category: 'Drinks',
+            price: 'SAR 14.00',
+            status: 'active',
+          },
+        ].filter((i) => i.name.toLowerCase().includes(search.toLowerCase()));
+
+        return (
+          <Panel style={{ display: 'grid', gap: 20, padding: 24 }}>
+            <BoardHeader
+              eyebrow="Merchant · Catalog"
+              title="Menu items"
+              right={<BtnPrimary label="+ Add item" />}
+            />
+            <div
+              style={{
+                display: 'flex',
+                gap: 12,
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
+              <Input
+                value={search}
+                onChange={setSearch}
+                placeholder="Search items…"
+              />
+              <BtnSecondary label="Filter" />
+            </div>
+            <div style={{ display: 'grid', gap: 10 }}>
+              {items.map((item) => (
+                <BoardCard key={item.name}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                        {item.name}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.82rem',
+                          color: P.textMuted,
+                          marginTop: 2,
+                        }}
+                      >
+                        {item.category}
+                      </div>
+                    </div>
+                    <strong
+                      style={{
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {item.price}
+                    </strong>
+                    <StatusPill
+                      label={item.status}
+                      tone={item.status === 'active' ? 'success' : 'muted'}
+                    />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <BtnSecondary label="Edit" />
+                    </div>
+                  </div>
+                </BoardCard>
+              ))}
+            </div>
+          </Panel>
+        );
+      }
+
+      function SettlementBoard() {
+        const rows = [
+          [
+            'Talabix Demo Kitchen',
+            '72 orders',
+            'SAR 18,400',
+            'SAR 2,760',
+            'SAR 15,640',
+            'pending',
+          ],
+          [
+            'Green Market',
+            '45 orders',
+            'SAR 12,200',
+            'SAR 1,830',
+            'SAR 10,370',
+            'paid',
+          ],
+          [
+            'Coffee Corner',
+            '38 orders',
+            'SAR 8,100',
+            'SAR 1,215',
+            'SAR 6,885',
+            'paid',
+          ],
+          [
+            'Bloom & Rose',
+            '29 orders',
+            'SAR 9,530',
+            'SAR 1,430',
+            'SAR 8,100',
+            'pending',
+          ],
+        ];
+        return (
+          <Panel style={{ display: 'grid', gap: 20, padding: 24 }}>
+            <BoardHeader
+              eyebrow="Ops · Settlements"
+              title="Merchant payout ledger"
+              right={<BtnPrimary label="Export CSV" />}
+            />
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))',
+                gap: 14,
+              }}
+            >
+              <MetricCard
+                eyebrow="Total payable"
+                value="SAR 40,995"
+                description="4 merchants pending or paid"
+              />
+              <MetricCard
+                eyebrow="Platform commission"
+                value="SAR 7,235"
+                description="~15% average rate"
+              />
+              <MetricCard
+                eyebrow="Pending payouts"
+                value="SAR 23,740"
+                description="2 merchants awaiting transfer"
+              />
+            </div>
+            <ReportTable
+              headers={[
+                'Merchant',
+                'Orders',
+                'Gross',
+                'Commission',
+                'Net Payout',
+                'Status',
+              ]}
+              rows={rows.map((r) => [
+                ...r.slice(0, 5),
+                <StatusPill
+                  key={r[0]}
+                  label={r[5]}
+                  tone={r[5] === 'paid' ? 'success' : 'warm'}
+                />,
+              ])}
+            />
+          </Panel>
+        );
+      }
+
+      // ── App ───────────────────────────────────────────────────────────────
+      function App() {
+        const [actor, setActor] = React.useState('ops');
+        const [route, setRoute] = React.useState('dashboard');
+        const [locale, setLocale] = React.useState('en');
+
+        React.useEffect(() => {
+          const s = localStorage.getItem('talabix-portal-route');
+          const a = localStorage.getItem('talabix-portal-actor');
+          if (s) setRoute(s);
+          if (a) setActor(a);
+        }, []);
+
+        const handleRoute = (r) => {
+          if (r === '__actor_merchant') {
+            setActor('merchant');
+            setRoute('orders');
+            localStorage.setItem('talabix-portal-actor', 'merchant');
+            localStorage.setItem('talabix-portal-route', 'orders');
+            return;
+          }
+          if (r === '__actor_ops') {
+            setActor('ops');
+            setRoute('dashboard');
+            localStorage.setItem('talabix-portal-actor', 'ops');
+            localStorage.setItem('talabix-portal-route', 'dashboard');
+            return;
+          }
+          setRoute(r);
+          localStorage.setItem('talabix-portal-route', r);
+        };
+
+        const sessions = {
+          ops: {
+            label: 'Ops Admin',
+            summary: 'Full platform access, all regions.',
+            tags: [
+              'ops:dashboard.read',
+              'ops:dispatch.manage',
+              'ops:settlements.read',
+            ],
+          },
+          merchant: {
+            label: 'Talabix Demo Kitchen',
+            summary: 'Merchant · Olaya Branch scope.',
+            tags: [
+              'merchant:orders.manage',
+              'merchant:catalog.write',
+              'merchant:dashboard.read',
+            ],
+          },
+        };
+
+        const renderBoard = () => {
+          if (actor === 'ops') {
+            if (route === 'dashboard') return <OpsDashboard />;
+            if (route === 'dispatch') return <DispatchBoard />;
+            if (route === 'settlements') return <SettlementBoard />;
+          }
+          if (actor === 'merchant') {
+            if (route === 'orders') return <MerchantOrders />;
+            if (route === 'catalog') return <MerchantCatalog />;
+          }
+          return (
+            <Panel style={{ padding: 40, textAlign: 'center' }}>
+              <Eyebrow>{route}</Eyebrow>
+              <h2
+                style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: 12 }}
+              >
+                Coming soon in this kit
+              </h2>
+              <p style={{ color: P.textMuted, marginTop: 8 }}>
+                This board is not yet prototyped in the UI kit.
+              </p>
+            </Panel>
+          );
+        };
+
+        return (
+          <div
+            style={{
+              minHeight: '100vh',
+              padding: 'max(24px, env(safe-area-inset-top)) 24px 24px',
+            }}
+          >
+            <a
+              href="#main"
+              style={{
+                position: 'fixed',
+                top: 12,
+                left: 12,
+                zIndex: 20,
+                transform: 'translateY(-200%)',
+                background: P.navy,
+                color: '#fff',
+                padding: '10px 14px',
+                borderRadius: 12,
+                fontWeight: 800,
+                fontSize: '0.9rem',
+              }}
+            >
+              Skip to main
+            </a>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '280px minmax(0,1fr)',
+                gap: 24,
+                maxWidth: 1440,
+                margin: '0 auto',
+              }}
+            >
+              <Sidebar
+                activeRoute={route}
+                onRoute={handleRoute}
+                actor={actor}
+                locale={locale}
+                onLocale={setLocale}
+                session={sessions[actor]}
+              />
+              <main
+                id="main"
+                style={{ display: 'grid', gap: 24, alignContent: 'start' }}
+              >
+                {/* Hero banner */}
+                <Panel style={{ padding: 28 }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns:
+                        'minmax(0,1.5fr) minmax(260px,.85fr)',
+                      gap: 18,
+                      alignItems: 'end',
+                    }}
+                  >
+                    <div style={{ display: 'grid', gap: 14 }}>
+                      <Eyebrow>Route partitioning</Eyebrow>
+                      <h2
+                        style={{
+                          fontSize: 'clamp(2rem,4vw,3rem)',
+                          lineHeight: 0.95,
+                          fontWeight: 700,
+                          maxWidth: '13ch',
+                          textWrap: 'balance',
+                        }}
+                      >
+                        Actor-scoped delivery control
+                      </h2>
+                      <p style={{ color: P.textMuted, maxWidth: '60ch' }}>
+                        Modular monolith with Laravel 13. Four actor namespaces:
+                        customer, merchant, rider and ops. Shared contracts via{' '}
+                        <code
+                          style={{
+                            background: 'rgba(17,33,52,.06)',
+                            padding: '2px 6px',
+                            borderRadius: 6,
+                            fontSize: '0.85em',
+                          }}
+                        >
+                          @talabix/shared
+                        </code>
+                        .
+                      </p>
+                    </div>
+                    <div style={{ display: 'grid', gap: 12 }}>
+                      <MetricCard
+                        eyebrow="Namespaces"
+                        value="4 actor APIs"
+                        description="/customer /merchant /rider /ops"
+                      />
+                      <MetricCard
+                        eyebrow="Contracts"
+                        value="Shared validators"
+                        description="Zod schemas, enums, ability maps"
+                      />
+                    </div>
+                  </div>
+                </Panel>
+                {renderBoard()}
+              </main>
+            </div>
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
+</html>

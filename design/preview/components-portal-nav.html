@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+        background: #f6f8fb;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .nav {
+        background: rgba(255, 255, 255, 0.84);
+        border: 1px solid rgba(17, 33, 52, 0.08);
+        border-radius: 18px;
+        padding: 12px;
+        width: 220px;
+        display: grid;
+        gap: 6px;
+        box-shadow: 0 22px 45px rgba(17, 33, 52, 0.1);
+      }
+      .brand-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        color: #fff;
+        font-weight: 700;
+        font-size: 18px;
+        background: linear-gradient(135deg, #112134 0%, #ff8c42 100%);
+      }
+      .nav-link {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 14px;
+        border-radius: 14px;
+        color: #314153;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: background 160ms ease;
+      }
+      .nav-link:hover {
+        background: rgba(17, 33, 52, 0.05);
+      }
+      .nav-link.active {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 140, 66, 0.12),
+          rgba(38, 166, 154, 0.1)
+        );
+        color: #112134;
+      }
+      .pill {
+        background: rgba(17, 33, 52, 0.08);
+        border-radius: 999px;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .lang {
+        display: flex;
+        gap: 6px;
+        padding: 5px;
+        border-radius: 14px;
+        background: rgba(17, 33, 52, 0.06);
+      }
+      .lang button {
+        flex: 1;
+        border: 0;
+        border-radius: 10px;
+        padding: 7px 0;
+        font-weight: 700;
+        font-size: 13px;
+        color: #314153;
+        background: transparent;
+        cursor: pointer;
+        transition: background 160ms;
+      }
+      .lang button.active {
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 6px 16px rgba(17, 33, 52, 0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav">
+      <div class="brand-mark">T</div>
+      <a class="nav-link active" href="#"
+        >Orders <span class="pill">Live</span></a
+      >
+      <a class="nav-link" href="#">Catalog <span class="pill">Scoped</span></a>
+      <a class="nav-link" href="#"
+        >Promotions <span class="pill">Offers</span></a
+      >
+      <a class="nav-link" href="#">Reports <span class="pill">Sales</span></a>
+      <div class="lang">
+        <button class="active">English</button>
+        <button>العربية</button>
+      </div>
+    </div>
+  </body>
+</html>

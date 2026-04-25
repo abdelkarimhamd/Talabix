@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+        background:
+          linear-gradient(135deg, rgba(255, 140, 66, 0.06), transparent 36%),
+          linear-gradient(180deg, #f6f8fb, #eef3f7 56%, #fff);
+        padding: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-content: flex-start;
+        color: #112134;
+      }
+      .panel {
+        background: rgba(255, 255, 255, 0.84);
+        border: 1px solid rgba(17, 33, 52, 0.08);
+        border-radius: 18px;
+        box-shadow: 0 22px 45px rgba(17, 33, 52, 0.1);
+        backdrop-filter: blur(14px);
+        padding: 16px;
+        min-width: 160px;
+      }
+      .board-card {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.96),
+          rgba(243, 247, 252, 0.92)
+        );
+        border: 1px solid rgba(17, 33, 52, 0.08);
+        border-radius: 16px;
+        padding: 14px;
+        min-width: 150px;
+      }
+      .board-card.selected {
+        border-color: rgba(255, 140, 66, 0.35);
+        box-shadow: 0 18px 34px rgba(255, 140, 66, 0.12);
+      }
+      .metric-card {
+        background: linear-gradient(
+          160deg,
+          rgba(255, 248, 240, 0.92),
+          rgba(255, 255, 255, 0.82)
+        );
+        border: 1px solid rgba(17, 33, 52, 0.08);
+        border-radius: 16px;
+        padding: 14px;
+        min-width: 140px;
+      }
+      .eyebrow {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #516275;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .eyebrow::before {
+        content: '';
+        width: 16px;
+        height: 1px;
+        background: currentColor;
+      }
+      p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: #5c6a78;
+      }
+      strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <span class="eyebrow">Live orders</span>
+      <strong>14</strong>
+      <p>Active right now</p>
+    </div>
+    <div class="metric-card">
+      <span class="eyebrow">Gross sales</span>
+      <strong>SAR 4,820</strong>
+      <p>Last 7 days</p>
+    </div>
+    <div class="board-card">
+      <div style="font-weight: 700; font-size: 15px">Talabix Kitchen</div>
+      <p>Olaya Branch · Riyadh</p>
+    </div>
+    <div class="board-card selected">
+      <div style="font-weight: 700; font-size: 15px">Bloom & Rose</div>
+      <p>Malaz Branch · selected</p>
+    </div>
+  </body>
+</html>

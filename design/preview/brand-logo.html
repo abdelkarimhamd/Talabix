@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: #f6f6f2;
+        padding: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: center;
+      }
+      .logo-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .label {
+        font-size: 11px;
+        color: #62666d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .brand-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        color: #fff;
+        font-weight: 700;
+        font-size: 22px;
+        background: linear-gradient(135deg, #112134 0%, #ff8c42 100%);
+      }
+      .on-dark {
+        background: #17191c;
+        padding: 16px;
+        border-radius: 14px;
+      }
+      .on-yellow {
+        background: #ffe500;
+        padding: 16px;
+        border-radius: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="logo-box">
+      <span class="label">SVG logo</span>
+      <img
+        src="../assets/talabix-logo.svg"
+        width="56"
+        height="54"
+        alt="Talabix"
+      />
+    </div>
+    <div class="logo-box">
+      <span class="label">On white</span>
+      <div
+        style="
+          background: #fff;
+          padding: 16px;
+          border-radius: 14px;
+          border: 1px solid #ececec;
+        "
+      >
+        <img
+          src="../assets/talabix-logo.svg"
+          width="48"
+          height="46"
+          alt="Talabix"
+        />
+      </div>
+    </div>
+    <div class="logo-box">
+      <span class="label">On dark</span>
+      <div class="on-dark">
+        <img
+          src="../assets/talabix-logo.svg"
+          width="48"
+          height="46"
+          alt="Talabix"
+        />
+      </div>
+    </div>
+    <div class="logo-box">
+      <span class="label">On yellow</span>
+      <div class="on-yellow">
+        <img
+          src="../assets/talabix-logo.svg"
+          width="48"
+          height="46"
+          alt="Talabix"
+        />
+      </div>
+    </div>
+    <div class="logo-box">
+      <span class="label">Portal mark</span>
+      <div class="brand-mark">T</div>
+    </div>
+    <div class="logo-box">
+      <span class="label">App icon</span>
+      <img
+        src="../assets/customer-app-icon.png"
+        width="56"
+        height="56"
+        style="border-radius: 14px"
+        alt="Customer App"
+      />
+    </div>
+  </body>
+</html>
