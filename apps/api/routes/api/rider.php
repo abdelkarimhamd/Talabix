@@ -25,6 +25,7 @@ Route::prefix('rider')->name('rider.')->group(function () {
         Route::get('orders/{order}', [OrderController::class, 'show']);
         Route::post('orders/{order}/accept-assignment', [OrderController::class, 'riderAcceptAssignment']);
         Route::post('orders/{order}/picked-up', [OrderController::class, 'riderPickup']);
+        Route::post('orders/{order}/delivery-exception', [OrderController::class, 'riderReportDeliveryException']);
         Route::post('orders/{order}/delivered', [OrderController::class, 'riderDeliver']);
     });
 });

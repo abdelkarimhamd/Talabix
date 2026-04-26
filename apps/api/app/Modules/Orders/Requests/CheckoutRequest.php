@@ -11,11 +11,15 @@ class CheckoutRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [
             'branch_uuid' => ['required', 'uuid'],
             'address_uuid' => ['required', 'uuid'],
+            'promo_code' => ['nullable', 'string', 'max:64'],
             'notes' => ['nullable', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.catalog_item_uuid' => ['required', 'uuid'],

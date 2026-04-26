@@ -12,4 +12,5 @@ enum AuditActionType: string
     case PERMISSION_CHANGED = 'permission_changed';
     case SUPPORT_CASE_UPDATED = 'support_case_updated';
     case SUPPORT_NOTE_ADDED = 'support_note_added';
+    case MAPS_CONFIGURATION_UPDATED = 'maps_configuration_updated';
 }

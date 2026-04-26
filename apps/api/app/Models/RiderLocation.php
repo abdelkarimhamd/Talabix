@@ -2,12 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property Carbon|null $recorded_at
+ */
 class RiderLocation extends Model
 {
+    /** @use HasFactory<Factory<RiderLocation>> */
     use HasFactory;
 
     protected $guarded = [];
@@ -19,6 +25,7 @@ class RiderLocation extends Model
         ];
     }
 
+    /** @return BelongsTo<RiderProfile, $this> */
     public function riderProfile(): BelongsTo
     {
         return $this->belongsTo(RiderProfile::class);

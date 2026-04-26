@@ -13,6 +13,9 @@ class OrderStatusChanged
     use Dispatchable;
     use SerializesModels;
 
+    /**
+     * @param  array<string, mixed>  $metadata
+     */
     public function __construct(
         public Order $order,
         public OrderStatus $from,

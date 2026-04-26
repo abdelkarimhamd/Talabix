@@ -325,6 +325,64 @@ it('returns realtime sla reassignment and rider state visibility for ops dispatc
         ]);
 });
 
+it('returns response timeout visibility for unresolved delivery exceptions', function () {
+    $this->seedRoles();
+    $merchantContext = $this->createMerchantContext();
+    $customerContext = $this->createCustomerContext();
+    ['profile' => $currentRider] = $this->createRiderContext(null, true, [
+        'latitude' => 24.7140,
+        'longitude' => 46.6760,
+    ]);
+    ['profile' => $backupRider] = $this->createRiderContext(null, true, [
+        'latitude' => 24.7138,
+        'longitude' => 46.6762,
+    ]);
+    $ops = $this->createUserWithRole('ops_dispatcher');
+    $order = $this->createPlacedOrder($customerContext, $merchantContext);
+    $order->update([
+        'status' => 'picked_up',
+        'rider_profile_id' => $currentRider->id,
+        'placed_at' => now()->subMinutes(42),
+        'accepted_at' => now()->subMinutes(37),
+    ]);
+
+    DeliveryAssignment::query()->create([
+        'order_id' => $order->id,
+        'rider_profile_id' => $currentRider->id,
+        'assignment_type' => 'auto',
+        'status' => 'exception_reported',
+        'score' => 72,
+        'assigned_at' => now()->subMinutes(32),
+        'accepted_at' => now()->subMinutes(28),
+        'picked_up_at' => now()->subMinutes(20),
+    ]);
+
+    $order->timeline()->create([
+        'event_type' => 'delivery_exception_reported',
+        'actor_user_id' => $currentRider->user_id,
+        'actor_role' => 'rider',
+        'metadata' => [
+            'reason_code' => 'customer_unreachable',
+            'reason_label' => 'Customer unreachable',
+            'note' => 'Customer phone is unreachable at the handoff point.',
+            'reported_by' => 'rider',
+        ],
+        'created_at' => now()->subMinutes(16),
+        'updated_at' => now()->subMinutes(16),
+    ]);
+
+    Sanctum::actingAs($ops, ['ops:dispatch.manage']);
+
+    $this->getJson('/api/v1/ops/dispatch/assignments')
+        ->assertOk()
+        ->assertJsonPath('data.0.orderUuid', $order->uuid)
+        ->assertJsonPath('data.0.exception.reason_code', 'customer_unreachable')
+        ->assertJsonPath('data.0.exception.response_sla.level', 'breached')
+        ->assertJsonPath('data.0.exception.response_sla.target_minutes', 10)
+        ->assertJsonPath('data.0.exception.response_sla.escalation_action', 'support_reassignment_required')
+        ->assertJsonPath('data.0.eligibleRiders.0.riderUuid', $backupRider->uuid);
+});
+
 it('records reassignment reason metadata and broadcasts ops dispatch updates', function () {
     Event::fake(['App\Modules\Dispatch\Events\OpsDispatchBoardUpdated']);
 

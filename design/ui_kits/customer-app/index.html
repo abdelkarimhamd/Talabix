@@ -1,0 +1,2719 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Talabix — Customer App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+      integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+      integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+      integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #bebebe;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 32px 24px;
+        font-family:
+          'DM Sans',
+          -apple-system,
+          system-ui,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .phone {
+        width: 390px;
+        height: 844px;
+        background: #fff;
+        border-radius: 50px;
+        overflow: hidden;
+        box-shadow:
+          0 60px 130px rgba(0, 0, 0, 0.38),
+          0 0 0 1.5px rgba(0, 0, 0, 0.12);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      .sbar {
+        height: 44px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        background: #fff;
+        position: relative;
+        z-index: 5;
+      }
+      .body {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        background: #fff;
+      }
+      .body::-webkit-scrollbar {
+        display: none;
+      }
+      .tbar {
+        height: 76px;
+        flex-shrink: 0;
+        background: #fff;
+        border-top: 1.5px solid #f0f0f0;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 4px 4px 10px;
+      }
+      button {
+        font-family: inherit;
+        cursor: pointer;
+      }
+
+      /* tweaks panel */
+      #tweaks-panel {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 16px;
+        padding: 16px;
+        min-width: 200px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        display: none;
+        font-size: 13px;
+      }
+      #tweaks-panel h4 {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #888;
+        margin-bottom: 12px;
+      }
+      .tw-row {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 12px;
+      }
+      .tw-row label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #444;
+      }
+      .tw-row select,
+      .tw-row input {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 13px;
+        font-family: inherit;
+        background: #fff;
+        color: #1c1c1e;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="tweaks-panel">
+      <h4>Tweaks</h4>
+      <div class="tw-row">
+        <label>Active screen</label>
+        <select id="tw-screen">
+          <option value="home">Home</option>
+          <option value="orders">Orders</option>
+          <option value="profile">Profile</option>
+          <option value="merchant">Merchant detail</option>
+        </select>
+      </div>
+      <div class="tw-row">
+        <label>Phone bg</label>
+        <select id="tw-bg">
+          <option value="#BEBEBE">Warm gray</option>
+          <option value="#1C1C1E">Dark</option>
+          <option value="#E8F0FE">Soft blue</option>
+        </select>
+      </div>
+    </div>
+    <script type="text/babel">
+      // ── Tokens ─────────────────────────────────────────────────────────────
+      const C = {
+        yellow: '#FFCC00',
+        ink: '#1C1C1E',
+        ink2: '#3C3C43',
+        muted: '#6B6B6B',
+        subtle: '#ABABAB',
+        border: '#F0F0F0',
+        surface: '#F7F7F7',
+        green: '#22A45D',
+        pink: '#FF3B5C',
+        blue: '#1565C0',
+        blueSoft: '#E8F2FF',
+        blueText: '#1565C0',
+      };
+      const ART = {
+        burger: '../../assets/product-artwork/burger.png',
+        shawarma: '../../assets/product-artwork/shawarma.png',
+        market: '../../assets/product-artwork/market.png',
+        coffee: '../../assets/product-artwork/coffee.png',
+        gift: '../../assets/product-artwork/gift.png',
+      };
+
+      // ── Data ────────────────────────────────────────────────────────────────
+      const CATEGORIES = [
+        {
+          id: 'restaurants',
+          label: 'Restaurants',
+          badge: '+50,000',
+          bColor: C.green,
+          art: ART.burger,
+          bg: '#b8102f',
+        },
+        {
+          id: 'market',
+          label: 'Market',
+          badge: '20 mins',
+          bColor: C.green,
+          art: ART.market,
+          bg: '#0f7f56',
+        },
+        {
+          id: 'supermarkets',
+          label: 'Supermarkets',
+          art: ART.market,
+          bg: '#1d5f87',
+        },
+        {
+          id: 'pickup',
+          label: 'Self Pick-up',
+          badge: 'Up to 30% off',
+          bColor: C.pink,
+          art: ART.shawarma,
+          bg: '#7b1b10',
+        },
+        {
+          id: 'coffee',
+          label: 'Coffee & Sweets',
+          art: ART.coffee,
+          bg: '#1d5f87',
+        },
+        { id: 'pharmacy', label: 'Pharmacies', art: ART.market, bg: '#0f7f56' },
+        {
+          id: 'flowers',
+          label: 'Flowers & More',
+          art: ART.gift,
+          bg: '#7132a8',
+        },
+        {
+          id: 'gifts',
+          label: 'Gifts',
+          badge: '30% Off',
+          bColor: C.pink,
+          art: ART.gift,
+          bg: '#7132a8',
+        },
+      ];
+      const MERCHANTS = [
+        {
+          id: 'm1',
+          name: 'Talabix Demo Kitchen',
+          cuisine: 'Fast Food, American, Burgers',
+          rating: 3.7,
+          rCount: 1233,
+          time: '15–30',
+          fee: 'Free',
+          minOrder: 15,
+          art: ART.burger,
+          bg: '#b8102f',
+          logoBg: '#c00',
+          logoText: 'T',
+          hplus: true,
+          discount: '30%',
+          tag: 'Top Choice',
+        },
+        {
+          id: 'm2',
+          name: 'Ennabi Grill',
+          cuisine: 'Grill, Saudi',
+          rating: 4.3,
+          rCount: 250,
+          time: '20–35',
+          fee: 17,
+          minOrder: 15,
+          art: ART.shawarma,
+          bg: '#7b1b10',
+          logoBg: '#8B1A10',
+          logoText: 'E',
+          hplus: true,
+          discount: null,
+          tag: 'Top Choice',
+        },
+        {
+          id: 'm3',
+          name: 'Green Market',
+          cuisine: 'Groceries, Fresh Produce',
+          rating: 4.1,
+          rCount: 512,
+          time: '20–35',
+          fee: 'Free',
+          minOrder: 25,
+          art: ART.market,
+          bg: '#0f7f56',
+          logoBg: '#0f7f56',
+          logoText: 'G',
+          hplus: false,
+          discount: null,
+          tag: null,
+        },
+        {
+          id: 'm4',
+          name: 'Bloom & Rose',
+          cuisine: 'Flowers, Gifts, Same Day',
+          rating: 4.5,
+          rCount: 203,
+          time: '30–45',
+          fee: 12,
+          minOrder: 0,
+          art: ART.gift,
+          bg: '#7132a8',
+          logoBg: '#7132a8',
+          logoText: 'B',
+          hplus: false,
+          discount: '20%',
+          tag: null,
+        },
+      ];
+      const MENU_ITEMS = [
+        {
+          id: 'i1',
+          name: 'Super Saver Beef Box',
+          desc: '2 angus beef burger meals of angus beef stuffed with cheese, served in butter-toasted buns, topped with si...',
+          kcal: 2700,
+          price: 46.9,
+          orig: 67,
+          orders: '300+',
+          badges: [],
+          art: ART.burger,
+          bg: '#b8102f',
+        },
+        {
+          id: 'i2',
+          name: 'Duetto Grand Chicken Box Eid Offer',
+          desc: 'Grand chicken duetto box: 2 large grand chicken sandwiches served in butter-toasted brioche buns, with s...',
+          kcal: 2794,
+          price: 39.9,
+          orig: 57,
+          orders: '160+',
+          badges: ['Bestseller', 'Top Rated'],
+          art: ART.shawarma,
+          bg: '#b8102f',
+        },
+        {
+          id: 'i3',
+          name: 'Grand Chicken Meal Eid Offer',
+          desc: 'Grand chicken boneless sandwich the biggest piece of boneless fried chicken, regular or spicy, topped w...',
+          kcal: 1397,
+          price: 28,
+          orig: 40,
+          orders: '40+',
+          badges: [],
+          art: ART.burger,
+          bg: '#7b1b10',
+        },
+        {
+          id: 'i4',
+          name: 'Eid Gathering Beef Burger Box',
+          desc: 'Premium beef patties, fresh toppings, served family style. Perfect for celebrations and gatherings...',
+          kcal: 3200,
+          price: 58.9,
+          orig: 80,
+          orders: '20+',
+          badges: ['Bestseller'],
+          art: ART.burger,
+          bg: '#b8102f',
+        },
+      ];
+      const ORDER_HIST = [
+        {
+          date: 'Yesterday, 08:58 PM',
+          status: 'Delivered',
+          name: 'Talabix Demo Kitchen',
+          art: ART.burger,
+          bg: '#b8102f',
+          amount: 92.49,
+        },
+        {
+          date: 'Yesterday, 12:54 PM',
+          status: 'Delivered',
+          name: 'Bab Tuma',
+          art: ART.shawarma,
+          bg: '#7b1b10',
+          amount: 30.9,
+        },
+        {
+          date: '17 April, 2026',
+          status: 'Delivered',
+          name: 'Malak Al Tawouk',
+          art: ART.shawarma,
+          bg: '#0f7f56',
+          amount: 39.14,
+        },
+        {
+          date: '15 April, 2026',
+          status: 'Delivered',
+          name: 'Malak Al Tawouk',
+          art: ART.shawarma,
+          bg: '#0f7f56',
+          amount: 37.05,
+        },
+        {
+          date: '14 April, 2026',
+          status: 'Delivered',
+          name: 'Shawarma Ajiba',
+          art: ART.shawarma,
+          bg: '#7b1b10',
+          amount: 24.5,
+        },
+      ];
+
+      // ── SVG Icons ───────────────────────────────────────────────────────────
+      const Bag = ({ s = 22, c = '#888' }) => (
+        <svg
+          width={s}
+          height={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={c}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <path d="M16 10a4 4 0 01-8 0" />
+        </svg>
+      );
+      const Tag = ({ s = 22, c = '#888' }) => (
+        <svg
+          width={s}
+          height={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={c}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+          <circle cx="7" cy="7" r="1.5" fill={c} stroke="none" />
+        </svg>
+      );
+      const GiftIcon = ({ s = 22, c = '#888' }) => (
+        <svg
+          width={s}
+          height={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={c}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="20 12 20 22 4 22 4 12" />
+          <rect x="2" y="7" width="20" height="5" />
+          <line x1="12" y1="22" x2="12" y2="7" />
+          <path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z" />
+          <path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" />
+        </svg>
+      );
+      const Person = ({ s = 22, c = '#888' }) => (
+        <svg
+          width={s}
+          height={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={c}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      );
+      const Chevron = ({ s = 16, c = '#ABABAB' }) => (
+        <svg
+          width={s}
+          height={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={c}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      );
+      const StarFill = ({ s = 12, c = '#FFCC00' }) => (
+        <svg
+          width={s}
+          height={s}
+          viewBox="0 0 24 24"
+          fill={c}
+          stroke={c}
+          strokeWidth="0.5"
+        >
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      );
+      const Clock = ({ s = 12, c = '#888' }) => (
+        <svg
+          width={s}
+          height={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={c}
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      );
+      const Search = ({ s = 18, c = '#ABABAB' }) => (
+        <svg
+          width={s}
+          height={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={c}
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      );
+      const Pin = ({ s = 14 }) => (
+        <svg width={s} height={s} viewBox="0 0 24 24" fill={C.green}>
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+        </svg>
+      );
+      const ArrowBack = ({ s = 18, c = '#1C1C1E' }) => (
+        <svg
+          width={s}
+          height={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={c}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="19" y1="12" x2="5" y2="12" />
+          <polyline points="12 19 5 12 12 5" />
+        </svg>
+      );
+      const UpArrow = ({ s = 11, c = C.green }) => (
+        <svg
+          width={s}
+          height={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={c}
+          strokeWidth="3"
+          strokeLinecap="round"
+        >
+          <line x1="12" y1="19" x2="12" y2="5" />
+          <polyline points="5 12 12 5 19 12" />
+        </svg>
+      );
+
+      // ── Atoms ───────────────────────────────────────────────────────────────
+      function TLogo({ size = 26, active = false }) {
+        return (
+          <div
+            style={{
+              width: size,
+              height: size,
+              background: active ? C.yellow : '#F0F0F0',
+              borderRadius: Math.round(size * 0.28),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 900,
+              fontSize: Math.round(size * 0.6),
+              color: active ? C.ink : '#888',
+              transition: 'background 180ms',
+              letterSpacing: -0.5,
+            }}
+          >
+            T
+          </div>
+        );
+      }
+
+      // ── Status Bar ──────────────────────────────────────────────────────────
+      function StatusBar({ bg = '#fff' }) {
+        return (
+          <div className="sbar" style={{ background: bg }}>
+            <span
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: bg === '#fff' ? C.ink : '#fff',
+              }}
+            >
+              3:04
+            </span>
+            <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+              <svg
+                width="17"
+                height="12"
+                viewBox="0 0 17 12"
+                fill={bg === '#fff' ? C.ink : '#fff'}
+              >
+                <rect x="0" y="3" width="3" height="9" rx="1" />
+                <rect x="4" y="2" width="3" height="10" rx="1" />
+                <rect x="8" y="1" width="3" height="11" rx="1" />
+                <rect x="12" y="0" width="3" height="12" rx="1" />
+              </svg>
+              <svg
+                width="16"
+                height="12"
+                viewBox="0 0 16 12"
+                fill="none"
+                stroke={bg === '#fff' ? C.ink : '#fff'}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              >
+                <path d="M1 4a9 9 0 0114 0M4 7a5 5 0 018 0M7 10a2 2 0 012 0" />
+              </svg>
+              <div
+                style={{
+                  background: C.green,
+                  borderRadius: 4,
+                  padding: '1px 5px',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: '#fff',
+                }}
+              >
+                18
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ── Tab Bar ─────────────────────────────────────────────────────────────
+      const TABS = [
+        { key: 'home', label: 'Home' },
+        { key: 'orders', label: 'Orders' },
+        { key: 'offers', label: 'Offers' },
+        { key: 'points', label: '9000 Points' },
+        { key: 'profile', label: 'Profile' },
+      ];
+      function TabBar({ active, onTab }) {
+        return (
+          <div className="tbar">
+            {TABS.map((t) => {
+              const on = t.key === active;
+              const ic =
+                t.key === 'home' ? (
+                  <TLogo size={26} active={on} />
+                ) : t.key === 'orders' ? (
+                  <Bag s={22} c={on ? C.yellow : '#888'} />
+                ) : t.key === 'offers' ? (
+                  <Tag s={22} c={on ? C.yellow : '#888'} />
+                ) : t.key === 'points' ? (
+                  <GiftIcon s={22} c={on ? C.yellow : '#888'} />
+                ) : (
+                  <Person s={22} c={on ? C.yellow : '#888'} />
+                );
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => onTab(t.key)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 3,
+                    padding: '6px 8px',
+                    borderRadius: 14,
+                    border: 'none',
+                    background: on ? '#F0F0F0' : 'transparent',
+                    minWidth: 50,
+                    transition: 'background 180ms',
+                  }}
+                >
+                  {ic}
+                  <span
+                    style={{
+                      fontSize: t.key === 'points' ? 9 : 10,
+                      fontWeight: on ? 700 : 500,
+                      color: on ? C.ink : '#888',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {t.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        );
+      }
+
+      // ── Location Bar ────────────────────────────────────────────────────────
+      function LocationBar({ showCart = false, onAddressPress }) {
+        return (
+          <div style={{ padding: '10px 16px 0', background: '#fff' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <button
+                onClick={onAddressPress}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                }}
+              >
+                <Pin s={14} />
+                <span style={{ fontSize: 15, fontWeight: 700, color: C.green }}>
+                  Work
+                </span>
+                <span style={{ fontSize: 11, color: C.ink2, marginLeft: 1 }}>
+                  ▾
+                </span>
+              </button>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {showCart && (
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                  >
+                    <Bag s={20} c={C.ink} />
+                    <span
+                      style={{ fontSize: 12, color: C.muted, fontWeight: 500 }}
+                    >
+                      Carts
+                    </span>
+                  </div>
+                )}
+                <button
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 3,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Search s={20} c={C.ink} />
+                </button>
+              </div>
+            </div>
+            <div
+              style={{
+                fontSize: 12,
+                color: C.muted,
+                marginTop: 2,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              RHOA2239, 2239 Al Amir Muhammad Ibn Abd Al Aziz...
+            </div>
+          </div>
+        );
+      }
+
+      function SearchBar({ placeholder = 'Search for a Restaurant or Store' }) {
+        return (
+          <div
+            style={{
+              margin: '10px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: C.surface,
+              borderRadius: 12,
+              padding: '0 14px',
+              height: 44,
+            }}
+          >
+            <Search s={16} c={C.subtle} />
+            <span style={{ fontSize: 14, color: C.subtle }}>{placeholder}</span>
+          </div>
+        );
+      }
+
+      // ── Home Screen ─────────────────────────────────────────────────────────
+      function HeroBanner() {
+        return (
+          <div
+            style={{
+              margin: '2px 16px 0',
+              background: '#FFF7E6',
+              borderRadius: 18,
+              overflow: 'hidden',
+              height: 148,
+              display: 'flex',
+              position: 'relative',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: 170,
+                overflow: 'hidden',
+                borderRadius: '0 18px 18px 0',
+              }}
+            >
+              <img
+                src={ART.burger}
+                alt=""
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'right center',
+                  transform: 'scale(1.35)',
+                  transformOrigin: '82% center',
+                  opacity: 0.8,
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background:
+                    'linear-gradient(to right,#FFF7E6 0%,transparent 50%)',
+                }}
+              />
+            </div>
+            <div
+              style={{
+                padding: '16px 18px',
+                position: 'relative',
+                zIndex: 1,
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    background: '#fff',
+                    borderRadius: 9,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 24,
+                      height: 24,
+                      background: C.yellow,
+                      borderRadius: 6,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 900,
+                      fontSize: 13,
+                      color: C.ink,
+                    }}
+                  >
+                    T
+                  </div>
+                </div>
+                <span style={{ fontSize: 11, color: C.muted, fontWeight: 500 }}>
+                  talabix.com
+                </span>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 800,
+                    color: C.ink,
+                    lineHeight: 1.15,
+                  }}
+                >
+                  Your Delivery
+                </div>
+                <span
+                  style={{
+                    display: 'inline-block',
+                    background: C.pink,
+                    borderRadius: 6,
+                    padding: '2px 8px',
+                    marginTop: 3,
+                  }}
+                >
+                  <span
+                    style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}
+                  >
+                    Builds Smiles
+                  </span>
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <button
+                  style={{
+                    background: C.yellow,
+                    border: 'none',
+                    borderRadius: 10,
+                    padding: '8px 16px',
+                    fontWeight: 700,
+                    fontSize: 13,
+                    color: C.ink,
+                    cursor: 'pointer',
+                    alignSelf: 'flex-start',
+                  }}
+                >
+                  Order Now
+                </button>
+                <span style={{ fontSize: 10, color: C.subtle }}>
+                  *T&Cs apply
+                </span>
+              </div>
+            </div>
+            {/* page dots */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 8,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                gap: 4,
+              }}
+            >
+              <div
+                style={{
+                  width: 14,
+                  height: 4,
+                  borderRadius: 999,
+                  background: 'rgba(0,0,0,.35)',
+                }}
+              />
+              <div
+                style={{
+                  width: 4,
+                  height: 4,
+                  borderRadius: 999,
+                  background: 'rgba(0,0,0,.15)',
+                }}
+              />
+              <div
+                style={{
+                  width: 4,
+                  height: 4,
+                  borderRadius: 999,
+                  background: 'rgba(0,0,0,.15)',
+                }}
+              />
+            </div>
+          </div>
+        );
+      }
+
+      function CategoryGrid() {
+        const [active, setActive] = React.useState(null);
+        return (
+          <div style={{ padding: '14px 16px 0' }}>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: C.ink,
+                marginBottom: 12,
+              }}
+            >
+              What would you like to order, <strong>Sahar?</strong>
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4,1fr)',
+                gap: 10,
+              }}
+            >
+              {CATEGORIES.map((cat) => (
+                <div
+                  key={cat.id}
+                  onClick={() => setActive(cat.id)}
+                  style={{
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 5,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '100%',
+                      aspectRatio: '1',
+                      borderRadius: 14,
+                      background: cat.bg,
+                      overflow: 'hidden',
+                      position: 'relative',
+                      border:
+                        active === cat.id
+                          ? `2px solid ${C.yellow}`
+                          : '2px solid transparent',
+                      transition: 'border-color 150ms',
+                    }}
+                  >
+                    <img
+                      src={cat.art}
+                      alt={cat.label}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'right center',
+                        transform: 'scale(1.45)',
+                        transformOrigin: '82% center',
+                      }}
+                    />
+                    {cat.badge && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 4,
+                          left: 3,
+                          right: 3,
+                          background: cat.bColor,
+                          borderRadius: 5,
+                          padding: '2px 3px',
+                          textAlign: 'center',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 8,
+                            fontWeight: 800,
+                            color: '#fff',
+                            lineHeight: 1.2,
+                            display: 'block',
+                          }}
+                        >
+                          {cat.badge}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      color: C.ink,
+                      textAlign: 'center',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {cat.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      function ReorderUsual() {
+        return (
+          <div style={{ margin: '18px 16px 0' }}>
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: C.ink,
+                marginBottom: 10,
+              }}
+            >
+              Reorder Your Usual
+            </div>
+            <div
+              style={{
+                background: '#fff',
+                border: `1px solid ${C.border}`,
+                borderRadius: 16,
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '11px 16px',
+                  borderBottom: `1px solid ${C.border}`,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      background: '#7b1b10',
+                      borderRadius: 10,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <img
+                      src={ART.shawarma}
+                      alt=""
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: C.ink }}>
+                    Shebbak Beirut
+                  </span>
+                </div>
+                <span style={{ fontSize: 13, color: C.ink }}>﷼ 32</span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px 16px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <img
+                    src={ART.shawarma}
+                    alt=""
+                    style={{
+                      width: 36,
+                      height: 28,
+                      objectFit: 'cover',
+                      borderRadius: 6,
+                    }}
+                  />
+                  <span style={{ fontSize: 13, color: C.muted }}>
+                    1x Tawouk Xxl
+                  </span>
+                </div>
+                <button
+                  style={{
+                    background: C.yellow,
+                    border: 'none',
+                    borderRadius: 20,
+                    padding: '8px 14px',
+                    fontWeight: 700,
+                    fontSize: 13,
+                    color: C.ink,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                  }}
+                >
+                  ↺ Reorder
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function DailyOffers() {
+        const items = [
+          { label: 'Coffee', art: ART.coffee, bg: '#F5F5F5' },
+          { label: 'Fast Delivery', art: ART.burger, bg: C.yellow },
+          { label: 'Foul & Tamees', art: ART.shawarma, bg: '#FFE8CC' },
+          { label: 'Top Disco...', art: ART.gift, bg: '#E8F0FF' },
+        ];
+        return (
+          <div style={{ margin: '18px 0 0', padding: '0 16px' }}>
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: C.ink,
+                marginBottom: 10,
+              }}
+            >
+              Daily offers
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                gap: 8,
+                overflowX: 'auto',
+                paddingBottom: 4,
+                marginRight: -16,
+                paddingRight: 16,
+              }}
+            >
+              {/* Special hour offer */}
+              <div
+                style={{
+                  minWidth: 95,
+                  height: 82,
+                  borderRadius: 12,
+                  background: C.pink,
+                  padding: '8px 9px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 9.5,
+                    fontWeight: 800,
+                    color: '#fff',
+                    lineHeight: 1.3,
+                  }}
+                >
+                  Up to ﷼35{'\n'}Offer HOUR{'\n'}+ Reduced Delivery
+                </div>
+                <div
+                  style={{
+                    background: 'rgba(0,0,0,0.22)',
+                    borderRadius: 6,
+                    padding: '2px 6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    width: 'fit-content',
+                  }}
+                >
+                  <span
+                    style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}
+                  >
+                    ⏱ 44:42
+                  </span>
+                </div>
+              </div>
+              {items.map((o) => (
+                <div
+                  key={o.label}
+                  style={{
+                    minWidth: 80,
+                    height: 82,
+                    borderRadius: 12,
+                    background: o.bg,
+                    overflow: 'hidden',
+                    position: 'relative',
+                    flexShrink: 0,
+                  }}
+                >
+                  <img
+                    src={o.art}
+                    alt={o.label}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      background: 'linear-gradient(transparent,rgba(0,0,0,.5))',
+                      padding: '16px 6px 5px',
+                    }}
+                  >
+                    <span
+                      style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}
+                    >
+                      {o.label}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      function FeaturedSection({ onMerchantPress }) {
+        return (
+          <div style={{ margin: '20px 0 0', padding: '0 16px' }}>
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: C.ink,
+                marginBottom: 12,
+              }}
+            >
+              Featured
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 12,
+              }}
+            >
+              {MERCHANTS.map((m) => (
+                <div
+                  key={m.id}
+                  onClick={() => onMerchantPress(m)}
+                  style={{
+                    background: '#fff',
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 16,
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div
+                    style={{
+                      height: 104,
+                      background: m.bg,
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <img
+                      src={m.art}
+                      alt={m.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                    <button
+                      style={{
+                        position: 'absolute',
+                        top: 6,
+                        left: 6,
+                        width: 26,
+                        height: 26,
+                        borderRadius: 999,
+                        background: 'rgba(255,255,255,0.88)',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 13,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ♡
+                    </button>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        background: 'rgba(255,255,255,0.92)',
+                        borderRadius: 8,
+                        padding: '3px 6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 3,
+                      }}
+                    >
+                      <StarFill s={11} />
+                      <span
+                        style={{ fontSize: 11, fontWeight: 700, color: C.ink }}
+                      >
+                        {m.rating}
+                      </span>
+                      <span style={{ fontSize: 10, color: C.muted }}>
+                        ({m.rCount})
+                      </span>
+                    </div>
+                    {m.tag && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 6,
+                          left: 6,
+                          background: 'linear-gradient(90deg,#FF8A00,#FF5200)',
+                          borderRadius: 999,
+                          padding: '2px 8px',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontWeight: 800,
+                            color: '#fff',
+                          }}
+                        >
+                          🏆 {m.tag}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      padding: '9px 10px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3,
+                    }}
+                  >
+                    <div
+                      style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          color: C.ink,
+                          flex: 1,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {m.name}
+                      </span>
+                      {m.hplus && (
+                        <span
+                          style={{
+                            fontSize: 8,
+                            fontWeight: 800,
+                            background: C.yellow,
+                            color: C.ink,
+                            borderRadius: 4,
+                            padding: '1px 4px',
+                            flexShrink: 0,
+                          }}
+                        >
+                          T+
+                        </span>
+                      )}
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        color: C.muted,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {m.cuisine}
+                    </span>
+                    <div
+                      style={{ display: 'flex', alignItems: 'center', gap: 5 }}
+                    >
+                      <Clock s={11} c={C.muted} />
+                      <span style={{ fontSize: 10.5, color: C.muted }}>
+                        {m.time} min
+                      </span>
+                      {m.discount && (
+                        <span
+                          style={{
+                            fontSize: 10,
+                            color: C.pink,
+                            fontWeight: 700,
+                          }}
+                        >
+                          🏷 {m.discount} off
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      function HomeScreen({ onMerchantPress }) {
+        return (
+          <div>
+            <LocationBar showCart />
+            <SearchBar />
+            <HeroBanner />
+            <CategoryGrid />
+            <ReorderUsual />
+            <DailyOffers />
+            <FeaturedSection onMerchantPress={onMerchantPress} />
+            <div style={{ height: 24 }} />
+          </div>
+        );
+      }
+
+      // ── Merchant Screen ─────────────────────────────────────────────────────
+      function MerchantScreen({ merchant, onBack }) {
+        const [menuTab, setMenuTab] = React.useState('discounts');
+        const [cart, setCart] = React.useState([]);
+        const tabs = [
+          { id: 'discounts', label: 'Special discounts' },
+          { id: 'again', label: 'Order Again' },
+          { id: 'bestsellers', label: 'Bestsellers' },
+          { id: 'value', label: 'Value' },
+        ];
+        const total = cart.reduce((s, i) => s + i.price, 0);
+
+        return (
+          <div>
+            {/* Hero */}
+            <div
+              style={{
+                height: 220,
+                background: merchant.bg,
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <img
+                src={merchant.art}
+                alt={merchant.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 14,
+                  left: 14,
+                  right: 14,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <button
+                  onClick={onBack}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 999,
+                    background: 'rgba(255,255,255,.92)',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <ArrowBack s={17} />
+                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {['↑', '♡', '🔍'].map((ic, i) => (
+                    <button
+                      key={i}
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 999,
+                        background: 'rgba(255,255,255,.92)',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 14,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {ic}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Restaurant info */}
+            <div
+              style={{
+                padding: '14px 16px',
+                borderBottom: `1px solid ${C.border}`,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 14,
+                    background: merchant.logoBg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 900,
+                    fontSize: 22,
+                    color: '#fff',
+                    flexShrink: 0,
+                  }}
+                >
+                  {merchant.logoText}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <span
+                      style={{ fontSize: 16, fontWeight: 800, color: C.ink }}
+                    >
+                      {merchant.name}
+                    </span>
+                    {merchant.hplus && (
+                      <span
+                        style={{
+                          background: C.yellow,
+                          borderRadius: 5,
+                          padding: '2px 5px',
+                          fontSize: 9,
+                          fontWeight: 800,
+                          color: C.ink,
+                        }}
+                      >
+                        T+
+                      </span>
+                    )}
+                  </div>
+                  <span style={{ fontSize: 12, color: C.muted }}>
+                    {merchant.cuisine}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3,
+                    background: '#FFF8E0',
+                    borderRadius: 8,
+                    padding: '5px 8px',
+                  }}
+                >
+                  <StarFill s={13} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: C.ink }}>
+                    {merchant.rating}
+                  </span>
+                  <span style={{ fontSize: 11, color: C.muted }}>
+                    ({merchant.rCount})
+                  </span>
+                </div>
+              </div>
+
+              {/* Delivery toggle */}
+              <div
+                style={{
+                  marginTop: 12,
+                  display: 'flex',
+                  background: C.surface,
+                  borderRadius: 10,
+                  padding: 3,
+                  gap: 2,
+                }}
+              >
+                <div
+                  style={{
+                    flex: 1,
+                    background: C.yellow,
+                    borderRadius: 8,
+                    padding: '9px 0',
+                    textAlign: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 5,
+                  }}
+                >
+                  <span style={{ fontSize: 14 }}>🛵</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: C.ink }}>
+                    Delivery
+                  </span>
+                </div>
+                <div
+                  style={{
+                    flex: 1,
+                    padding: '9px 0',
+                    textAlign: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 5,
+                  }}
+                >
+                  <span style={{ fontSize: 12 }}>🏪</span>
+                  <span
+                    style={{ fontSize: 13, fontWeight: 500, color: C.muted }}
+                  >
+                    Pick-up
+                  </span>
+                  {merchant.discount && (
+                    <span
+                      style={{
+                        background: C.pink,
+                        borderRadius: 999,
+                        padding: '2px 6px',
+                        fontSize: 9,
+                        fontWeight: 800,
+                        color: '#fff',
+                      }}
+                    >
+                      {merchant.discount} Off
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div
+                style={{
+                  marginTop: 12,
+                  display: 'flex',
+                  paddingTop: 12,
+                  borderTop: `1px solid ${C.border}`,
+                }}
+              >
+                {[
+                  { l: 'Min. Order', v: `﷼${merchant.minOrder}` },
+                  { l: 'Delivery Time', v: `${merchant.time} minutes` },
+                  {
+                    l: 'Delivery Fee',
+                    v: merchant.fee === 'Free' ? 'Free T+' : `﷼${merchant.fee}`,
+                  },
+                ].map((s, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      flex: 1,
+                      textAlign: 'center',
+                      borderRight: i < 2 ? `1px solid ${C.border}` : 'none',
+                    }}
+                  >
+                    <div
+                      style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}
+                    >
+                      {s.l}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color:
+                          s.l === 'Delivery Fee' && merchant.fee === 'Free'
+                            ? C.green
+                            : C.ink,
+                      }}
+                    >
+                      {s.v}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Promo cards */}
+            <div
+              style={{
+                padding: '12px 16px',
+                display: 'flex',
+                gap: 10,
+                overflowX: 'auto',
+                borderBottom: `1px solid ${C.border}`,
+                marginRight: -16,
+                paddingRight: 16,
+              }}
+            >
+              {[
+                {
+                  c: C.blueText,
+                  bg: C.blueSoft,
+                  title: 'Free Delivery For T+',
+                  sub: 'Min. Spend: ﷼30',
+                },
+                {
+                  c: C.pink,
+                  bg: '#FFF0F3',
+                  title: '30% Off Selected items',
+                  sub: 'No Min. Spend',
+                },
+                {
+                  c: C.pink,
+                  bg: '#FFF0F3',
+                  title: '30% Off Selected items',
+                  sub: 'No Min. Spend',
+                },
+              ].map((p, i) => (
+                <div
+                  key={i}
+                  style={{
+                    minWidth: 130,
+                    background: p.bg,
+                    borderRadius: 12,
+                    padding: '10px 12px',
+                    flexShrink: 0,
+                    border: `1px solid ${p.c}22`,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: p.c,
+                      lineHeight: 1.3,
+                      marginBottom: 3,
+                    }}
+                  >
+                    🏷 {p.title}
+                  </div>
+                  <div
+                    style={{ fontSize: 11, color: C.muted, marginBottom: 6 }}
+                  >
+                    {p.sub}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: C.muted,
+                      background: 'rgba(0,0,0,0.06)',
+                      borderRadius: 6,
+                      padding: '3px 7px',
+                      display: 'inline-block',
+                    }}
+                  >
+                    Auto Apply
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Category tabs */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                borderBottom: `1px solid ${C.border}`,
+                background: '#fff',
+                position: 'sticky',
+                top: 0,
+                zIndex: 3,
+              }}
+            >
+              <button
+                style={{
+                  padding: '13px 14px 13px 16px',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  color: C.muted,
+                }}
+              >
+                ≡
+              </button>
+              <div style={{ display: 'flex', overflowX: 'auto', flex: 1 }}>
+                {tabs.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setMenuTab(t.id)}
+                    style={{
+                      padding: '13px 13px',
+                      border: 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                      fontSize: 13,
+                      fontWeight: menuTab === t.id ? 700 : 500,
+                      color: menuTab === t.id ? C.ink : C.muted,
+                      borderBottom:
+                        menuTab === t.id
+                          ? `2.5px solid ${C.ink}`
+                          : '2.5px solid transparent',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Section heading */}
+            <div
+              style={{
+                padding: '16px 16px 10px',
+                fontSize: 19,
+                fontWeight: 800,
+                color: C.ink,
+              }}
+            >
+              Special discounts
+            </div>
+
+            {/* Menu items */}
+            <div style={{ padding: '0 16px' }}>
+              {MENU_ITEMS.map((item, idx) => (
+                <div key={item.id}>
+                  <div
+                    style={{
+                      paddingBottom: 16,
+                      display: 'flex',
+                      gap: 12,
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    {/* info */}
+                    <div
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 4,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 700,
+                          color: C.ink,
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {item.name}
+                      </div>
+                      {item.badges.length > 0 && (
+                        <div
+                          style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}
+                        >
+                          {item.badges.includes('Bestseller') && (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 3,
+                                background: '#E8F8EE',
+                                color: C.green,
+                                borderRadius: 999,
+                                padding: '2px 8px',
+                                fontSize: 11,
+                                fontWeight: 700,
+                              }}
+                            >
+                              🌿 Bestseller
+                            </span>
+                          )}
+                          {item.badges.includes('Top Rated') && (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 3,
+                                background: '#FFF8E0',
+                                color: '#B8860B',
+                                borderRadius: 999,
+                                padding: '2px 8px',
+                                fontSize: 11,
+                                fontWeight: 700,
+                              }}
+                            >
+                              ⭐ Top Rated
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: C.green,
+                        }}
+                      >
+                        <UpArrow /> {item.orders} orders
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12.5,
+                          color: C.muted,
+                          lineHeight: 1.45,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {item.desc}
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 3,
+                            fontSize: 12,
+                            color: C.muted,
+                          }}
+                        >
+                          <Clock s={12} c={C.muted} /> {item.kcal} kcal
+                        </span>
+                        <span style={{ fontSize: 12, color: C.muted }}>
+                          ⓘ Alerts
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          marginTop: 2,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 17,
+                            fontWeight: 800,
+                            color: C.pink,
+                          }}
+                        >
+                          ﷼{item.price}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 13,
+                            color: C.subtle,
+                            textDecoration: 'line-through',
+                          }}
+                        >
+                          ﷼{item.orig}
+                        </span>
+                      </div>
+                    </div>
+                    {/* image */}
+                    <div
+                      style={{
+                        flexShrink: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 5,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 100,
+                          height: 100,
+                          borderRadius: 14,
+                          background: item.bg,
+                          overflow: 'hidden',
+                          position: 'relative',
+                        }}
+                      >
+                        <img
+                          src={item.art}
+                          alt={item.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                          }}
+                        />
+                        <button
+                          onClick={() => setCart((c) => [...c, item])}
+                          style={{
+                            position: 'absolute',
+                            bottom: 6,
+                            right: 6,
+                            width: 30,
+                            height: 30,
+                            borderRadius: 999,
+                            background: '#fff',
+                            border: `1px solid ${C.border}`,
+                            fontSize: 20,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: C.ink,
+                            boxShadow: '0 2px 8px rgba(0,0,0,.14)',
+                            lineHeight: 1,
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span style={{ fontSize: 10, color: C.subtle }}>
+                        Customizable
+                      </span>
+                    </div>
+                  </div>
+                  {idx < MENU_ITEMS.length - 1 && (
+                    <div
+                      style={{
+                        height: 1,
+                        background: C.border,
+                        marginBottom: 16,
+                      }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Sticky delivery strip */}
+            <div
+              style={{
+                background: '#F0FAFF',
+                borderTop: `1px solid #C5E8F8`,
+                padding: '10px 16px 5px',
+                textAlign: 'center',
+              }}
+            >
+              <span style={{ fontSize: 13, color: C.ink }}>
+                Get <strong style={{ color: C.green }}>Free Delivery</strong>{' '}
+                For <strong>T+</strong> by spending <strong>﷼30</strong>
+              </span>
+            </div>
+            <div
+              style={{
+                padding: '4px 16px 10px',
+                textAlign: 'center',
+                fontSize: 12,
+                color: C.muted,
+              }}
+            >
+              Add ﷼15 more to place your order
+            </div>
+
+            {/* Cart bar */}
+            {cart.length > 0 && (
+              <div
+                style={{
+                  margin: '0 16px 16px',
+                  background: C.yellow,
+                  borderRadius: 14,
+                  padding: '13px 18px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <div
+                  style={{
+                    background: 'rgba(0,0,0,0.12)',
+                    borderRadius: 8,
+                    width: 28,
+                    height: 28,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    fontSize: 13,
+                  }}
+                >
+                  {cart.length}
+                </div>
+                <span style={{ fontWeight: 700, fontSize: 15, color: C.ink }}>
+                  View Cart
+                </span>
+                <span style={{ fontWeight: 700, fontSize: 14, color: C.ink }}>
+                  ﷼{total.toFixed(2)}
+                </span>
+              </div>
+            )}
+
+            <div style={{ height: 12 }} />
+          </div>
+        );
+      }
+
+      // ── Orders Screen ───────────────────────────────────────────────────────
+      function OrdersScreen() {
+        return (
+          <div>
+            <div
+              style={{
+                padding: '14px 16px 12px',
+                textAlign: 'center',
+                fontSize: 18,
+                fontWeight: 700,
+                color: C.ink,
+                borderBottom: `1px solid ${C.border}`,
+              }}
+            >
+              Orders
+            </div>
+            <div style={{ padding: '12px 16px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: C.surface,
+                  borderRadius: 12,
+                  padding: '0 14px',
+                  height: 42,
+                }}
+              >
+                <Search s={16} c={C.subtle} />
+                <span style={{ fontSize: 13, color: C.subtle }}>
+                  Search by Restaurant or Store name
+                </span>
+              </div>
+            </div>
+            {ORDER_HIST.map((o, idx) => (
+              <div key={idx}>
+                <div
+                  style={{
+                    padding: '6px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <span style={{ fontSize: 12, color: C.muted }}>{o.date}</span>
+                  <span
+                    style={{
+                      background: C.blueSoft,
+                      color: C.blueText,
+                      borderRadius: 999,
+                      padding: '2px 9px',
+                      fontSize: 11,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {o.status}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    padding: '6px 16px 14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 13,
+                    borderBottom: `1px solid ${C.border}`,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 62,
+                      height: 62,
+                      borderRadius: 14,
+                      background: o.bg,
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img
+                      src={o.art}
+                      alt={o.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{ fontSize: 15, fontWeight: 700, color: C.ink }}
+                    >
+                      {o.name}
+                    </div>
+                    <div style={{ fontSize: 13, color: C.ink, marginTop: 3 }}>
+                      ﷼ {o.amount.toFixed(2)}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: C.ink,
+                        marginTop: 3,
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      View details
+                    </div>
+                  </div>
+                  <button
+                    style={{
+                      background: C.yellow,
+                      border: 'none',
+                      borderRadius: 22,
+                      padding: '10px 18px',
+                      fontWeight: 700,
+                      fontSize: 13,
+                      color: C.ink,
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                    }}
+                  >
+                    Reorder
+                  </button>
+                </div>
+              </div>
+            ))}
+            <div style={{ height: 20 }} />
+          </div>
+        );
+      }
+
+      // ── Profile Screen ──────────────────────────────────────────────────────
+      function ProfileScreen() {
+        const [notifs, setNotifs] = React.useState(true);
+        const features = [
+          { label: 'TPlus', icon: '🏆', bg: C.yellow },
+          { label: 'TPay', icon: '💳', bg: '#E8F0FF' },
+          { label: 'TRewards', icon: '🌟', bg: '#E8F8F0' },
+          { label: 'Vouchers', icon: '🎫', bg: '#FFF0F3' },
+        ];
+        const sections = [
+          {
+            title: 'Account',
+            items: [
+              { icon: '👤', label: 'My Profile' },
+              { icon: '♡', label: 'My Favorites' },
+              { icon: '✉', label: 'Invite Friends' },
+              { icon: '📄', label: 'Invoices' },
+            ],
+          },
+          {
+            title: 'Preferences',
+            items: [
+              {
+                icon: '🌐',
+                label: 'Language',
+                value: 'English',
+                valueColor: C.blue,
+              },
+              { icon: '🔔', label: 'Notifications', toggle: true },
+              { icon: '⚙', label: 'Settings' },
+            ],
+          },
+          {
+            title: 'Other',
+            items: [
+              { icon: '❓', label: 'Help & Support' },
+              { icon: '📋', label: 'Privacy Policy' },
+            ],
+          },
+        ];
+
+        return (
+          <div>
+            {/* Blue header */}
+            <div
+              style={{
+                background: 'linear-gradient(145deg,#1565C0 0%,#1E88E5 100%)',
+                padding: '20px 20px 32px',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              {/* + pattern */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  opacity: 0.1,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(8,1fr)',
+                  gridTemplateRows: 'repeat(6,1fr)',
+                  pointerEvents: 'none',
+                }}
+              >
+                {[...Array(48)].map((_, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      color: '#fff',
+                      fontSize: 16,
+                      fontWeight: 300,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    +
+                  </span>
+                ))}
+              </div>
+              <div
+                style={{
+                  position: 'relative',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: '#fff' }}>
+                    Sahar Alotaibi
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: 'rgba(255,255,255,.7)',
+                      marginTop: 4,
+                    }}
+                  >
+                    +966500000010
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 5,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: 999,
+                      background: '#1C1C1E',
+                      border: '2px solid rgba(255,255,255,.15)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <span
+                      style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}
+                    >
+                      SA
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      background: C.yellow,
+                      borderRadius: 6,
+                      padding: '2px 7px',
+                    }}
+                  >
+                    <span
+                      style={{ fontSize: 9, fontWeight: 800, color: C.ink }}
+                    >
+                      T PLUS
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature card overlapping header */}
+            <div
+              style={{
+                margin: '-18px 14px 0',
+                background: '#fff',
+                borderRadius: 18,
+                padding: '16px',
+                boxShadow: '0 4px 24px rgba(0,0,0,.10)',
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+                {features.map((f) => (
+                  <div
+                    key={f.label}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 8,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 54,
+                        height: 54,
+                        borderRadius: 15,
+                        background: f.bg,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 24,
+                      }}
+                    >
+                      {f.icon}
+                    </div>
+                    <span
+                      style={{ fontSize: 11.5, fontWeight: 600, color: C.ink }}
+                    >
+                      {f.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Settings */}
+            <div style={{ marginTop: 22, paddingBottom: 16 }}>
+              {sections.map((section) => (
+                <div key={section.title} style={{ marginBottom: 8 }}>
+                  <div
+                    style={{
+                      padding: '6px 20px 6px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: C.muted,
+                    }}
+                  >
+                    {section.title}
+                  </div>
+                  <div style={{ background: '#fff' }}>
+                    {section.items.map((item, idx) => (
+                      <div key={item.label}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '14px 20px',
+                            gap: 14,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: 18,
+                              width: 26,
+                              textAlign: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {item.icon}
+                          </span>
+                          <span
+                            style={{
+                              flex: 1,
+                              fontSize: 15,
+                              fontWeight: 500,
+                              color: C.ink,
+                            }}
+                          >
+                            {item.label}
+                          </span>
+                          {item.toggle ? (
+                            <div
+                              onClick={() => setNotifs((v) => !v)}
+                              style={{
+                                width: 48,
+                                height: 28,
+                                borderRadius: 999,
+                                background: notifs ? '#1C1C1E' : C.border,
+                                position: 'relative',
+                                cursor: 'pointer',
+                                transition: 'background 200ms',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: 23,
+                                  height: 23,
+                                  borderRadius: 999,
+                                  background: '#fff',
+                                  position: 'absolute',
+                                  top: 2.5,
+                                  left: notifs ? 22 : 2.5,
+                                  transition: 'left 200ms ease',
+                                  boxShadow: '0 2px 5px rgba(0,0,0,.25)',
+                                }}
+                              />
+                            </div>
+                          ) : item.value ? (
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: 13,
+                                  color: item.valueColor || C.muted,
+                                }}
+                              >
+                                {item.value}
+                              </span>
+                              <Chevron />
+                            </div>
+                          ) : (
+                            <Chevron />
+                          )}
+                        </div>
+                        {idx < section.items.length - 1 && (
+                          <div
+                            style={{
+                              height: 1,
+                              background: C.border,
+                              marginLeft: 60,
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // ── App ─────────────────────────────────────────────────────────────────
+      function App() {
+        const saved = localStorage.getItem('tx2-tab') || 'home';
+        const [tab, setTab] = React.useState(saved);
+        const [merchant, setMerchant] = React.useState(null);
+
+        React.useEffect(() => {
+          localStorage.setItem('tx2-tab', tab);
+        }, [tab]);
+
+        // Tweaks wiring
+        React.useEffect(() => {
+          const handler = (e) => {
+            if (e.type === 'message') {
+              if (e.data?.type === '__activate_edit_mode')
+                document.getElementById('tweaks-panel').style.display = 'block';
+              if (e.data?.type === '__deactivate_edit_mode')
+                document.getElementById('tweaks-panel').style.display = 'none';
+            }
+          };
+          window.addEventListener('message', handler);
+          window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+          // wire selects
+          document
+            .getElementById('tw-screen')
+            .addEventListener('change', (e) => {
+              setMerchant(null);
+              const v = e.target.value;
+              if (v === 'merchant') {
+                setMerchant(MERCHANTS[0]);
+                setTab('home');
+              } else {
+                setTab(v);
+              }
+            });
+          document.getElementById('tw-bg').addEventListener('change', (e) => {
+            document.body.style.background = e.target.value;
+          });
+          return () => window.removeEventListener('message', handler);
+        }, []);
+
+        const handleTab = (k) => {
+          setMerchant(null);
+          setTab(k);
+        };
+
+        const renderScreen = () => {
+          if (merchant)
+            return (
+              <MerchantScreen
+                merchant={merchant}
+                onBack={() => setMerchant(null)}
+              />
+            );
+          if (tab === 'home')
+            return <HomeScreen onMerchantPress={(m) => setMerchant(m)} />;
+          if (tab === 'orders') return <OrdersScreen />;
+          if (tab === 'profile') return <ProfileScreen />;
+          return (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                gap: 12,
+                color: C.muted,
+                padding: 32,
+              }}
+            >
+              <div style={{ fontSize: 48 }}>🚧</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </div>
+              <div
+                style={{ fontSize: 13, color: C.muted, textAlign: 'center' }}
+              >
+                This screen is not yet built in this kit.
+              </div>
+            </div>
+          );
+        };
+
+        return (
+          <div className="phone">
+            <StatusBar bg={tab === 'profile' && !merchant ? '#fff' : '#fff'} />
+            <div className="body">{renderScreen()}</div>
+            <TabBar active={merchant ? 'home' : tab} onTab={handleTab} />
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
+</html>

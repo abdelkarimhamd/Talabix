@@ -1,0 +1,213 @@
+/*
+ * Talabix Design System — Colors & Typography
+ * Source: apps/customer-app/src/ui.js, apps/portal-web/src/index.css
+ * Two products, two distinct visual languages, shared semantic layer.
+ */
+
+/* ─── Google Fonts ─────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
+
+/* ─── Customer App Raw Palette ──────────────────────────────────────── */
+:root {
+  --ca-primary: #ffe500; /* main yellow CTA / active state */
+  --ca-primary-deep: #b09200; /* text on yellow, deep yellow */
+  --ca-ink: #202124; /* main text */
+  --ca-muted: #62666d; /* secondary text */
+  --ca-subtle: #8d9198; /* placeholder / icon */
+  --ca-line: #ececec; /* dividers, borders */
+  --ca-background: #ffffff;
+  --ca-surface: #ffffff;
+  --ca-surface-warm: #fff9cf; /* warm yellow tinted bg */
+  --ca-surface-soft: #f6f6f2; /* cool off-white bg */
+  --ca-green: #15945f; /* success / eyebrow / location */
+  --ca-teal: #0b8fa3; /* informational */
+  --ca-rose: #e91e63; /* promo / alert badges */
+  --ca-rose-soft: #fff1f6;
+  --ca-orange: #f7a51d; /* warm accent */
+  --ca-blue-soft: #e8f7ff;
+  --ca-brown: #6e5a12; /* helper text on warm bg */
+  --ca-dark: #17191c; /* dark promo banner bg */
+
+  /* Product artwork backgrounds */
+  --ca-art-burger: #b8102f;
+  --ca-art-shawarma: #7b1b10;
+  --ca-art-market: #0f7f56;
+  --ca-art-coffee: #1d5f87;
+  --ca-art-gift: #7132a8;
+}
+
+/* ─── Portal Web Raw Palette ────────────────────────────────────────── */
+:root {
+  --pw-navy: #112134; /* primary dark / ink */
+  --pw-navy-80: rgba(17, 33, 52, 0.8);
+  --pw-navy-12: rgba(17, 33, 52, 0.12);
+  --pw-navy-06: rgba(17, 33, 52, 0.06);
+  --pw-navy-04: rgba(17, 33, 52, 0.04);
+  --pw-orange: #ff8c42; /* primary CTA */
+  --pw-orange-warm: #ffb347; /* CTA gradient start */
+  --pw-orange-soft: rgba(255, 140, 66, 0.14); /* bg tint */
+  --pw-teal: #26a69a; /* success / dropoff accent */
+  --pw-teal-soft: rgba(38, 166, 154, 0.15);
+  --pw-bg-top: #f6f8fb;
+  --pw-bg-bottom: #eef3f7;
+  --pw-text: #112134;
+  --pw-text-muted: #5c6a78;
+  --pw-text-subtle: #617181;
+  --pw-border: rgba(17, 33, 52, 0.08);
+  --pw-white-84: rgba(255, 255, 255, 0.84);
+  --pw-white-88: rgba(255, 255, 255, 0.88);
+}
+
+/* ─── Semantic / Shared Tokens ───────────────────────────────────────── */
+:root {
+  /* Foregrounds */
+  --fg1: var(--pw-navy);
+  --fg2: var(--pw-text-muted);
+  --fg3: var(--pw-text-subtle);
+
+  /* Backgrounds */
+  --bg-page: var(--pw-bg-top);
+  --bg-surface: var(--pw-white-84);
+  --bg-recessed: var(--pw-navy-04);
+
+  /* Brand */
+  --brand-gradient: linear-gradient(135deg, #112134 0%, #ff8c42 100%);
+  --brand-cta: linear-gradient(135deg, #ffb347 0%, #ff8c42 100%);
+
+  /* Status / semantic tones */
+  --tone-alert-bg: rgba(255, 140, 66, 0.14);
+  --tone-alert-text: #a24f13;
+  --tone-success-bg: rgba(38, 166, 154, 0.15);
+  --tone-success-text: #0c665c;
+  --tone-warm-bg: rgba(255, 179, 71, 0.18);
+  --tone-warm-text: #9c5b13;
+  --tone-info-bg: rgba(17, 33, 52, 0.1);
+  --tone-info-text: #1f3751;
+  --tone-muted-bg: rgba(106, 122, 137, 0.14);
+  --tone-muted-text: #5a6774;
+  --tone-neutral-bg: rgba(17, 33, 52, 0.08);
+  --tone-neutral-text: #213547;
+
+  /* Borders / radii */
+  --radius-sm: 12px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 18px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-surface: 0 22px 45px rgba(17, 33, 52, 0.1);
+  --shadow-card: 0 5px 14px rgba(0, 0, 0, 0.05);
+  --shadow-dock: 0 10px 20px rgba(0, 0, 0, 0.12);
+  --shadow-cta: 0 14px 30px rgba(255, 140, 66, 0.22);
+  --shadow-cta-hover: 0 18px 34px rgba(255, 140, 66, 0.28);
+
+  /* Transitions */
+  --ease: 160ms ease;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+}
+
+/* ─── Portal Typography Scale ───────────────────────────────────────── */
+:root {
+  --font-portal: 'Space Grotesk', 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Fira Code', monospace;
+
+  /* Scale */
+  --text-xs: 0.76rem; /* 12px — dt labels, legend */
+  --text-sm: 0.84rem; /* ~13.5px — board meta */
+  --text-base: 1rem; /* 16px — body */
+  --text-lg: 1.05rem; /* ~17px — session card strong */
+  --text-xl: 1.2rem; /* 19px — report dd */
+  --text-2xl: 1.75rem; /* 28px — metric card */
+  --text-hero: clamp(2rem, 4vw, 3.4rem); /* hero h2 */
+
+  /* Weights */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* Eyebrow (portal) */
+  --eyebrow-size: 0.78rem;
+  --eyebrow-ls: 0.12em;
+  --eyebrow-color: #516275;
+}
+
+/* ─── Customer App Typography (React Native mirror for web reference) ── */
+:root {
+  --ca-font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ca-title-size: 26px;
+  --ca-title-weight: 900;
+  --ca-section-size: 22px;
+  --ca-card-title: 19px;
+  --ca-body: 14px;
+  --ca-label: 16px;
+  --ca-eyebrow-size: 12px;
+  --ca-eyebrow-color: var(--ca-green);
+}
+
+/* ─── Utility Classes ────────────────────────────────────────────────── */
+.portal-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--eyebrow-size);
+  text-transform: uppercase;
+  letter-spacing: var(--eyebrow-ls);
+  color: var(--eyebrow-color);
+  font-family: var(--font-portal);
+}
+.portal-eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: currentColor;
+}
+
+.ca-eyebrow {
+  font-size: var(--ca-eyebrow-size);
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--ca-green);
+  letter-spacing: 0;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  background: var(--tone-neutral-bg);
+  color: var(--tone-neutral-text);
+}
+.status-pill[data-tone='alert'] {
+  background: var(--tone-alert-bg);
+  color: var(--tone-alert-text);
+}
+.status-pill[data-tone='success'] {
+  background: var(--tone-success-bg);
+  color: var(--tone-success-text);
+}
+.status-pill[data-tone='warm'] {
+  background: var(--tone-warm-bg);
+  color: var(--tone-warm-text);
+}
+.status-pill[data-tone='info'] {
+  background: var(--tone-info-bg);
+  color: var(--tone-info-text);
+}
+.status-pill[data-tone='muted'] {
+  background: var(--tone-muted-bg);
+  color: var(--tone-muted-text);
+}

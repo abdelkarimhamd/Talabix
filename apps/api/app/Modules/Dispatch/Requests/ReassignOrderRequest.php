@@ -12,6 +12,9 @@ class ReassignOrderRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [
@@ -32,6 +35,9 @@ class ReassignOrderRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<string, array<string, string>>
+     */
     public function bodyParameters(): array
     {
         return [

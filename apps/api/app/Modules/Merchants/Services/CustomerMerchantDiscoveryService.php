@@ -17,6 +17,9 @@ class CustomerMerchantDiscoveryService
         private readonly MapsProviderService $mapsProviderService,
     ) {}
 
+    /**
+     * @return Collection<int, Merchant>
+     */
     public function list(?CustomerAddress $address = null, ?string $search = null, bool $openNow = false): Collection
     {
         $merchants = Merchant::query()
@@ -101,6 +104,9 @@ class CustomerMerchantDiscoveryService
         return $branch;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function serviceabilityForBranch(Branch $branch, CustomerAddress $address): array
     {
         $distance = $this->orderPricingService->distanceMeters(
@@ -166,6 +172,9 @@ class CustomerMerchantDiscoveryService
         ];
     }
 
+    /**
+     * @return array{day_of_week: int, opens_at: string|null, closes_at: string|null, is_closed: bool}|null
+     */
     private function todayHoursForBranch(Branch $branch): ?array
     {
         $now = now();
@@ -183,6 +192,9 @@ class CustomerMerchantDiscoveryService
         ];
     }
 
+    /**
+     * @param  array{day_of_week: int, opens_at: string|null, closes_at: string|null, is_closed: bool}|null  $todayHours
+     */
     private function isBranchOpenNow(Branch $branch, ?array $todayHours): bool
     {
         if (

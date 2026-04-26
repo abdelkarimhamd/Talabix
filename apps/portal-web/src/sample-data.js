@@ -206,6 +206,29 @@ export const merchantCatalogItems = [
   },
 ];
 
+export const promotionOffers = [
+  {
+    uuid: '42c18e2c-f546-48d2-8ef8-c5a613991001',
+    merchant_uuid: '59ac6340-5b76-4c3c-8b8a-1f2b6dd5d4a1',
+    merchant_name: 'Demo Merchant',
+    branch_uuid: '1d6748c8-8a71-4e0f-9784-e61d4d6ad111',
+    branch_name: 'Olaya Branch',
+    catalog_item_uuid: null,
+    catalog_item_name: null,
+    code: null,
+    title: 'Free delivery over SAR 25',
+    discount_label: 'Free delivery',
+    discount_type: 'delivery',
+    percent: null,
+    amount_minor: null,
+    min_spend_minor: 2500,
+    requires_promo_code: false,
+    is_active: true,
+    starts_at: null,
+    expires_at: '2026-05-15T20:59:00Z',
+  },
+];
+
 export const merchantOrders = [
   {
     uuid: '4aa0f507-77b6-459c-adbe-ef8658cbdc51',
@@ -241,7 +264,8 @@ export const merchantOrders = [
       order_uuid: '4aa0f507-77b6-459c-adbe-ef8658cbdc51',
       status: 'investigating',
       issue_type: 'customer_request',
-      summary: 'Customer wants a pre-arrival call before the rider reaches the tower.',
+      summary:
+        'Customer wants a pre-arrival call before the rider reaches the tower.',
       cancellation_reason_code: null,
       resolution_type: null,
       resolution_notes: null,
@@ -402,6 +426,21 @@ export const dispatchAssignments = [
       longitude: 46.681,
     },
     mapsProvider: 'google-maps-demo',
+    exception: {
+      reason_code: 'address_issue',
+      reason_label: 'Address issue',
+      note: 'Rider reported the side entrance is required for handoff.',
+      reported_at: '2026-04-14T09:18:00Z',
+      reported_by: 'rider',
+      response_sla: {
+        level: 'breached',
+        label: 'Exception response breached',
+        target_minutes: 10,
+        elapsed_minutes: 15,
+        minutes_remaining: -5,
+        escalation_action: 'support_reassignment_required',
+      },
+    },
     sla: {
       level: 'breached',
       label: 'SLA breached',

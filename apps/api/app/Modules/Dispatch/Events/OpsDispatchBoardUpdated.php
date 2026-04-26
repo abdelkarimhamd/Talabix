@@ -15,12 +15,18 @@ class OpsDispatchBoardUpdated implements ShouldBroadcast
     use InteractsWithSockets;
     use SerializesModels;
 
+    /**
+     * @param  array<string, mixed>  $payload
+     */
     public function __construct(
         public ?Order $order = null,
         public string $reason = 'dispatch_state_changed',
         public array $payload = [],
     ) {}
 
+    /**
+     * @return array<int, PrivateChannel>
+     */
     public function broadcastOn(): array
     {
         if (app()->runningUnitTests()) {
@@ -40,6 +46,9 @@ class OpsDispatchBoardUpdated implements ShouldBroadcast
         return ! app()->runningUnitTests();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function broadcastWith(): array
     {
         return [

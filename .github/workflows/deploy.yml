@@ -1,0 +1,154 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  deploy:
+    name: Deploy Docker VM
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'staging' }}
+    concurrency: deploy-${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'staging' }}
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: talabix_test
+          MYSQL_USER: talabix
+          MYSQL_PASSWORD: secret
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          extensions: bcmath, intl, pcntl, pdo_mysql, redis, sockets
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install API dependencies
+        working-directory: apps/api
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Verify API
+        working-directory: apps/api
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: talabix_test
+          DB_USERNAME: talabix
+          DB_PASSWORD: secret
+          CACHE_STORE: redis
+          QUEUE_CONNECTION: redis
+          REDIS_HOST: 127.0.0.1
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          php artisan migrate --seed --force
+          vendor/bin/pint --test
+          vendor/bin/phpstan analyse --memory-limit=1G
+          php artisan test
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify JS workspaces
+        run: |
+          npm run lint
+          npm run i18n:audit
+          npm run test
+          npm run test:e2e
+          npm run build --workspaces --if-present
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Sync repository
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
+          rsync -az --delete \
+            --exclude '.git/' \
+            --exclude 'node_modules/' \
+            --exclude 'apps/api/vendor/' \
+            --exclude 'apps/api/storage/logs/*' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
+
+      - name: Deploy services
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          ROOT_ENV_B64: ${{ secrets.ROOT_ENV_B64 }}
+          API_ENV_B64: ${{ secrets.API_ENV_B64 }}
+        run: |
+          : "${ROOT_ENV_B64:?ROOT_ENV_B64 secret is required}"
+          : "${API_ENV_B64:?API_ENV_B64 secret is required}"
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" <<REMOTE
+          set -euo pipefail
+          cd "$DEPLOY_PATH"
+          printf '%s' "$ROOT_ENV_B64" | base64 -d > .env
+          mkdir -p apps/api
+          printf '%s' "$API_ENV_B64" | base64 -d > apps/api/.env
+          docker compose -f docker-compose.yml -f deploy/docker-compose.vm.yml up -d --build mysql redis
+          docker compose -f docker-compose.yml -f deploy/docker-compose.vm.yml run --rm api composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+          docker compose -f docker-compose.yml -f deploy/docker-compose.vm.yml run --rm api php artisan migrate --force
+          docker compose -f docker-compose.yml -f deploy/docker-compose.vm.yml run --rm api php artisan config:cache
+          docker compose -f docker-compose.yml -f deploy/docker-compose.vm.yml run --rm api php artisan route:cache
+          docker compose -f docker-compose.yml -f deploy/docker-compose.vm.yml up -d --build --remove-orphans api worker scheduler reverb portal
+          docker compose -f docker-compose.yml -f deploy/docker-compose.vm.yml ps
+          REMOTE
+
+      - name: Readiness smoke check
+        env:
+          DEPLOY_READINESS_URL: ${{ secrets.DEPLOY_READINESS_URL }}
+          READINESS_CHECK_KEY: ${{ secrets.READINESS_CHECK_KEY }}
+        run: |
+          curl --fail --show-error --silent \
+            --header "X-Talabix-Readiness-Key: $READINESS_CHECK_KEY" \
+            "$DEPLOY_READINESS_URL"

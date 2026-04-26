@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: #fff;
+        padding: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-content: flex-start;
+      }
+      .btn-accent {
+        min-height: 50px;
+        border: 0;
+        padding: 0 22px;
+        border-radius: 14px;
+        background: #ffe500;
+        color: #202124;
+        font-weight: 900;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .btn-secondary {
+        min-height: 44px;
+        border: 1.5px solid #ececec;
+        padding: 0 18px;
+        border-radius: 14px;
+        background: #fff;
+        color: #202124;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+      }
+      .btn-secondary.active {
+        background: #ffe500;
+        border-color: #ffe500;
+      }
+      .btn-disabled {
+        min-height: 50px;
+        border: 0;
+        padding: 0 22px;
+        border-radius: 14px;
+        background: #ffe500;
+        color: #202124;
+        font-weight: 900;
+        font-size: 16px;
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        background: #f6f6f2;
+        color: #62666d;
+        border: 1px solid #ececec;
+      }
+      .pill.success {
+        background: #dcf5ea;
+        color: #0e6b41;
+      }
+      .pill.warning {
+        background: #fff3d0;
+        color: #8a5f00;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="btn-accent">Checkout</button>
+    <button class="btn-accent">Place order</button>
+    <button class="btn-secondary">Open now</button>
+    <button class="btn-secondary active">Open now ✓</button>
+    <button class="btn-disabled" disabled>Processing…</button>
+    <br style="width: 100%" />
+    <span class="pill">3 branches</span>
+    <span class="pill success">Open now</span>
+    <span class="pill warning">Closes at 11pm</span>
+    <span class="pill">Free delivery</span>
+    <span class="pill success">H+ eligible</span>
+  </body>
+</html>

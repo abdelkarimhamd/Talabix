@@ -151,6 +151,9 @@ class NotificationController extends Controller
         ]);
     }
 
+    /**
+     * @return Builder<NotificationDelivery>
+     */
     private function actorInboxQuery(Request $request, string $actor, int $userId): Builder
     {
         return NotificationDelivery::query()

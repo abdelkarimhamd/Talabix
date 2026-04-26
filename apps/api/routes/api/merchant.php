@@ -4,6 +4,7 @@ use App\Modules\Catalog\Controllers\CatalogController;
 use App\Modules\Identity\Controllers\AuthController;
 use App\Modules\Merchants\Controllers\MerchantController;
 use App\Modules\Notifications\Controllers\NotificationController;
+use App\Modules\Offers\Controllers\PromotionOfferController;
 use App\Modules\Orders\Controllers\OrderController;
 use App\Modules\Shared\Controllers\ReportingController;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +21,10 @@ Route::prefix('merchant')->name('merchant.')->group(function () {
         Route::post('notifications/{notificationDelivery}/read', [NotificationController::class, 'merchantMarkRead']);
         Route::get('reports/sales', [ReportingController::class, 'merchantSales']);
 
+        Route::get('catalog/categories', [CatalogController::class, 'categories']);
+        Route::post('catalog/categories', [CatalogController::class, 'storeCategory']);
+        Route::patch('catalog/categories/{catalogCategory}', [CatalogController::class, 'updateCategory']);
+        Route::delete('catalog/categories/{catalogCategory}', [CatalogController::class, 'destroyCategory']);
         Route::get('catalog/items', [CatalogController::class, 'index']);
         Route::post('catalog/items', [CatalogController::class, 'store']);
         Route::patch('catalog/items/{catalogItem}', [CatalogController::class, 'update']);
@@ -29,6 +34,11 @@ Route::prefix('merchant')->name('merchant.')->group(function () {
             [CatalogController::class, 'updateModifierGroup']
         );
         Route::post('branches/{branch}/catalog-overrides/{catalogItem}', [CatalogController::class, 'upsertBranchOverride']);
+
+        Route::get('promotion-offers', [PromotionOfferController::class, 'merchantIndex']);
+        Route::post('promotion-offers', [PromotionOfferController::class, 'merchantStore']);
+        Route::patch('promotion-offers/{promotionOffer}', [PromotionOfferController::class, 'update']);
+        Route::delete('promotion-offers/{promotionOffer}', [PromotionOfferController::class, 'destroy']);
 
         Route::get('branches/{branch}/orders', [OrderController::class, 'merchantBoard']);
         Route::post('orders/{order}/accept', [OrderController::class, 'merchantAccept']);

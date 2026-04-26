@@ -19,7 +19,7 @@ class LogPushNotificationTransport implements NotificationChannelTransport
             'notification_delivery_id' => $delivery->id,
             'recipient_actor' => $delivery->recipient_actor,
             'recipient_user_id' => $delivery->recipient_user_id,
-            'notification_type' => $delivery->notification_type?->value ?? $delivery->notification_type,
+            'notification_type' => $delivery->notification_type->value,
             'payload' => $delivery->payload,
         ]);
 

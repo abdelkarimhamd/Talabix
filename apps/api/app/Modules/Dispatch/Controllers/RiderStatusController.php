@@ -22,7 +22,7 @@ class RiderStatusController extends Controller
             reason: 'rider_availability_updated',
             payload: [
                 'rider_uuid' => $riderProfile->uuid,
-                'availability' => $riderProfile->availability?->value ?? (string) $riderProfile->availability,
+                'availability' => $riderProfile->availability->value,
             ],
         ));
 

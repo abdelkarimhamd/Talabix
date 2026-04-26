@@ -35,6 +35,11 @@ return [
             'warning' => 'SLA at risk',
             'breached' => 'SLA breached',
         ],
+        'exception_sla' => [
+            'on_track' => 'Exception response on track',
+            'warning' => 'Exception response due soon',
+            'breached' => 'Exception response breached',
+        ],
     ],
     'settlements' => [
         'adjustment_requires_delivered' => 'Adjustments can only be created for delivered orders.',

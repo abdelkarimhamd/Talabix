@@ -11,6 +11,9 @@ use Illuminate\Support\Str;
 
 class SupportCaseService
 {
+    /**
+     * @param  array<string, mixed>  $payload
+     */
     public function createOrUpdateForOrder(Order $order, array $payload, User $actor): SupportCase
     {
         $supportCase = $order->supportCase()->firstOrNew();
@@ -27,11 +30,17 @@ class SupportCaseService
         return $this->persist($supportCase, $payload, $actor);
     }
 
+    /**
+     * @param  array<string, mixed>  $payload
+     */
     public function update(SupportCase $supportCase, array $payload, User $actor): SupportCase
     {
         return $this->persist($supportCase, $payload, $actor);
     }
 
+    /**
+     * @param  array<string, mixed>  $payload
+     */
     public function resolveFromCancellation(Order $order, array $payload, User $actor): SupportCase
     {
         return $this->createOrUpdateForOrder($order, [
@@ -44,13 +53,17 @@ class SupportCaseService
         ], $actor);
     }
 
+    /**
+     * @param  array<string, mixed>  $payload
+     */
     private function persist(SupportCase $supportCase, array $payload, User $actor): SupportCase
     {
-        $status = $payload['status'] ?? $supportCase->status?->value ?? SupportCaseStatus::OPEN->value;
+        $currentStatus = $supportCase->exists ? $supportCase->status->value : SupportCaseStatus::OPEN->value;
+        $status = $payload['status'] ?? $currentStatus;
 
         $supportCase->fill([
             'summary' => $payload['summary'] ?? $supportCase->summary,
-            'issue_type' => $payload['issue_type'] ?? $supportCase->issue_type?->value,
+            'issue_type' => $payload['issue_type'] ?? $supportCase->issue_type->value,
             'status' => $status,
             'cancellation_reason_code' => $payload['cancellation_reason_code'] ?? $supportCase->cancellation_reason_code?->value,
             'resolution_type' => array_key_exists('resolution_type', $payload)

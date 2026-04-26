@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { getCurrentCustomer, registerCustomer } from '../customer-api';
+import { useI18n } from '../i18n';
 import {
   AccentButton,
   InfoCard,
+  PageIntro,
   ScreenFrame,
   SecondaryButton,
   TextField,
@@ -30,6 +32,7 @@ function getErrorMessage(error, fallback) {
 
 export function CustomerRegistrationScreen({ footer = null }) {
   const queryClient = useQueryClient();
+  const { rowDirection, t, textAlign, writingDirection } = useI18n();
   const [form, setForm] = useState(initialRegisterForm);
   const [feedback, setFeedback] = useState();
   const [issuedToken, setIssuedToken] = useState();
@@ -43,7 +46,11 @@ export function CustomerRegistrationScreen({ footer = null }) {
     mutationFn: registerCustomer,
     onSuccess: (session) => {
       setIssuedToken(session.token);
-      setFeedback(`Registered ${session.user.email}.`);
+      setFeedback(
+        t('customer.registration.registered', {
+          email: session.user.email,
+        })
+      );
       queryClient.invalidateQueries({ queryKey: ['customer-session'] });
       setForm({
         ...initialRegisterForm,
@@ -53,7 +60,9 @@ export function CustomerRegistrationScreen({ footer = null }) {
       });
     },
     onError: (error) => {
-      setFeedback(getErrorMessage(error, 'Please review the registration details.'));
+      setFeedback(
+        getErrorMessage(error, t('customer.registration.reviewDetails'))
+      );
     },
   });
 
@@ -66,86 +75,107 @@ export function CustomerRegistrationScreen({ footer = null }) {
 
   return (
     <ScreenFrame
-      description="Customer registration issues the same token-and-user envelope as login, so the mobile shell can move straight into discovery and profile editing."
-      eyebrow="Customer registration"
-      title="Create or replace the current customer session"
+      activeTab="profile"
+      description={t('customer.registration.screenDescription')}
+      eyebrow={t('customer.registration.screenEyebrow')}
+      preserveHeaderText={false}
+      showHeader={false}
+      title={t('customer.registration.screenTitle')}
     >
+      <PageIntro
+        kicker={t('customer.registration.pageKicker')}
+        title={t('customer.registration.pageTitle')}
+      />
+
       <InfoCard
         accent="#26a69a"
-        description="The mobile form validates against the same register schema mirrored in the shared package."
-        eyebrow="Current session"
-        title={customer ? customer.name : 'No customer loaded'}
+        description={t('customer.registration.sessionDescription')}
+        eyebrow={t('customer.registration.currentSession')}
+        title={customer ? customer.name : t('customer.registration.noCustomerLoaded')}
       >
-        <Text style={screenStyles.muted}>{customer?.email ?? 'Customer session is loading.'}</Text>
+        <Text style={[screenStyles.muted, { textAlign, writingDirection }]}>
+          {customer?.email ?? t('customer.registration.sessionLoading')}
+        </Text>
         {issuedToken ? (
-          <Text style={screenStyles.helperText}>Issued token: {issuedToken.slice(0, 18)}...</Text>
+          <Text
+            style={[screenStyles.helperText, { textAlign, writingDirection }]}
+          >
+            {t('customer.registration.issuedToken')}: {issuedToken.slice(0, 18)}
+            ...
+          </Text>
         ) : null}
       </InfoCard>
 
       <InfoCard
         accent="#ff8c42"
-        description="Email/password stays the only auth mode in this phase, and the customer role is implicit on successful registration."
-        eyebrow="Registration form"
-        title="Register customer credentials"
+        description={t('customer.registration.formDescription')}
+        eyebrow={t('customer.registration.registrationForm')}
+        title={t('customer.registration.registerCredentials')}
       >
         <View style={screenStyles.form}>
           <TextField
-            label="Full name"
+            label={t('customer.registration.fullName')}
             onChangeText={(value) => updateField('name', value)}
             placeholder="Customer name"
             testID="register-name"
             value={form.name}
           />
           <TextField
-            label="Email"
+            label={t('customer.registration.email')}
             onChangeText={(value) => updateField('email', value)}
             placeholder="customer@talabix.test"
             testID="register-email"
             value={form.email}
           />
           <TextField
-            label="Phone"
+            label={t('customer.registration.phone')}
             onChangeText={(value) => updateField('phone', value)}
             placeholder="+9665..."
             testID="register-phone"
             value={form.phone}
           />
           <TextField
-            label="Device name"
+            label={t('customer.registration.deviceName')}
             onChangeText={(value) => updateField('device_name', value)}
             placeholder="iphone-15"
             value={form.device_name}
           />
           <TextField
-            label="Password"
+            label={t('customer.registration.password')}
             onChangeText={(value) => updateField('password', value)}
             placeholder="Minimum 8 characters"
             testID="register-password"
             value={form.password}
           />
           <TextField
-            label="Confirm password"
+            label={t('customer.registration.confirmPassword')}
             onChangeText={(value) => updateField('password_confirmation', value)}
             placeholder="Repeat password"
             testID="register-password-confirmation"
             value={form.password_confirmation}
           />
 
-          <View style={screenStyles.buttonRow}>
+          <View style={[screenStyles.buttonRow, { flexDirection: rowDirection }]}>
             <AccentButton
-              label="Create customer account"
+              label={t('customer.registration.createAccount')}
               onPress={() => mutation.mutate(form)}
               testID="submit-register"
             />
             <SecondaryButton
-              label="Reset form"
+              label={t('customer.registration.resetForm')}
               onPress={() => {
                 setForm(initialRegisterForm);
                 setFeedback(undefined);
               }}
             />
           </View>
-          {feedback ? <Text style={screenStyles.helperText}>{feedback}</Text> : null}
+          {feedback ? (
+            <Text
+              style={[screenStyles.helperText, { textAlign, writingDirection }]}
+            >
+              {feedback}
+            </Text>
+          ) : null}
         </View>
       </InfoCard>
 

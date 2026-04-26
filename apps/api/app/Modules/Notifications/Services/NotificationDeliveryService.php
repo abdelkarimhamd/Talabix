@@ -5,6 +5,7 @@ namespace App\Modules\Notifications\Services;
 use App\Models\NotificationDelivery;
 use App\Models\Order;
 use App\Models\SupportNote;
+use App\Models\User;
 use App\Modules\Notifications\Enums\NotificationChannel;
 use App\Modules\Notifications\Enums\NotificationDeliveryStatus;
 use App\Modules\Notifications\Enums\NotificationType;
@@ -21,6 +22,9 @@ class NotificationDeliveryService
         private readonly NotificationTemplateService $notificationTemplateService,
     ) {}
 
+    /**
+     * @param  array<string, mixed>  $metadata
+     */
     public function queueOrderStatusNotifications(
         Order $order,
         OrderStatus $status,
@@ -69,6 +73,10 @@ class NotificationDeliveryService
         );
     }
 
+    /**
+     * @param  Collection<int, array{user_id: int, actor: string}>  $recipients
+     * @param  callable(array{user_id: int, actor: string}): array{title: string, body: string, channels: list<NotificationChannel>, payload: array<string, mixed>}  $templateResolver
+     */
     private function persistDeliveries(
         Order $order,
         NotificationType $type,
@@ -93,7 +101,7 @@ class NotificationDeliveryService
                         : NotificationDeliveryStatus::QUEUED,
                     'title' => $template['title'],
                     'body' => $template['body'],
-                    'payload' => $template['payload'] ?? [],
+                    'payload' => $template['payload'],
                     'attempt_count' => $channel === NotificationChannel::IN_APP ? 1 : 0,
                     'last_attempted_at' => $channel === NotificationChannel::IN_APP ? $timestamp : null,
                     'queued_at' => $timestamp,
@@ -156,25 +164,35 @@ class NotificationDeliveryService
         return $this->processDelivery($delivery->fresh());
     }
 
+    /**
+     * @return Collection<int, array{user_id: int, actor: string}>
+     */
     private function orderRecipients(Order $order, ?int $actorUserId = null): Collection
     {
-        $merchantRecipients = $order->merchant?->staffMemberships
-            ?->map(fn ($membership) => $membership->user
-                ? ['user_id' => $membership->user->id, 'actor' => 'merchant']
-                : null)
-            ->all() ?? [];
+        $recipientRows = [];
+        $customerUser = data_get($order, 'customerProfile.user');
+        $riderUser = data_get($order, 'riderProfile.user');
+        $merchantMemberships = data_get($order, 'merchant.staffMemberships');
 
-        $recipients = collect([
-            $order->customerProfile?->user
-                ? ['user_id' => $order->customerProfile->user->id, 'actor' => 'customer']
-                : null,
-            $order->riderProfile?->user
-                ? ['user_id' => $order->riderProfile->user->id, 'actor' => 'rider']
-                : null,
-            ...$merchantRecipients,
-        ])->filter();
+        if ($customerUser instanceof User) {
+            $recipientRows[] = ['user_id' => $customerUser->id, 'actor' => 'customer'];
+        }
 
-        return $recipients
+        if ($riderUser instanceof User) {
+            $recipientRows[] = ['user_id' => $riderUser->id, 'actor' => 'rider'];
+        }
+
+        if ($merchantMemberships instanceof Collection) {
+            foreach ($merchantMemberships as $membership) {
+                $merchantUser = data_get($membership, 'user');
+
+                if ($merchantUser instanceof User) {
+                    $recipientRows[] = ['user_id' => $merchantUser->id, 'actor' => 'merchant'];
+                }
+            }
+        }
+
+        return collect($recipientRows)
             ->reject(fn (array $recipient) => $actorUserId && $recipient['user_id'] === $actorUserId)
             ->unique(fn (array $recipient) => sprintf('%s:%s', $recipient['actor'], $recipient['user_id']))
             ->values();

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talabix Customer App — UI Kit</title>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #e8e8e8; font-family: system-ui, -apple-system, sans-serif; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 24px; }
+  .phone { width: 390px; min-height: 844px; background: #ffffff; border-radius: 44px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.25), inset 0 0 0 1.5px rgba(0,0,0,0.15); position: relative; display: flex; flex-direction: column; }
+  .status-bar { height: 44px; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; }
+  .status-time { font-size: 15px; font-weight: 700; color: #202124; }
+  .status-icons { font-size: 13px; color: #202124; font-weight: 700; display: flex; gap: 6px; align-items: center; }
+  .screen { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 100px; }
+  .screen::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+// ── Tokens ────────────────────────────────────────────────────────────
+const C = {
+  primary: '#ffe500', primaryDeep: '#b09200',
+  ink: '#202124', muted: '#62666d', subtle: '#8d9198',
+  line: '#ececec', bg: '#ffffff', surface: '#ffffff',
+  surfaceWarm: '#fff9cf', surfaceSoft: '#f6f6f2',
+  green: '#15945f', teal: '#0b8fa3',
+  rose: '#e91e63', roseSoft: '#fff1f6',
+  orange: '#f7a51d', dark: '#17191c',
+};
+const ART = {
+  burger:   { bg: '#b8102f', src: '../../assets/product-artwork/burger.png' },
+  shawarma: { bg: '#7b1b10', src: '../../assets/product-artwork/shawarma.png' },
+  market:   { bg: '#0f7f56', src: '../../assets/product-artwork/market.png' },
+  coffee:   { bg: '#1d5f87', src: '../../assets/product-artwork/coffee.png' },
+  gift:     { bg: '#7132a8', src: '../../assets/product-artwork/gift.png' },
+};
+function artFor(name='') {
+  const n = name.toLowerCase();
+  if (n.includes('market') || n.includes('grocer')) return ART.market;
+  if (n.includes('coffee') || n.includes('break')) return ART.coffee;
+  if (n.includes('bloom') || n.includes('gift') || n.includes('flower')) return ART.gift;
+  if (n.includes('shawarma') || n.includes('wrap')) return ART.shawarma;
+  return ART.burger;
+}
+
+// ── Base Components ───────────────────────────────────────────────────
+function Eyebrow({ children, color = C.green }) {
+  return <span style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', color, letterSpacing: 0 }}>{children}</span>;
+}
+
+function PageTitle({ children }) {
+  return <span style={{ fontSize: 26, fontWeight: 900, color: C.ink, lineHeight: 1.18 }}>{children}</span>;
+}
+
+function SectionTitle({ children, action }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ fontSize: 22, fontWeight: 900, color: C.ink }}>{children}</span>
+      {action}
+    </div>
+  );
+}
+
+function AccentButton({ label, onPress, disabled }) {
+  return (
+    <button onClick={onPress} disabled={disabled}
+      style={{ minHeight: 52, border: 'none', borderRadius: 14, background: disabled ? '#ffe500' : C.primary, color: C.ink, fontWeight: 900, fontSize: 16, padding: '0 22px', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.45 : 1, fontFamily: 'inherit', width: '100%' }}>
+      {label}
+    </button>
+  );
+}
+
+function SecondaryButton({ label, active, onPress }) {
+  return (
+    <button onClick={onPress}
+      style={{ minHeight: 42, border: `1.5px solid ${active ? C.primary : C.line}`, borderRadius: 14, background: active ? C.primary : C.surface, color: C.ink, fontWeight: 700, fontSize: 14, padding: '0 16px', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+      {label}
+    </button>
+  );
+}
+
+function Pill({ label, tone = 'neutral' }) {
+  const styles = {
+    neutral: { bg: C.surfaceSoft, color: C.muted, border: C.line },
+    success: { bg: '#dcf5ea', color: '#0e6b41', border: '#b2e8ca' },
+    warning: { bg: '#fff3d0', color: '#8a5f00', border: '#ffe099' },
+  };
+  const s = styles[tone] || styles.neutral;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: s.bg, color: s.color, border: `1px solid ${s.border}`, whiteSpace: 'nowrap' }}>
+      {label}
+    </span>
+  );
+}
+
+function SearchBar({ value, onChange, placeholder }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: C.surface, border: `1.5px solid ${C.line}`, borderRadius: 12, minHeight: 52, padding: '0 14px' }}>
+      <span style={{ fontSize: 17, color: C.subtle }}>🔍</span>
+      <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        style={{ border: 'none', outline: 'none', flex: 1, fontSize: 16, color: C.ink, background: 'transparent', fontFamily: 'inherit' }} />
+    </div>
+  );
+}
+
+function InfoCard({ eyebrow, title, description, accent = C.primaryDeep, children }) {
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, borderTop: `3px solid ${accent}`, padding: 16, display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '0 5px 14px rgba(0,0,0,.05)' }}>
+      {eyebrow && <Eyebrow color={accent}>{eyebrow}</Eyebrow>}
+      <span style={{ fontSize: 19, fontWeight: 900, color: C.ink, lineHeight: 1.2 }}>{title}</span>
+      {description && <span style={{ fontSize: 14, color: C.muted, lineHeight: 1.45 }}>{description}</span>}
+      {children}
+    </div>
+  );
+}
+
+function PromoBanner({ eyebrow, title, description, tone = 'yellow', action }) {
+  const dark = tone === 'dark';
+  return (
+    <div style={{ background: dark ? C.dark : '#fff8bd', border: dark ? 'none' : `1px solid #f2e57a`, borderRadius: 18, padding: 18, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {eyebrow && <span style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', color: C.rose }}>{eyebrow}</span>}
+          <span style={{ fontSize: 24, fontWeight: 900, lineHeight: 1.2, color: dark ? '#fff' : C.ink }}>{title}</span>
+          {description && <span style={{ fontSize: 14, lineHeight: 1.45, color: dark ? '#f7f0cf' : '#3e3a20' }}>{description}</span>}
+        </div>
+        <div style={{ width: 82, height: 82, background: C.surface, borderRadius: 18, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+          <span style={{ fontSize: 28, fontWeight: 900, color: C.rose, lineHeight: 1 }}>%</span>
+          <span style={{ background: C.primary, borderRadius: 6, color: C.ink, fontSize: 14, fontWeight: 900, padding: '2px 8px', marginTop: 2 }}>FREE</span>
+        </div>
+      </div>
+      {action && <div>{action}</div>}
+    </div>
+  );
+}
+
+function FoodArtwork({ name, compact = false }) {
+  const art = artFor(name);
+  const size = compact ? { width: '100%', height: 100 } : { width: '100%', height: 140 };
+  return (
+    <div style={{ ...size, background: art.bg, borderRadius: compact ? '14px 14px 0 0' : 14, overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+      <img src={art.src} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.45) 0%, transparent 55%)' }} />
+    </div>
+  );
+}
+
+function MerchantCard({ name, description, meta, badges = [], accent = C.primary, onPress }) {
+  return (
+    <div onClick={onPress} style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, overflow: 'hidden', boxShadow: '0 5px 14px rgba(0,0,0,.05)', cursor: 'pointer' }}>
+      <FoodArtwork name={name} compact />
+      <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 16, color: C.ink, flexShrink: 0 }}>
+            {name.slice(0,1).toUpperCase()}
+          </div>
+          <div>
+            <div style={{ fontWeight: 900, fontSize: 15, color: C.ink }}>{name}</div>
+            {description && <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.35 }}>{description}</div>}
+          </div>
+        </div>
+        {meta && <div style={{ fontSize: 13, color: C.muted }}>{meta}</div>}
+        {badges.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {badges.map(b => <Pill key={b} label={b} tone={b === 'Open now' ? 'success' : b.includes('Free') ? 'success' : 'neutral'} />)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FloatingDock({ active }) {
+  const tabs = [
+    { key: 'home', icon: '⌂', label: 'Home' },
+    { key: 'orders', icon: '📋', label: 'Orders' },
+    { key: 'offers', icon: '%', label: 'Offers' },
+    { key: 'points', icon: '★', label: 'Points' },
+    { key: 'profile', icon: '◉', label: 'Profile' },
+  ];
+  return (
+    <div style={{ position: 'absolute', bottom: 24, left: 16, right: 16, background: C.surface, borderRadius: 28, padding: '8px 10px', boxShadow: '0 10px 20px rgba(0,0,0,.12)', border: `1px solid ${C.line}`, display: 'flex', justifyContent: 'space-around', zIndex: 100 }}>
+      {tabs.map(t => (
+        <div key={t.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '7px 12px', borderRadius: 20, background: t.key === active ? C.primary : 'transparent', cursor: 'pointer' }}>
+          <span style={{ fontSize: 18, fontWeight: 900, color: t.key === active ? C.ink : C.subtle }}>{t.icon}</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: t.key === active ? C.ink : C.subtle }}>{t.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PriceSummaryRow({ label, value, strong }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ fontSize: strong ? 15 : 14, fontWeight: strong ? 900 : 400, color: strong ? C.ink : C.muted }}>{label}</span>
+      <span style={{ fontSize: strong ? 15 : 14, fontWeight: strong ? 900 : 700, color: C.ink }}>{value}</span>
+    </div>
+  );
+}
+
+function AppHeader({ addressLabel, addressLine }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+      <div style={{ width: 30, height: 30, borderRadius: 14, background: C.green, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+        <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>📍</span>
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 16, fontWeight: 900, color: C.ink }}>{addressLabel}</div>
+        <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.35 }}>{addressLine}</div>
+      </div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: '6px 10px', fontSize: 12, fontWeight: 900, color: C.ink }}>0 new</div>
+        <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: '6px 10px', fontSize: 12, fontWeight: 900, color: C.ink }}>2 cart</div>
+      </div>
+    </div>
+  );
+}
+
+function CategoryTile({ label, kicker, active, onPress }) {
+  return (
+    <div onClick={onPress} style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', cursor: 'pointer', width: '22%' }}>
+      <div style={{ width: '100%', aspectRatio: '1', background: active ? C.primary : C.surfaceSoft, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: 11, fontWeight: 900, color: active ? C.ink : C.muted, textAlign: 'center', padding: 2 }}>{kicker}</span>
+      </div>
+      <span style={{ fontSize: 11, fontWeight: 700, color: C.ink, textAlign: 'center', lineHeight: 1.2 }}>{label}</span>
+    </div>
+  );
+}
+
+// ── Screens ──────────────────────────────────────────────────────────
+
+const MERCHANTS = [
+  { name: 'Talabix Demo Kitchen', description: 'Olaya Branch · Olaya Street', meta: 'Free delivery · ETA 18 min', badges: ['Open now', 'Free delivery'], accent: C.primary },
+  { name: 'Green Market', description: 'Malaz Branch · King Fahad Rd', meta: 'SAR 8 delivery · ETA 25 min', badges: ['Open now', '3 branches'], accent: '#c9f06d' },
+  { name: 'Bloom & Rose', description: 'Central Branch · Tahlia St', meta: 'SAR 12 delivery · Same day', badges: ['Closed now'], accent: '#ffc4d5' },
+  { name: 'Coffee Corner', description: 'North Branch · Olaya', meta: 'Free delivery · ETA 10 min', badges: ['Open now', 'Free delivery'], accent: C.primary },
+];
+
+function HomeScreen({ onMerchantPress }) {
+  const [search, setSearch] = React.useState('');
+  const [activeCategory, setActiveCategory] = React.useState('all');
+  const categories = [
+    { id: 'all', label: 'All', kicker: '⊕' },
+    { id: 'restaurants', label: 'Restaurants', kicker: '🍽' },
+    { id: 'market', label: 'Market', kicker: '🛒' },
+    { id: 'pharmacy', label: 'Pharmacy', kicker: 'RX' },
+    { id: 'gifts', label: 'Gifts', kicker: '🎁' },
+  ];
+  return (
+    <div className="screen">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <Eyebrow>Good morning</Eyebrow>
+        <PageTitle>What would you like?</PageTitle>
+        <span style={{ fontSize: 14, color: C.muted }}>Delivering to your saved addresses</span>
+      </div>
+      <AppHeader addressLabel="Home" addressLine="King Fahad Road, Apartment 12, Riyadh" />
+      <SearchBar value={search} onChange={setSearch} placeholder="Search restaurants, markets…" />
+      <PromoBanner eyebrow="Limited time" title="Free delivery today" description="On orders over SAR 40 from top restaurants." action={<SecondaryButton label="Open now only" />} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <SectionTitle>Categories</SectionTitle>
+        <div style={{ display: 'flex', gap: '4%', flexWrap: 'wrap' }}>
+          {categories.map(c => <CategoryTile key={c.id} label={c.label} kicker={c.kicker} active={activeCategory === c.id} onPress={() => setActiveCategory(c.id)} />)}
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <SectionTitle>Nearby restaurants</SectionTitle>
+        {MERCHANTS.map(m => (
+          <MerchantCard key={m.name} {...m} onPress={() => onMerchantPress(m)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MerchantScreen({ merchant, onBack, onAddToCart }) {
+  const items = [
+    { name: 'Classic Burger', desc: 'Beef patty, lettuce, tomato, pickles', price: 'SAR 28' },
+    { name: 'Double Smash', desc: 'Two smash patties, special sauce', price: 'SAR 38' },
+    { name: 'Crispy Chicken', desc: 'Crispy fillet, coleslaw, chipotle', price: 'SAR 32' },
+    { name: 'Veggie Wrap', desc: 'Grilled veggies, hummus, pita', price: 'SAR 24' },
+  ];
+  return (
+    <div className="screen">
+      <FoodArtwork name={merchant.name} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: merchant.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 20, color: C.ink }}>{merchant.name.slice(0,1)}</div>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: C.ink }}>{merchant.name}</div>
+          <div style={{ fontSize: 13, color: C.muted }}>{merchant.description}</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {merchant.badges.map(b => <Pill key={b} label={b} tone={b === 'Open now' ? 'success' : 'neutral'} />)}
+      </div>
+      <SectionTitle>Menu</SectionTitle>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {items.map(item => (
+          <div key={item.name} style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 5px 14px rgba(0,0,0,.04)' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 900, fontSize: 15, color: C.ink }}>{item.name}</div>
+              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.35 }}>{item.desc}</div>
+              <div style={{ fontSize: 15, fontWeight: 900, color: C.ink, marginTop: 6 }}>{item.price}</div>
+            </div>
+            <button onClick={() => onAddToCart(item)} style={{ width: 36, height: 36, borderRadius: 12, background: C.primary, border: 'none', fontWeight: 900, fontSize: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.ink, fontFamily: 'inherit' }}>+</button>
+          </div>
+        ))}
+      </div>
+      <button onClick={onBack} style={{ minHeight: 48, border: `1.5px solid ${C.line}`, borderRadius: 14, background: C.surface, fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', color: C.ink }}>← Back</button>
+    </div>
+  );
+}
+
+function CartScreen({ cartItems, onCheckout, onBack }) {
+  const total = cartItems.length * 28;
+  return (
+    <div className="screen">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <Eyebrow>Your order</Eyebrow>
+        <PageTitle>Cart</PageTitle>
+      </div>
+      {cartItems.length === 0 ? (
+        <InfoCard eyebrow="Empty" title="Your cart is empty" description="Browse restaurants nearby and add items." accent={C.primaryDeep} />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {cartItems.map((item, i) => (
+            <div key={i} style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 5px 14px rgba(0,0,0,.04)' }}>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 15, color: C.ink }}>{item.name}</div>
+                <div style={{ fontSize: 13, color: C.muted }}>{item.price}</div>
+              </div>
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: C.surfaceSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>1</div>
+            </div>
+          ))}
+          <InfoCard eyebrow="Summary" title="Order total" accent={C.primaryDeep}>
+            <PriceSummaryRow label="Subtotal" value={`SAR ${total}`} />
+            <PriceSummaryRow label="Delivery fee" value="Free" />
+            <PriceSummaryRow label="Total" value={`SAR ${total}`} strong />
+          </InfoCard>
+          <AccentButton label="Checkout" onPress={onCheckout} />
+        </div>
+      )}
+      <button onClick={onBack} style={{ minHeight: 48, border: `1.5px solid ${C.line}`, borderRadius: 14, background: C.surface, fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', color: C.ink }}>← Back</button>
+    </div>
+  );
+}
+
+function OrderTrackingScreen({ onBack }) {
+  const steps = ['Order placed', 'Merchant accepted', 'Preparing', 'Rider assigned', 'Picked up', 'Delivered'];
+  const currentStep = 3;
+  return (
+    <div className="screen">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <Eyebrow>Live tracking</Eyebrow>
+        <PageTitle>Tracking your delivery</PageTitle>
+      </div>
+      <PromoBanner eyebrow="Current status" title="Rider assigned" description="Order #AB4F82C1 · ETA 18 minutes" />
+      <InfoCard eyebrow="Order timeline" title="Live status updates" accent={C.green}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+          {steps.map((step, i) => (
+            <div key={step} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 22, height: 22, borderRadius: 999, background: i < currentStep ? C.green : i === currentStep ? C.primary : C.line, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {i < currentStep ? <span style={{ color: '#fff', fontSize: 11, fontWeight: 900 }}>✓</span> : <span style={{ fontSize: 9, fontWeight: 900, color: i === currentStep ? C.ink : C.subtle }}>{i+1}</span>}
+              </div>
+              <span style={{ fontSize: 14, fontWeight: i <= currentStep ? 700 : 400, color: i <= currentStep ? C.ink : C.subtle }}>{step}</span>
+            </div>
+          ))}
+        </div>
+      </InfoCard>
+      <InfoCard eyebrow="Price breakdown" title="Order total" accent={C.primaryDeep}>
+        <PriceSummaryRow label="Subtotal" value="SAR 56" />
+        <PriceSummaryRow label="Delivery fee" value="Free" />
+        <PriceSummaryRow label="Total" value="SAR 56" strong />
+      </InfoCard>
+      <button onClick={onBack} style={{ minHeight: 48, border: `1.5px solid ${C.line}`, borderRadius: 14, background: C.surface, fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', color: C.ink }}>← Home</button>
+    </div>
+  );
+}
+
+// ── App Shell ────────────────────────────────────────────────────────
+function App() {
+  const params = new URLSearchParams(window.location.search);
+  const requestedScreen = params.get('screen');
+  const initialScreen = ['home', 'merchant', 'cart', 'tracking'].includes(requestedScreen)
+    ? requestedScreen
+    : 'home';
+  const initialMerchant = MERCHANTS[0];
+  const initialCart = [{ name: 'Classic Burger', price: 'SAR 28' }, { name: 'Chicken Shawarma', price: 'SAR 24' }];
+  const [screen, setScreen] = React.useState(initialScreen);
+  const [selectedMerchant, setSelectedMerchant] = React.useState(initialMerchant);
+  const [cart, setCart] = React.useState(
+    ['cart', 'tracking'].includes(initialScreen) ? initialCart : []
+  );
+
+  const savedState = React.useRef(null);
+  React.useEffect(() => {
+    if (requestedScreen) return;
+    const s = localStorage.getItem('talabix-ca-screen');
+    if (s) setScreen(s);
+  }, [requestedScreen]);
+  React.useEffect(() => {
+    if (requestedScreen) return;
+    localStorage.setItem('talabix-ca-screen', screen);
+  }, [requestedScreen, screen]);
+
+  const dockTab = screen === 'tracking' ? 'orders' : screen === 'merchant' ? 'home' : screen === 'cart' ? 'home' : screen;
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: 24, background: '#e0e0e0', minHeight: '100vh' }}>
+      <div className="phone">
+        <div className="status-bar">
+          <span className="status-time">9:41</span>
+          <span className="status-icons"><span>●●●</span><span>WiFi</span><span>100%</span></span>
+        </div>
+        <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+          {screen === 'home' && <HomeScreen onMerchantPress={m => { setSelectedMerchant(m); setScreen('merchant'); }} />}
+          {screen === 'merchant' && selectedMerchant && <MerchantScreen merchant={selectedMerchant} onBack={() => setScreen('home')} onAddToCart={item => { setCart(c => [...c, item]); }} />}
+          {screen === 'cart' && <CartScreen cartItems={cart} onBack={() => setScreen('home')} onCheckout={() => setScreen('tracking')} />}
+          {screen === 'tracking' && <OrderTrackingScreen onBack={() => { setCart([]); setScreen('home'); }} />}
+          <FloatingDock active={dockTab} />
+        </div>
+      </div>
+      {/* cart badge trigger */}
+      {screen !== 'cart' && cart.length > 0 && (
+        <button onClick={() => setScreen('cart')}
+          style={{ position: 'fixed', bottom: 40, right: 40, background: C.primary, border: 'none', borderRadius: 20, padding: '12px 20px', fontWeight: 900, fontSize: 15, cursor: 'pointer', boxShadow: '0 8px 20px rgba(0,0,0,.15)', fontFamily: 'inherit', color: C.ink, display: 'flex', alignItems: 'center', gap: 8 }}>
+          🛒 Cart ({cart.length})
+        </button>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

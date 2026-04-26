@@ -95,9 +95,7 @@ class DispatchController extends Controller
         $this->authorize('dispatch', $order);
 
         $validated = $request->validated();
-        $activeStatus = $order->status instanceof OrderStatus
-            ? $order->status
-            : OrderStatus::tryFrom((string) $order->status);
+        $activeStatus = $order->status;
 
         if (in_array($activeStatus, [OrderStatus::DELIVERED, OrderStatus::CANCELLED], true)) {
             throw ValidationException::withMessages([
@@ -138,7 +136,7 @@ class DispatchController extends Controller
 
         DeliveryAssignment::query()
             ->where('order_id', $order->id)
-            ->where('status', 'active')
+            ->whereNotIn('status', ['reassigned', 'cancelled', 'completed'])
             ->update(['status' => 'reassigned']);
 
         $assignment = DeliveryAssignment::query()->create([

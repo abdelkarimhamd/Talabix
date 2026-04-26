@@ -10,6 +10,7 @@ use App\Models\CatalogItem;
 use App\Models\CustomerProfile;
 use App\Models\Merchant;
 use App\Models\MerchantStaffMembership;
+use App\Models\PromotionOffer;
 use App\Models\RiderProfile;
 use App\Models\User;
 use App\Modules\Dispatch\Enums\RiderAvailability;
@@ -154,7 +155,7 @@ class DemoDataSeeder extends Seeder
             ['fee_minor' => 1800]
         );
 
-        CatalogItem::query()->firstOrCreate(
+        $shawarma = CatalogItem::query()->firstOrCreate(
             ['merchant_id' => $merchant->id, 'name' => 'Chicken Shawarma'],
             [
                 'uuid' => (string) Str::uuid(),
@@ -175,6 +176,38 @@ class DemoDataSeeder extends Seeder
                 'base_price_minor' => 1000,
                 'base_stock' => 100,
                 'is_active' => true,
+            ]
+        );
+
+        PromotionOffer::query()->firstOrCreate(
+            ['branch_id' => $branch->id, 'catalog_item_id' => $shawarma->id, 'title' => 'Free delivery'],
+            [
+                'uuid' => (string) Str::uuid(),
+                'code' => null,
+                'discount_label' => '0 SAR delivery',
+                'discount_type' => 'delivery',
+                'percent' => null,
+                'amount_minor' => null,
+                'min_spend_minor' => 2500,
+                'requires_promo_code' => false,
+                'is_active' => true,
+                'expires_at' => now()->addMonth(),
+            ]
+        );
+
+        PromotionOffer::query()->firstOrCreate(
+            ['branch_id' => $branch->id, 'catalog_item_id' => $shawarma->id, 'code' => 'SHAWARMA5'],
+            [
+                'uuid' => (string) Str::uuid(),
+                'title' => 'Shawarma promo code',
+                'discount_label' => 'SAR 5 off',
+                'discount_type' => 'item_fixed',
+                'percent' => null,
+                'amount_minor' => 500,
+                'min_spend_minor' => 2500,
+                'requires_promo_code' => true,
+                'is_active' => true,
+                'expires_at' => now()->addMonth(),
             ]
         );
     }

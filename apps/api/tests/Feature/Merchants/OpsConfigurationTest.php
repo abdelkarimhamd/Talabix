@@ -115,6 +115,85 @@ it('updates merchant and branch configuration while auditing ops changes', funct
     ]);
 });
 
+it('archives and deletes test merchants for ops cleanup', function () {
+    $this->seedRoles();
+    $merchantContext = $this->createMerchantContext();
+    $opsUser = $this->createUserWithRole('ops_admin');
+    $merchantContext['merchant']->update([
+        'name' => 'Smoke Store Cleanup',
+        'slug' => 'smoke-store-cleanup',
+    ]);
+
+    Sanctum::actingAs($opsUser, ['ops:merchants.manage']);
+
+    $this->patchJson("/api/v1/ops/configuration/merchants/{$merchantContext['merchant']->uuid}", [
+        'status' => 'inactive',
+    ])->assertOk()
+        ->assertJsonPath('data.status', 'inactive');
+
+    $this->deleteJson("/api/v1/ops/configuration/merchants/{$merchantContext['merchant']->uuid}")
+        ->assertOk()
+        ->assertJsonPath('data.uuid', $merchantContext['merchant']->uuid);
+
+    $this->assertDatabaseMissing('merchants', [
+        'id' => $merchantContext['merchant']->id,
+    ]);
+});
+
+it('rejects deletion for non-test merchants', function () {
+    $this->seedRoles();
+    $merchantContext = $this->createMerchantContext();
+    $opsUser = $this->createUserWithRole('ops_admin');
+
+    Sanctum::actingAs($opsUser, ['ops:merchants.manage']);
+
+    $this->deleteJson("/api/v1/ops/configuration/merchants/{$merchantContext['merchant']->uuid}")
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('merchant');
+
+    $this->assertDatabaseHas('merchants', [
+        'id' => $merchantContext['merchant']->id,
+    ]);
+});
+
+it('lets ops configure Google Maps without exposing the stored API key', function () {
+    $this->seedRoles();
+    $opsUser = $this->createUserWithRole('ops_admin');
+
+    Sanctum::actingAs($opsUser, ['ops:merchants.manage']);
+
+    $this->getJson('/api/v1/ops/configuration/maps-provider')
+        ->assertOk()
+        ->assertJsonPath('data.provider', 'google_maps')
+        ->assertJsonPath('data.google_maps.api_key_configured', false)
+        ->assertJsonPath('data.google_maps.api_key_source', 'none');
+
+    $response = $this->patchJson('/api/v1/ops/configuration/maps-provider', [
+        'provider' => 'google_maps',
+        'google_maps_api_key' => 'AIzaSyOpsAdminSecret1234',
+        'google_maps_region' => 'sa',
+        'google_maps_location_bias' => 'circle:50000@24.7136,46.6753',
+        'google_maps_timeout_seconds' => 2.5,
+        'google_maps_fallback_to_demo' => true,
+    ])->assertOk()
+        ->assertJsonPath('data.provider', 'google_maps')
+        ->assertJsonPath('data.google_maps.api_key_configured', true)
+        ->assertJsonPath('data.google_maps.api_key_source', 'admin')
+        ->assertJsonPath('data.google_maps.api_key_preview', '••••••••1234');
+
+    expect($response->getContent())->not->toContain('AIzaSyOpsAdminSecret1234');
+
+    $this->assertDatabaseHas('maps_provider_settings', [
+        'provider' => 'google_maps',
+        'google_maps_region' => 'sa',
+        'google_maps_fallback_to_demo' => true,
+    ]);
+
+    $this->assertDatabaseHas('audit_logs', [
+        'event' => 'maps_configuration_updated',
+    ]);
+});
+
 it('applies the configured merchant commission during checkout pricing', function () {
     $this->seedRoles();
     $merchantContext = $this->createMerchantContext();

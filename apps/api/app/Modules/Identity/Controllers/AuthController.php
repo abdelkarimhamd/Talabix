@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomerProfile;
 use App\Models\User;
 use App\Modules\Identity\Actions\IssueTokenAction;
+use App\Modules\Identity\Requests\ChangePasswordRequest;
 use App\Modules\Identity\Requests\ForgotPasswordRequest;
 use App\Modules\Identity\Requests\LoginRequest;
 use App\Modules\Identity\Requests\RegisterCustomerRequest;
 use App\Modules\Identity\Requests\ResetPasswordRequest;
 use App\Modules\Identity\Requests\UpdateCustomerProfileRequest;
 use App\Modules\Identity\Resources\UserResource;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -110,6 +112,30 @@ class AuthController extends Controller
         ]);
     }
 
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user || ! Hash::check($request->string('current_password'), $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => 'The current password is incorrect.',
+            ]);
+        }
+
+        $user->forceFill([
+            'password' => $request->string('password')->toString(),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        $user->tokens()
+            ->where('id', '!=', $user->currentAccessToken()->id)
+            ->delete();
+
+        return response()->json([
+            'message' => 'Password updated successfully.',
+        ]);
+    }
+
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
         $status = Password::sendResetLink($request->validated());
@@ -148,11 +174,17 @@ class AuthController extends Controller
             ]);
         }
 
-        $token = $this->issueTokenAction->execute(
-            $user,
-            $actor,
-            $request->string('device_name')->toString()
-        );
+        try {
+            $token = $this->issueTokenAction->execute(
+                $user,
+                $actor,
+                $request->string('device_name')->toString()
+            );
+        } catch (AuthenticationException $exception) {
+            throw ValidationException::withMessages([
+                'email' => $exception->getMessage(),
+            ]);
+        }
 
         $user->forceFill(['last_login_at' => now()])->save();
 

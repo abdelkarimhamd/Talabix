@@ -1,6 +1,6 @@
 import { Link, useLocalSearchParams } from 'expo-router';
 import { MerchantDetailScreen } from '../../src/screens/MerchantDetailScreen';
-import { SecondaryButton } from '../../src/ui';
+import { SecondaryButton, withDesignFrame } from '../../src/ui';
 
 export default function MerchantDetailRoute() {
   const { merchantId } = useLocalSearchParams();
@@ -9,10 +9,13 @@ export default function MerchantDetailRoute() {
     <MerchantDetailScreen
       branchActionRenderer={(branch) => (
         <>
-          <Link asChild href={`/branches/${branch.uuid}/catalog`}>
+          <Link
+            asChild
+            href={withDesignFrame(`/branches/${branch.uuid}/catalog`)}
+          >
             <SecondaryButton label="Browse branch catalog" />
           </Link>
-          <Link asChild href="/cart">
+          <Link asChild href={withDesignFrame('/cart')}>
             <SecondaryButton label="Open cart" />
           </Link>
         </>

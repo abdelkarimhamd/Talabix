@@ -17,7 +17,7 @@ class MailNotificationTransport implements NotificationChannelTransport
 
     public function send(NotificationDelivery $delivery): ?string
     {
-        $recipientEmail = $delivery->recipientUser?->email;
+        $recipientEmail = $delivery->recipientUser->email;
 
         if (! $recipientEmail) {
             throw new RuntimeException('The notification recipient does not have an email address.');

@@ -6,7 +6,10 @@ use App\Models\DeliveryAssignment;
 use App\Models\Order;
 use App\Models\RiderProfile;
 use App\Modules\Orders\Enums\OrderStatus;
+use App\Modules\Orders\Enums\OrderTimelineEventType;
+use App\Modules\Orders\Support\DeliveryExceptionSla;
 use App\Modules\Shared\Services\MapsProviderService;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 class DispatchRouteProjectionService
@@ -25,11 +28,15 @@ class DispatchRouteProjectionService
         private readonly DispatchScoringService $scoringService,
     ) {}
 
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
     public function activeAssignments(): Collection
     {
         return DeliveryAssignment::query()
             ->with([
                 'order.assignments',
+                'order.timeline',
                 'order.branch.serviceZones',
                 'order.customerProfile.user',
                 'order.customerAddress',
@@ -43,6 +50,9 @@ class DispatchRouteProjectionService
             ->values();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function projectAssignment(DeliveryAssignment $assignment): array
     {
         $order = $assignment->order;
@@ -50,8 +60,8 @@ class DispatchRouteProjectionService
         $branch = $order->branch;
         $address = $order->customerAddress;
         $riderLocation = $rider->locations->sortByDesc('recorded_at')->first();
-        $riderLatitude = (float) ($riderLocation?->latitude ?? $branch->latitude);
-        $riderLongitude = (float) ($riderLocation?->longitude ?? $branch->longitude);
+        $riderLatitude = (float) data_get($riderLocation, 'latitude', $branch->latitude);
+        $riderLongitude = (float) data_get($riderLocation, 'longitude', $branch->longitude);
         $pickupEstimate = $this->mapsProviderService->distanceEstimate(
             $riderLatitude,
             $riderLongitude,
@@ -64,7 +74,7 @@ class DispatchRouteProjectionService
             (float) $address->latitude,
             (float) $address->longitude,
         );
-        $orderStatus = $order->status?->value ?? (string) $order->status;
+        $orderStatus = $order->status->value;
         $assignmentAgeMinutes = $this->minutesSince($assignment->assigned_at);
         $lastReassignment = $order->timeline()
             ->where('event_type', 'rider_reassigned')
@@ -79,8 +89,8 @@ class DispatchRouteProjectionService
             'orderAcceptedAt' => $order->accepted_at,
             'zone' => $this->zoneName($order),
             'riderUuid' => $rider->uuid,
-            'riderName' => $rider->user?->name ?? __('messages.dispatch.fallbacks.unassigned_rider'),
-            'riderAvailability' => $rider->availability?->value ?? (string) $rider->availability,
+            'riderName' => data_get($rider->user, 'name', __('messages.dispatch.fallbacks.unassigned_rider')),
+            'riderAvailability' => $rider->availability->value,
             'assignmentStatus' => $assignment->status,
             'assignmentType' => $assignment->assignment_type,
             'assignedAt' => $assignment->assigned_at,
@@ -112,6 +122,7 @@ class DispatchRouteProjectionService
                 'longitude' => (float) $address->longitude,
             ],
             'mapsProvider' => $pickupEstimate['provider'],
+            'exception' => $this->activeDeliveryException($order),
             'sla' => $this->slaSnapshot($assignmentAgeMinutes),
             'reassignment' => [
                 'canReassign' => $this->canReassign($order, $assignment),
@@ -131,7 +142,7 @@ class DispatchRouteProjectionService
     {
         $address = $order->customerAddress;
 
-        return $order->branch->serviceZones
+        $zone = $order->branch->serviceZones
             ->where('is_active', true)
             ->first(function ($zone) use ($address) {
                 return $zone->city === $address->city
@@ -141,7 +152,9 @@ class DispatchRouteProjectionService
                         (float) $address->latitude,
                         (float) $address->longitude,
                     ) <= $zone->radius_meters;
-            })?->name ?? $order->branch->city;
+            });
+
+        return (string) data_get($zone, 'name', $order->branch->city);
     }
 
     private function activeLoad(RiderProfile $rider): int
@@ -151,6 +164,9 @@ class DispatchRouteProjectionService
             ->count();
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private function eligibleRiders(Order $order, RiderProfile $currentRider): array
     {
         $branch = $order->branch;
@@ -176,8 +192,8 @@ class DispatchRouteProjectionService
 
                 return [
                     'riderUuid' => $rider->uuid,
-                    'riderName' => $rider->user?->name ?? __('messages.dispatch.fallbacks.unknown_rider'),
-                    'availability' => $rider->availability?->value ?? (string) $rider->availability,
+                    'riderName' => data_get($rider->user, 'name', __('messages.dispatch.fallbacks.unknown_rider')),
+                    'availability' => $rider->availability->value,
                     'score' => $score,
                     'activeLoad' => $this->activeLoad($rider),
                     'pickupEtaMinutes' => (int) $pickupEstimate['duration_minutes'],
@@ -194,15 +210,48 @@ class DispatchRouteProjectionService
 
     private function canReassign(Order $order, DeliveryAssignment $assignment): bool
     {
-        $orderStatus = $order->status instanceof OrderStatus
-            ? $order->status
-            : OrderStatus::tryFrom((string) $order->status);
+        $orderStatus = $order->status;
 
-        return $assignment->status === 'active'
+        return in_array($assignment->status, ['active', 'picked_up', 'exception_reported'], true)
             && ! in_array($orderStatus, [OrderStatus::DELIVERED, OrderStatus::CANCELLED], true);
     }
 
-    private function minutesSince($timestamp): int
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function activeDeliveryException(Order $order): ?array
+    {
+        $orderStatus = $order->status;
+
+        if (in_array($orderStatus, [OrderStatus::DELIVERED, OrderStatus::CANCELLED], true)) {
+            return null;
+        }
+
+        $timeline = $order->relationLoaded('timeline')
+            ? $order->timeline
+            : $order->timeline()->latest('id')->get();
+        $event = $timeline
+            ->filter(fn ($event) => $event->event_type->value === OrderTimelineEventType::DELIVERY_EXCEPTION_REPORTED->value)
+            ->sortByDesc('id')
+            ->first();
+
+        if (! $event) {
+            return null;
+        }
+
+        $metadata = $event->metadata ?? [];
+
+        return [
+            'reason_code' => $metadata['reason_code'] ?? 'other',
+            'reason_label' => $metadata['reason_label'] ?? 'Other',
+            'note' => $metadata['note'] ?? null,
+            'reported_at' => $event->created_at,
+            'reported_by' => $metadata['reported_by'] ?? 'rider',
+            'response_sla' => DeliveryExceptionSla::snapshot($event->created_at),
+        ];
+    }
+
+    private function minutesSince(?CarbonInterface $timestamp): int
     {
         if (! $timestamp) {
             return 0;
@@ -211,6 +260,9 @@ class DispatchRouteProjectionService
         return max(0, (int) floor($timestamp->diffInMinutes(now(), true)));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function slaSnapshot(int $elapsedMinutes): array
     {
         $targetMinutes = max(1, (int) config('services.dispatch.pickup_sla_minutes', 30));

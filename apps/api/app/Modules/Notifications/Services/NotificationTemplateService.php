@@ -8,8 +8,16 @@ use App\Modules\Notifications\Enums\NotificationChannel;
 use App\Modules\Orders\Enums\OrderStatus;
 use Illuminate\Support\Str;
 
+/**
+ * @phpstan-type NotificationPayload array<string, mixed>
+ * @phpstan-type NotificationTemplate array{title: string, body: string, channels: list<NotificationChannel>, payload: NotificationPayload}
+ */
 class NotificationTemplateService
 {
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return NotificationTemplate
+     */
     public function orderStatusMessage(Order $order, OrderStatus $status, string $actor, array $metadata = []): array
     {
         $orderCode = Str::upper(Str::substr($order->uuid, 0, 8));
@@ -22,10 +30,13 @@ class NotificationTemplateService
         };
     }
 
+    /**
+     * @return NotificationTemplate
+     */
     public function supportNoteMessage(Order $order, SupportNote $note, string $actor): array
     {
         $orderCode = Str::upper(Str::substr($order->uuid, 0, 8));
-        $author = $note->author?->name ?? __('messages.notifications.support_author');
+        $author = data_get($note->author, 'name', __('messages.notifications.support_author'));
         $snippet = Str::limit($note->body, 96);
 
         return match ($actor) {
@@ -47,7 +58,7 @@ class NotificationTemplateService
                 'title' => __('messages.notifications.merchant.support_note.title'),
                 'body' => __('messages.notifications.merchant.support_note.body', [
                     'order' => $orderCode,
-                    'customer' => $order->customerProfile?->user?->name ?? __('messages.notifications.fallbacks.customer'),
+                    'customer' => data_get($order, 'customerProfile.user.name', __('messages.notifications.fallbacks.customer')),
                     'snippet' => $snippet,
                 ]),
                 'channels' => [NotificationChannel::IN_APP, NotificationChannel::EMAIL],
@@ -81,6 +92,10 @@ class NotificationTemplateService
         };
     }
 
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return NotificationTemplate
+     */
     private function customerOrderStatusMessage(Order $order, OrderStatus $status, array $metadata, string $orderCode): array
     {
         $channels = [NotificationChannel::IN_APP, NotificationChannel::PUSH, NotificationChannel::EMAIL];
@@ -96,24 +111,24 @@ class NotificationTemplateService
 
         [$title, $body] = match ($status) {
             OrderStatus::ACCEPTED => $this->titleBody('customer.accepted', [
-                'merchant' => $order->merchant?->name ?? __('messages.notifications.fallbacks.merchant'),
+                'merchant' => data_get($order->merchant, 'name', __('messages.notifications.fallbacks.merchant')),
                 'order' => $orderCode,
             ]),
             OrderStatus::PREPARING => $this->titleBody('customer.preparing', [
-                'merchant' => $order->merchant?->name ?? __('messages.notifications.fallbacks.merchant'),
+                'merchant' => data_get($order->merchant, 'name', __('messages.notifications.fallbacks.merchant')),
                 'order' => $orderCode,
             ]),
             OrderStatus::READY_FOR_PICKUP => $this->titleBody('customer.ready_for_pickup', [
                 'order' => $orderCode,
-                'branch' => $order->branch?->name ?? __('messages.notifications.fallbacks.branch'),
+                'branch' => data_get($order->branch, 'name', __('messages.notifications.fallbacks.branch')),
             ]),
             OrderStatus::ASSIGNED => $this->titleBody('customer.assigned', [
-                'rider' => $order->riderProfile?->user?->name ?? __('messages.notifications.fallbacks.rider'),
-                'branch' => $order->branch?->name ?? __('messages.notifications.fallbacks.branch'),
+                'rider' => data_get($order, 'riderProfile.user.name', __('messages.notifications.fallbacks.rider')),
+                'branch' => data_get($order->branch, 'name', __('messages.notifications.fallbacks.branch')),
                 'order' => $orderCode,
             ]),
             OrderStatus::PICKED_UP => $this->titleBody('customer.picked_up', [
-                'rider' => $order->riderProfile?->user?->name ?? __('messages.notifications.fallbacks.customer_rider'),
+                'rider' => data_get($order, 'riderProfile.user.name', __('messages.notifications.fallbacks.customer_rider')),
                 'order' => $orderCode,
             ]),
             OrderStatus::DELIVERED => $this->titleBody('customer.delivered', [
@@ -138,25 +153,29 @@ class NotificationTemplateService
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return NotificationTemplate
+     */
     private function merchantOrderStatusMessage(Order $order, OrderStatus $status, array $metadata, string $orderCode): array
     {
         [$title, $body] = match ($status) {
             OrderStatus::ACCEPTED => $this->titleBody('merchant.accepted', [
                 'order' => $orderCode,
-                'branch' => $order->branch?->name ?? __('messages.notifications.fallbacks.merchant_branch'),
+                'branch' => data_get($order->branch, 'name', __('messages.notifications.fallbacks.merchant_branch')),
             ]),
             OrderStatus::ASSIGNED => $this->titleBody('merchant.assigned', [
-                'rider' => $order->riderProfile?->user?->name ?? __('messages.notifications.fallbacks.rider'),
+                'rider' => data_get($order, 'riderProfile.user.name', __('messages.notifications.fallbacks.rider')),
                 'order' => $orderCode,
-                'branch' => $order->branch?->name ?? __('messages.notifications.fallbacks.merchant_branch'),
+                'branch' => data_get($order->branch, 'name', __('messages.notifications.fallbacks.merchant_branch')),
             ]),
             OrderStatus::PICKED_UP => $this->titleBody('merchant.picked_up', [
-                'rider' => $order->riderProfile?->user?->name ?? __('messages.notifications.fallbacks.merchant_rider'),
+                'rider' => data_get($order, 'riderProfile.user.name', __('messages.notifications.fallbacks.merchant_rider')),
                 'order' => $orderCode,
             ]),
             OrderStatus::DELIVERED => $this->titleBody('merchant.delivered', [
                 'order' => $orderCode,
-                'customer' => $order->customerProfile?->user?->name ?? __('messages.notifications.fallbacks.customer'),
+                'customer' => data_get($order, 'customerProfile.user.name', __('messages.notifications.fallbacks.customer')),
             ]),
             OrderStatus::CANCELLED => $this->titleBody('merchant.cancelled', [
                 'order' => $orderCode,
@@ -177,11 +196,15 @@ class NotificationTemplateService
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return NotificationTemplate
+     */
     private function riderOrderStatusMessage(Order $order, OrderStatus $status, array $metadata, string $orderCode): array
     {
         [$title, $body] = match ($status) {
             OrderStatus::ASSIGNED => $this->titleBody('rider.assigned', [
-                'branch' => $order->branch?->name ?? __('messages.notifications.fallbacks.branch'),
+                'branch' => data_get($order->branch, 'name', __('messages.notifications.fallbacks.branch')),
                 'order' => $orderCode,
             ]),
             OrderStatus::CANCELLED => $this->titleBody('rider.cancelled', [
@@ -203,6 +226,10 @@ class NotificationTemplateService
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return NotificationTemplate
+     */
     private function genericOrderStatusMessage(Order $order, OrderStatus $status, array $metadata, string $orderCode): array
     {
         [$title, $body] = $this->genericTitleBody($orderCode, $status);
@@ -218,6 +245,10 @@ class NotificationTemplateService
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $replace
+     * @return array{0: string, 1: string}
+     */
     private function titleBody(string $key, array $replace = []): array
     {
         return [
@@ -226,6 +257,9 @@ class NotificationTemplateService
         ];
     }
 
+    /**
+     * @return array{0: string, 1: string}
+     */
     private function genericTitleBody(string $orderCode, OrderStatus $status): array
     {
         $statusLabel = str_replace('_', ' ', $status->value);
@@ -244,12 +278,16 @@ class NotificationTemplateService
         return __("messages.notifications.actions.{$action}");
     }
 
+    /**
+     * @param  NotificationPayload  $extra
+     * @return NotificationPayload
+     */
     private function basePayload(Order $order, array $extra = []): array
     {
         return array_merge([
             'order_uuid' => $order->uuid,
-            'branch_name' => $order->branch?->name,
-            'merchant_name' => $order->merchant?->name,
+            'branch_name' => data_get($order->branch, 'name'),
+            'merchant_name' => data_get($order->merchant, 'name'),
             'locale' => app()->getLocale(),
         ], $extra);
     }

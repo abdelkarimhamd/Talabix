@@ -23,25 +23,74 @@ test('translates with interpolation and fallback lookup', () => {
 
   assert.equal(en.t('common.language.english'), 'English');
   assert.equal(ar.t('common.language.arabic'), 'العربية');
-  assert.equal(en.t('orders.orderCode', { code: '4AA0F507' }), 'Order 4AA0F507');
+  assert.equal(
+    en.t('orders.orderCode', { code: '4AA0F507' }),
+    'Order 4AA0F507'
+  );
   assert.equal(ar.t('orders.orderCode', { code: '4AA0F507' }), 'طلب 4AA0F507');
   assert.equal(ar.t('missing.key', { value: 'x' }), 'missing.key');
 });
 
 test('returns localized enum labels without changing wire values', () => {
-  assert.equal(labelForEnum('orderStatus', 'ready_for_pickup', 'en'), 'Ready for pickup');
-  assert.equal(labelForEnum('orderStatus', 'ready_for_pickup', 'ar'), 'جاهز للاستلام');
+  assert.equal(
+    labelForEnum('orderStatus', 'ready_for_pickup', 'en'),
+    'Ready for pickup'
+  );
+  assert.equal(
+    labelForEnum('orderStatus', 'ready_for_pickup', 'ar'),
+    'جاهز للاستلام'
+  );
   assert.equal(labelForEnum('riderAvailability', 'available', 'ar'), 'متاح');
-  assert.equal(labelForEnum('proofType', 'recipient_confirmation', 'en'), 'Recipient confirmation');
-  assert.equal(labelForEnum('notificationType', 'order_status_updated', 'en'), 'Order status updated');
+  assert.equal(
+    labelForEnum('proofType', 'recipient_confirmation', 'en'),
+    'Recipient confirmation'
+  );
+  assert.equal(
+    labelForEnum('notificationType', 'order_status_updated', 'en'),
+    'Order status updated'
+  );
   assert.notEqual(
     labelForEnum('notificationType', 'order_status_updated', 'ar'),
     labelForEnum('notificationType', 'order_status_updated', 'en')
   );
-  assert.equal(labelForEnum('notificationDeliveryStatus', 'failed', 'en'), 'Failed');
-  assert.equal(labelForEnum('supportCaseStatus', 'investigating', 'en'), 'Investigating');
-  assert.equal(labelForEnum('actorRole', 'merchant_manager', 'en'), 'Merchant manager');
-  assert.equal(labelForEnum('unknownGroup', 'new_backend_value', 'en'), 'New Backend Value');
+  assert.equal(
+    labelForEnum('notificationDeliveryStatus', 'failed', 'en'),
+    'Failed'
+  );
+  assert.equal(labelForEnum('notificationChannel', 'in_app', 'en'), 'In-app');
+  assert.equal(
+    labelForEnum('supportCaseStatus', 'investigating', 'en'),
+    'Investigating'
+  );
+  assert.equal(
+    labelForEnum('supportIssueType', 'delivery_delay', 'en'),
+    'Delivery delay'
+  );
+  assert.equal(
+    labelForEnum('supportResolutionType', 'customer_contacted', 'en'),
+    'Customer contacted'
+  );
+  assert.equal(
+    labelForEnum('supportCancellationReasonCode', 'out_of_stock', 'en'),
+    'Out of stock'
+  );
+  assert.equal(labelForEnum('actorRole', 'merchant', 'en'), 'Merchant');
+  assert.equal(
+    labelForEnum('actorRole', 'merchant_manager', 'en'),
+    'Merchant manager'
+  );
+  assert.equal(
+    labelForEnum('auditActionType', 'maps_configuration_updated', 'en'),
+    'Maps configuration updated'
+  );
+  assert.notEqual(
+    labelForEnum('supportIssueType', 'delivery_delay', 'ar'),
+    labelForEnum('supportIssueType', 'delivery_delay', 'en')
+  );
+  assert.equal(
+    labelForEnum('unknownGroup', 'new_backend_value', 'en'),
+    'New Backend Value'
+  );
 });
 
 test('formats money and dates with locale-aware output', () => {

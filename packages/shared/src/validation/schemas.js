@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   auditActionTypes,
+  deliveryExceptionReasonCodes,
   dispatchReassignmentReasonCodes,
   ledgerEntryTypes,
   notificationChannels,
@@ -27,11 +28,69 @@ export const userSchema = z.object({
   abilities: z.array(z.string()).default([]),
 });
 
+export const opsUserSchema = userSchema.extend({
+  created_at: z.string().nullable().optional(),
+  last_login_at: z.string().nullable().optional(),
+});
+
 export const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string().min(1),
   device_name: z.string().min(2),
 });
+
+export const changePasswordSchema = z
+  .object({
+    current_password: z.string().min(1),
+    password: z.string().min(8),
+    password_confirmation: z.string().min(8),
+  })
+  .refine((payload) => payload.password === payload.password_confirmation, {
+    path: ['password_confirmation'],
+    message: 'Passwords must match.',
+  });
+
+const opsUserInputBaseSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email().optional(),
+  phone: z.string().nullable().optional(),
+  role: z.enum(['ops_admin', 'ops_dispatcher', 'ops_support']),
+  account_status: z
+    .enum(['active', 'suspended', 'pending'])
+    .optional()
+    .default('active'),
+  password: z.string().min(8).optional(),
+  password_confirmation: z.string().min(8).optional(),
+});
+
+export const opsUserInputSchema = opsUserInputBaseSchema.refine(
+  (payload) =>
+    payload.password === undefined ||
+    payload.password === payload.password_confirmation,
+  {
+    path: ['password_confirmation'],
+    message: 'Passwords must match.',
+  }
+);
+
+export const createOpsUserInputSchema = opsUserInputBaseSchema
+  .required({
+    email: true,
+    password: true,
+    password_confirmation: true,
+  })
+  .refine((payload) => payload.password === payload.password_confirmation, {
+    path: ['password_confirmation'],
+    message: 'Passwords must match.',
+  });
+
+export const updateOpsUserInputSchema = opsUserInputBaseSchema
+  .omit({
+    email: true,
+    password: true,
+    password_confirmation: true,
+  })
+  .partial();
 
 export const registerSchema = z
   .object({
@@ -138,7 +197,12 @@ export const branchServiceabilitySchema = z
     is_serviceable: z.boolean(),
     distance_meters: z.number().int(),
     delivery_fee_minor: z.number().int().nullable(),
-    estimated_duration_minutes: z.number().int().positive().nullable().optional(),
+    estimated_duration_minutes: z
+      .number()
+      .int()
+      .positive()
+      .nullable()
+      .optional(),
     maps_provider: z.string().min(1).optional(),
   })
   .nullable();
@@ -407,12 +471,87 @@ export const updateBranchConfigurationSchema = z
     message: 'Provide at least one branch configuration field.',
   });
 
+export const mapsProviderConfigurationSchema = z.object({
+  provider: z.enum(['google_maps', 'demo']),
+  google_maps: z.object({
+    api_key_configured: z.boolean(),
+    api_key_source: z.enum(['admin', 'env', 'none']),
+    api_key_preview: z.string().nullable().optional(),
+    region: z.string().min(1),
+    location_bias: z.string().nullable().optional(),
+    timeout_seconds: z.number().min(0.5).max(30),
+    fallback_to_demo: z.boolean(),
+  }),
+  runtime: z.object({
+    ready: z.boolean(),
+    fallback_active: z.boolean(),
+    message: z.string().min(1),
+  }),
+});
+
+export const updateMapsProviderConfigurationSchema = z
+  .object({
+    provider: z.enum(['google_maps', 'demo']).optional(),
+    google_maps_api_key: z.string().trim().min(1).optional(),
+    clear_google_maps_api_key: z.boolean().optional(),
+    google_maps_region: z.string().trim().min(1).optional(),
+    google_maps_location_bias: z.string().trim().nullable().optional(),
+    google_maps_timeout_seconds: z.number().min(0.5).max(30).optional(),
+    google_maps_fallback_to_demo: z.boolean().optional(),
+  })
+  .refine((payload) => Object.keys(payload).length > 0, {
+    message: 'Provide at least one maps provider configuration field.',
+  });
+
 export const branchServiceZoneInputSchema = branchServiceZoneSchema.omit({
   uuid: true,
 });
 
 export const branchFeeBandInputSchema = branchFeeBandSchema.omit({
   uuid: true,
+});
+
+export const createMerchantInputSchema = z.object({
+  name: z.string().min(1).max(255),
+  slug: z.string().min(1).max(255),
+  platform_commission_bps: z.number().int().min(0).max(10000).optional(),
+  branch: z.object({
+    name: z.string().min(1).max(255),
+    city: z.string().min(1).max(120),
+    address_line: z.string().min(1).max(255),
+    latitude: z.number(),
+    longitude: z.number(),
+    hours: z
+      .array(
+        z.object({
+          day_of_week: z.number().int().min(0).max(6),
+          opens_at: z.string().nullable().optional(),
+          closes_at: z.string().nullable().optional(),
+        })
+      )
+      .min(1),
+    zones: z
+      .array(
+        z.object({
+          name: z.string().min(1),
+          city: z.string().min(1),
+          postal_code: z.string().nullable().optional(),
+          center_latitude: z.number(),
+          center_longitude: z.number(),
+          radius_meters: z.number().int().min(100),
+        })
+      )
+      .min(1),
+    fee_bands: z
+      .array(
+        z.object({
+          min_distance_meters: z.number().int().nonnegative(),
+          max_distance_meters: z.number().int().positive(),
+          fee_minor: z.number().int().nonnegative(),
+        })
+      )
+      .min(1),
+  }),
 });
 
 export const catalogItemSchema = z.object({
@@ -454,6 +593,25 @@ export const catalogItemSchema = z.object({
 
 export const merchantCatalogListQuerySchema = z.object({
   merchant_uuid: z.string().uuid(),
+});
+
+export const merchantCatalogCategorySchema = z.object({
+  uuid: z.string().uuid(),
+  merchant_id: z.number().int(),
+  merchant_uuid: z.string().uuid().nullable().optional(),
+  name: z.string().min(1),
+  description: z.string().nullable().optional(),
+  is_active: z.boolean(),
+  sort_order: z.number().int().nonnegative(),
+  item_count: z.number().int().nonnegative().default(0),
+});
+
+export const merchantCatalogCategoryInputSchema = z.object({
+  merchant_uuid: z.string().uuid(),
+  name: z.string().trim().min(1).max(255),
+  description: z.string().trim().max(1000).nullable().optional(),
+  is_active: z.boolean().default(true),
+  sort_order: z.number().int().nonnegative().default(0),
 });
 
 export const merchantCatalogBranchOverrideSchema = z.object({
@@ -518,6 +676,43 @@ export const merchantCatalogItemInputSchema = z.object({
   is_active: z.boolean().default(true),
 });
 
+export const promotionOfferSchema = z.object({
+  uuid: z.string().uuid(),
+  merchant_uuid: z.string().uuid().nullable().optional(),
+  merchant_name: z.string().nullable().optional(),
+  branch_uuid: z.string().uuid(),
+  branch_name: z.string().nullable().optional(),
+  catalog_item_uuid: z.string().uuid().nullable().optional(),
+  catalog_item_name: z.string().nullable().optional(),
+  code: z.string().nullable().optional(),
+  title: z.string().min(1),
+  discount_label: z.string().min(1),
+  discount_type: z.enum(['delivery', 'item_percent', 'item_fixed']),
+  percent: z.number().int().min(1).max(100).nullable().optional(),
+  amount_minor: z.number().int().nonnegative().nullable().optional(),
+  min_spend_minor: z.number().int().nonnegative().default(0),
+  requires_promo_code: z.boolean().default(false),
+  is_active: z.boolean().default(true),
+  starts_at: z.string().nullable().optional(),
+  expires_at: z.string().nullable().optional(),
+});
+
+export const promotionOfferInputSchema = z.object({
+  branch_uuid: z.string().uuid(),
+  catalog_item_uuid: z.string().uuid().nullable().optional(),
+  code: z.string().trim().max(64).nullable().optional(),
+  title: z.string().min(1),
+  discount_label: z.string().min(1),
+  discount_type: z.enum(['delivery', 'item_percent', 'item_fixed']),
+  percent: z.number().int().min(1).max(100).nullable().optional(),
+  amount_minor: z.number().int().nonnegative().nullable().optional(),
+  min_spend_minor: z.number().int().nonnegative().default(0),
+  requires_promo_code: z.boolean().default(false),
+  is_active: z.boolean().default(true),
+  starts_at: z.string().nullable().optional(),
+  expires_at: z.string().nullable().optional(),
+});
+
 export const merchantCatalogModifierGroupInputSchema = z.object({
   name: z.string().min(1),
   description: z.string().nullable().optional(),
@@ -573,9 +768,27 @@ export const cartSummarySchema = z.object({
   itemCount: z.number().int().nonnegative(),
   subtotalMinor: z.number().int().nonnegative(),
   deliveryFeeMinor: z.number().int().nonnegative(),
+  itemDiscountMinor: z.number().int().nonnegative().default(0),
+  deliveryDiscountMinor: z.number().int().nonnegative().default(0),
+  discountMinor: z.number().int().nonnegative().default(0),
   totalMinor: z.number().int().nonnegative(),
   currency: z.string().length(3).default('SAR'),
   notes: z.string().nullable().optional(),
+  appliedOffers: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        title: z.string().min(1),
+        discountLabel: z.string().min(1),
+        discountMinor: z.number().int().nonnegative(),
+        discountType: z.enum(['delivery', 'item_percent', 'item_fixed']),
+        promoCode: z.string().nullable().optional(),
+        requiresPromoCode: z.boolean().default(false),
+      })
+    )
+    .default([]),
+  appliedOfferIds: z.array(z.string().min(1)).default([]),
+  redeemedPromoCodes: z.array(z.string().min(1)).default([]),
   items: z.array(cartItemSchema),
 });
 
@@ -601,12 +814,47 @@ export const orderTimelineEntrySchema = z.object({
   created_at: z.string().nullable().optional(),
 });
 
+export const deliveryExceptionReasonCodeSchema = z.enum(
+  deliveryExceptionReasonCodes
+);
+
+export const deliveryExceptionResponseSlaSchema = z.object({
+  level: z.enum(['on_track', 'warning', 'breached']),
+  label: z.string().min(1),
+  target_minutes: z.number().int().positive(),
+  elapsed_minutes: z.number().int().nonnegative(),
+  minutes_remaining: z.number().int(),
+  escalation_action: z.enum([
+    'support_monitoring',
+    'support_follow_up_due',
+    'support_reassignment_required',
+  ]),
+});
+
+export const deliveryExceptionSchema = z.object({
+  reason_code: deliveryExceptionReasonCodeSchema,
+  reason_label: z.string().min(1),
+  note: z.string().nullable().optional(),
+  reported_at: z.union([z.string(), z.date()]).nullable().optional(),
+  reported_by: z.string().min(1),
+  response_sla: deliveryExceptionResponseSlaSchema.optional(),
+});
+
+export const deliveryExceptionInputSchema = z.object({
+  reason_code: deliveryExceptionReasonCodeSchema,
+  note: z.string().max(1000).nullable().optional(),
+});
+
 export const orderSchema = z.object({
   uuid: z.string().uuid(),
   status: z.enum(orderStatuses),
   payment_status: z.enum(paymentStatuses),
   currency: z.string().length(3),
   total_minor: z.number(),
+  applied_offer_ids: z.array(z.string()).default([]),
+  discount_minor: z.number().int().nonnegative().optional(),
+  pricing_snapshot: z.record(z.string(), z.any()).optional(),
+  active_delivery_exception: deliveryExceptionSchema.nullable().optional(),
   timeline: z.array(orderTimelineEntrySchema),
 });
 
@@ -617,7 +865,10 @@ export const merchantOrderSchema = orderSchema.extend({
   rider_earning_minor: z.number().int().nonnegative().optional(),
   pricing_snapshot: z.record(z.string(), z.any()).nullable().optional(),
   pickup_branch_snapshot: z.record(z.string(), z.any()).nullable().optional(),
-  delivery_address_snapshot: z.record(z.string(), z.any()).nullable().optional(),
+  delivery_address_snapshot: z
+    .record(z.string(), z.any())
+    .nullable()
+    .optional(),
   notes: z.string().nullable().optional(),
   placed_at: z.union([z.string(), z.date()]).nullable().optional(),
   accepted_at: z.union([z.string(), z.date()]).nullable().optional(),
@@ -670,7 +921,9 @@ export const mapLocationSchema = z.object({
   longitude: z.number(),
 });
 
-export const dispatchReassignmentReasonCodeSchema = z.enum(dispatchReassignmentReasonCodes);
+export const dispatchReassignmentReasonCodeSchema = z.enum(
+  dispatchReassignmentReasonCodes
+);
 
 export const dispatchReassignmentInputSchema = z.object({
   rider_uuid: z.string().uuid(),
@@ -725,6 +978,7 @@ export const dispatchAssignmentSchema = z.object({
   pickupLocation: mapLocationSchema,
   dropoffLocation: mapLocationSchema,
   mapsProvider: z.string().min(1).optional(),
+  exception: deliveryExceptionSchema.nullable().optional(),
   sla: dispatchSlaSchema.optional(),
   reassignment: z
     .object({
@@ -746,7 +1000,9 @@ export const dispatchAssignmentSchema = z.object({
 export const ledgerEntryTypeSchema = z.enum(ledgerEntryTypes);
 export const auditActionTypeSchema = z.enum(auditActionTypes);
 export const notificationChannelSchema = z.enum(notificationChannels);
-export const notificationDeliveryStatusSchema = z.enum(notificationDeliveryStatuses);
+export const notificationDeliveryStatusSchema = z.enum(
+  notificationDeliveryStatuses
+);
 export const notificationTypeSchema = z.enum(notificationTypes);
 
 export const settlementLedgerQuerySchema = z.object({
@@ -756,9 +1012,12 @@ export const settlementLedgerQuerySchema = z.object({
 });
 
 export const settlementAdjustmentSchema = z.object({
-  amount_minor: z.number().int().refine((value) => value !== 0, {
-    message: 'Adjustment amount cannot be zero.',
-  }),
+  amount_minor: z
+    .number()
+    .int()
+    .refine((value) => value !== 0, {
+      message: 'Adjustment amount cannot be zero.',
+    }),
   notes: z.string().min(1).max(255),
 });
 
@@ -802,7 +1061,9 @@ export const supportNoteInputSchema = z.object({
 export const supportCaseStatusSchema = z.enum(supportCaseStatuses);
 export const supportIssueTypeSchema = z.enum(supportIssueTypes);
 export const supportResolutionTypeSchema = z.enum(supportResolutionTypes);
-export const supportCancellationReasonCodeSchema = z.enum(supportCancellationReasonCodes);
+export const supportCancellationReasonCodeSchema = z.enum(
+  supportCancellationReasonCodes
+);
 
 export const supportCaseSchema = z.object({
   uuid: z.string().uuid(),
@@ -811,7 +1072,9 @@ export const supportCaseSchema = z.object({
   status: supportCaseStatusSchema,
   issue_type: supportIssueTypeSchema,
   summary: z.string().min(1),
-  cancellation_reason_code: supportCancellationReasonCodeSchema.nullable().optional(),
+  cancellation_reason_code: supportCancellationReasonCodeSchema
+    .nullable()
+    .optional(),
   resolution_type: supportResolutionTypeSchema.nullable().optional(),
   resolution_notes: z.string().nullable().optional(),
   opened_by_user_id: z.number().int(),
@@ -837,7 +1100,9 @@ export const supportCaseUpdateSchema = z
     summary: z.string().min(1).max(255).optional(),
     issue_type: supportIssueTypeSchema.optional(),
     status: supportCaseStatusSchema.optional(),
-    cancellation_reason_code: supportCancellationReasonCodeSchema.nullable().optional(),
+    cancellation_reason_code: supportCancellationReasonCodeSchema
+      .nullable()
+      .optional(),
     resolution_type: supportResolutionTypeSchema.nullable().optional(),
     resolution_notes: z.string().max(1000).nullable().optional(),
   })

@@ -12,6 +12,7 @@ use App\Modules\Settlements\Resources\LedgerEntryResource;
 use App\Modules\Settlements\Services\SettlementService;
 use App\Modules\Shared\Actions\RecordAuditLogAction;
 use App\Modules\Shared\Enums\AuditActionType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -37,7 +38,7 @@ class SettlementController extends Controller
                 'total_entries' => $entries->count(),
                 'total_amount_minor' => $entries->sum('amount_minor'),
                 'entry_type_totals' => $entries
-                    ->groupBy(fn (LedgerEntry $entry) => $entry->entry_type?->value ?? $entry->entry_type)
+                    ->groupBy(fn (LedgerEntry $entry) => $entry->entry_type->value)
                     ->map(fn ($group) => $group->sum('amount_minor'))
                     ->all(),
             ],
@@ -60,9 +61,9 @@ class SettlementController extends Controller
             foreach ($entries as $entry) {
                 fputcsv($handle, [
                     $entry->id,
-                    $entry->order?->uuid,
-                    $entry->merchant?->name,
-                    $entry->riderProfile?->user?->name,
+                    data_get($entry->order, 'uuid'),
+                    data_get($entry->merchant, 'name'),
+                    data_get($entry->riderProfile, 'user.name'),
                     $entry->entry_type->value,
                     $entry->amount_minor,
                     $entry->currency,
@@ -105,7 +106,10 @@ class SettlementController extends Controller
         ], 201);
     }
 
-    private function filteredEntries(SettlementLedgerIndexRequest $request)
+    /**
+     * @return Builder<LedgerEntry>
+     */
+    private function filteredEntries(SettlementLedgerIndexRequest $request): Builder
     {
         return LedgerEntry::query()
             ->when(
@@ -129,6 +133,9 @@ class SettlementController extends Controller
             );
     }
 
+    /**
+     * @return array<int, string>
+     */
     private function exportHeaders(): array
     {
         return [

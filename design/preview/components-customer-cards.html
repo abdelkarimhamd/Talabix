@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: #f6f6f2;
+        padding: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-content: flex-start;
+        color: #202124;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #ececec;
+        border-radius: 14px;
+        border-top: 3px solid #b09200;
+        padding: 14px;
+        min-width: 160px;
+        max-width: 220px;
+        gap: 8px;
+        display: grid;
+        box-shadow: 0 5px 14px rgba(0, 0, 0, 0.05);
+      }
+      .card.green {
+        border-top-color: #15945f;
+      }
+      .card.rose {
+        border-top-color: #e91e63;
+      }
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #15945f;
+      }
+      .ct {
+        font-size: 17px;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+      .cd {
+        font-size: 13px;
+        color: #62666d;
+        line-height: 1.4;
+      }
+      .merchant {
+        background: #fff;
+        border: 1px solid #ececec;
+        border-radius: 14px;
+        overflow: hidden;
+        min-width: 200px;
+        box-shadow: 0 5px 14px rgba(0, 0, 0, 0.05);
+      }
+      .art {
+        height: 72px;
+        background: #b8102f;
+        display: flex;
+        align-items: flex-end;
+        padding: 8px;
+      }
+      .logo {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: #ffe500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 16px;
+      }
+      .mcopy {
+        padding: 10px 12px;
+      }
+      .mname {
+        font-size: 15px;
+        font-weight: 900;
+      }
+      .mmeta {
+        font-size: 12px;
+        color: #62666d;
+        margin-top: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card green">
+      <span class="eyebrow">Active order</span>
+      <span class="ct">Order #AB4F82C1</span>
+      <span class="cd">Preparing · ETA 18 min</span>
+    </div>
+    <div class="card rose">
+      <span class="eyebrow" style="color: #e91e63">Daily offers</span>
+      <span class="ct">Up to 35% off</span>
+      <span class="cd">Hour deals · Free delivery eligible</span>
+    </div>
+    <div class="card">
+      <span class="eyebrow">Points balance</span>
+      <span class="ct" style="font-size: 22px">1,240 pts</span>
+      <span class="cd">Redeem at checkout</span>
+    </div>
+    <div class="merchant">
+      <div class="art" style="background: #0f7f56">
+        <div class="logo" style="background: #c9f06d">M</div>
+      </div>
+      <div class="mcopy">
+        <div class="mname">Green Market</div>
+        <div class="mmeta">Groceries · 12 min · Free delivery</div>
+      </div>
+    </div>
+  </body>
+</html>

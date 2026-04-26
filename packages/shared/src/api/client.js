@@ -12,14 +12,21 @@ import {
   branchFeeBandSchema,
   branchServiceZoneInputSchema,
   branchServiceZoneSchema,
+  changePasswordSchema,
+  createMerchantInputSchema,
+  createOpsUserInputSchema,
   customerProfileSchema,
   dispatchAssignmentSchema,
   dispatchReassignmentInputSchema,
   deliveryProofSchema,
   ledgerEntrySchema,
+  loginSchema,
   managedMerchantSchema,
+  mapsProviderConfigurationSchema,
   merchantSalesReportQuerySchema,
   merchantSalesReportSchema,
+  merchantCatalogCategoryInputSchema,
+  merchantCatalogCategorySchema,
   merchantCatalogModifierGroupInputSchema,
   merchantCatalogModifierGroupSchema,
   merchantCatalogItemInputSchema,
@@ -38,6 +45,7 @@ import {
   orderSchema,
   opsMerchantConfigurationSchema,
   opsNotificationQuerySchema,
+  opsUserSchema,
   placeSuggestionSchema,
   registerSchema,
   riderAvailabilitySchema,
@@ -56,7 +64,9 @@ import {
   supportOrderSchema,
   supportSearchQuerySchema,
   updateBranchConfigurationSchema,
+  updateMapsProviderConfigurationSchema,
   updateMerchantConfigurationSchema,
+  updateOpsUserInputSchema,
   userSchema,
 } from '../validation/schemas.js';
 
@@ -87,7 +97,9 @@ function unwrapData(response) {
 
 function compactParams(params = {}) {
   return Object.fromEntries(
-    Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '')
+    Object.entries(params).filter(
+      ([, value]) => value !== undefined && value !== null && value !== ''
+    )
   );
 }
 
@@ -110,7 +122,9 @@ export function createCustomerApi({ baseURL, token } = {}) {
     },
     async register(payload) {
       const parsedPayload = registerSchema.parse(payload);
-      const data = unwrapData(await client.post('auth/register', parsedPayload));
+      const data = unwrapData(
+        await client.post('auth/register', parsedPayload)
+      );
 
       return authSessionSchema.parse(data);
     },
@@ -138,7 +152,9 @@ export function createCustomerApi({ baseURL, token } = {}) {
     },
     async updateAddress(addressUuid, payload) {
       const parsedPayload = addressInputSchema.parse(payload);
-      const data = unwrapData(await client.patch(`addresses/${addressUuid}`, parsedPayload));
+      const data = unwrapData(
+        await client.patch(`addresses/${addressUuid}`, parsedPayload)
+      );
 
       return addressSchema.parse(data);
     },
@@ -153,7 +169,9 @@ export function createCustomerApi({ baseURL, token } = {}) {
     },
     async listMerchants(query = {}) {
       const parsedQuery = merchantListQuerySchema.parse(compactParams(query));
-      const data = unwrapData(await client.get('merchants', { params: compactParams(parsedQuery) }));
+      const data = unwrapData(
+        await client.get('merchants', { params: compactParams(parsedQuery) })
+      );
 
       return z.array(merchantSummarySchema).parse(data);
     },
@@ -162,13 +180,17 @@ export function createCustomerApi({ baseURL, token } = {}) {
         .pick({ address_uuid: true })
         .parse(compactParams(query));
       const data = unwrapData(
-        await client.get(`merchants/${merchantUuid}`, { params: compactParams(parsedQuery) })
+        await client.get(`merchants/${merchantUuid}`, {
+          params: compactParams(parsedQuery),
+        })
       );
 
       return merchantDetailSchema.parse(data);
     },
     async getBranchCatalog(branchUuid) {
-      const data = unwrapData(await client.get(`branches/${branchUuid}/catalog`));
+      const data = unwrapData(
+        await client.get(`branches/${branchUuid}/catalog`)
+      );
 
       return z.array(catalogItemSchema).parse(
         data.map((item) => ({
@@ -180,7 +202,8 @@ export function createCustomerApi({ baseURL, token } = {}) {
           imageUrl: item.image_url ?? null,
           priceMinor: item.effective_price_minor ?? item.base_price_minor,
           isAvailable: item.effective_is_available ?? item.is_active,
-          stockQuantity: item.effective_stock_quantity ?? item.base_stock ?? null,
+          stockQuantity:
+            item.effective_stock_quantity ?? item.base_stock ?? null,
           modifierGroups: (item.modifier_groups ?? []).map((group) => ({
             uuid: group.uuid,
             name: group.name,
@@ -205,12 +228,16 @@ export function createCustomerApi({ baseURL, token } = {}) {
     },
     async checkout(payload) {
       const parsedPayload = checkoutRequestSchema.parse(payload);
-      const data = unwrapData(await client.post('orders/checkout', parsedPayload));
+      const data = unwrapData(
+        await client.post('orders/checkout', parsedPayload)
+      );
 
       return data;
     },
     async listNotifications(query = {}) {
-      const parsedQuery = actorNotificationQuerySchema.parse(compactParams(query));
+      const parsedQuery = actorNotificationQuerySchema.parse(
+        compactParams(query)
+      );
       const response = await client.get('notifications', {
         params: compactParams(parsedQuery),
       });
@@ -221,7 +248,9 @@ export function createCustomerApi({ baseURL, token } = {}) {
       };
     },
     async markNotificationRead(notificationDeliveryId) {
-      const data = unwrapData(await client.post(`notifications/${notificationDeliveryId}/read`));
+      const data = unwrapData(
+        await client.post(`notifications/${notificationDeliveryId}/read`)
+      );
 
       return notificationDeliverySchema.parse(data);
     },
@@ -246,39 +275,98 @@ export function createMerchantApi({ baseURL, token } = {}) {
       return z.array(managedMerchantSchema).parse(data);
     },
     async getSalesReport(query) {
-      const parsedQuery = merchantSalesReportQuerySchema.parse(compactParams(query));
-      const data = unwrapData(await client.get('reports/sales', { params: compactParams(parsedQuery) }));
+      const parsedQuery = merchantSalesReportQuerySchema.parse(
+        compactParams(query)
+      );
+      const data = unwrapData(
+        await client.get('reports/sales', {
+          params: compactParams(parsedQuery),
+        })
+      );
 
       return merchantSalesReportSchema.parse(data);
     },
+    async listCatalogCategories(query) {
+      const parsedQuery = merchantCatalogListQuerySchema.parse(
+        compactParams(query)
+      );
+      const data = unwrapData(
+        await client.get('catalog/categories', {
+          params: compactParams(parsedQuery),
+        })
+      );
+
+      return z.array(merchantCatalogCategorySchema).parse(data);
+    },
+    async createCatalogCategory(payload) {
+      const parsedPayload = merchantCatalogCategoryInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.post('catalog/categories', parsedPayload)
+      );
+
+      return merchantCatalogCategorySchema.parse(data);
+    },
+    async updateCatalogCategory(catalogCategoryUuid, payload) {
+      const parsedPayload = merchantCatalogCategoryInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.patch(
+          `catalog/categories/${catalogCategoryUuid}`,
+          parsedPayload
+        )
+      );
+
+      return merchantCatalogCategorySchema.parse(data);
+    },
+    async deleteCatalogCategory(catalogCategoryUuid) {
+      const data = unwrapData(
+        await client.delete(`catalog/categories/${catalogCategoryUuid}`)
+      );
+
+      return z.object({ uuid: z.string().uuid() }).parse(data);
+    },
     async listCatalogItems(query) {
-      const parsedQuery = merchantCatalogListQuerySchema.parse(compactParams(query));
-      const data = unwrapData(await client.get('catalog/items', { params: compactParams(parsedQuery) }));
+      const parsedQuery = merchantCatalogListQuerySchema.parse(
+        compactParams(query)
+      );
+      const data = unwrapData(
+        await client.get('catalog/items', {
+          params: compactParams(parsedQuery),
+        })
+      );
 
       return z.array(merchantCatalogItemSchema).parse(data);
     },
     async createCatalogItem(payload) {
       const parsedPayload = merchantCatalogItemInputSchema.parse(payload);
-      const data = unwrapData(await client.post('catalog/items', parsedPayload));
+      const data = unwrapData(
+        await client.post('catalog/items', parsedPayload)
+      );
 
       return merchantCatalogItemSchema.parse(data);
     },
     async updateCatalogItem(catalogItemUuid, payload) {
       const parsedPayload = merchantCatalogItemInputSchema.parse(payload);
-      const data = unwrapData(await client.patch(`catalog/items/${catalogItemUuid}`, parsedPayload));
+      const data = unwrapData(
+        await client.patch(`catalog/items/${catalogItemUuid}`, parsedPayload)
+      );
 
       return merchantCatalogItemSchema.parse(data);
     },
     async createModifierGroup(catalogItemUuid, payload) {
-      const parsedPayload = merchantCatalogModifierGroupInputSchema.parse(payload);
+      const parsedPayload =
+        merchantCatalogModifierGroupInputSchema.parse(payload);
       const data = unwrapData(
-        await client.post(`catalog/items/${catalogItemUuid}/modifier-groups`, parsedPayload)
+        await client.post(
+          `catalog/items/${catalogItemUuid}/modifier-groups`,
+          parsedPayload
+        )
       );
 
       return merchantCatalogModifierGroupSchema.parse(data);
     },
     async updateModifierGroup(catalogItemUuid, modifierGroupUuid, payload) {
-      const parsedPayload = merchantCatalogModifierGroupInputSchema.parse(payload);
+      const parsedPayload =
+        merchantCatalogModifierGroupInputSchema.parse(payload);
       const data = unwrapData(
         await client.patch(
           `catalog/items/${catalogItemUuid}/modifier-groups/${modifierGroupUuid}`,
@@ -302,7 +390,9 @@ export function createMerchantApi({ baseURL, token } = {}) {
       };
     },
     async listBranchOrders(branchUuid) {
-      const data = unwrapData(await client.get(`branches/${branchUuid}/orders`));
+      const data = unwrapData(
+        await client.get(`branches/${branchUuid}/orders`)
+      );
 
       return z.array(merchantOrderSchema).parse(data);
     },
@@ -322,17 +412,23 @@ export function createMerchantApi({ baseURL, token } = {}) {
       return merchantOrderSchema.parse(data);
     },
     async startPreparingOrder(orderUuid) {
-      const data = unwrapData(await client.post(`orders/${orderUuid}/start-preparing`));
+      const data = unwrapData(
+        await client.post(`orders/${orderUuid}/start-preparing`)
+      );
 
       return merchantOrderSchema.parse(data);
     },
     async markReadyForPickup(orderUuid) {
-      const data = unwrapData(await client.post(`orders/${orderUuid}/ready-for-pickup`));
+      const data = unwrapData(
+        await client.post(`orders/${orderUuid}/ready-for-pickup`)
+      );
 
       return merchantOrderSchema.parse(data);
     },
     async listNotifications(query = {}) {
-      const parsedQuery = actorNotificationQuerySchema.parse(compactParams(query));
+      const parsedQuery = actorNotificationQuerySchema.parse(
+        compactParams(query)
+      );
       const response = await client.get('notifications', {
         params: compactParams(parsedQuery),
       });
@@ -343,7 +439,9 @@ export function createMerchantApi({ baseURL, token } = {}) {
       };
     },
     async markNotificationRead(notificationDeliveryId) {
-      const data = unwrapData(await client.post(`notifications/${notificationDeliveryId}/read`));
+      const data = unwrapData(
+        await client.post(`notifications/${notificationDeliveryId}/read`)
+      );
 
       return notificationDeliverySchema.parse(data);
     },
@@ -369,7 +467,9 @@ export function createRiderApi({ baseURL, token } = {}) {
     },
     async updateAvailability(availability) {
       const parsedAvailability = riderAvailabilitySchema.parse(availability);
-      const data = unwrapData(await client.post('availability', { availability: parsedAvailability }));
+      const data = unwrapData(
+        await client.post('availability', { availability: parsedAvailability })
+      );
 
       return data;
     },
@@ -379,8 +479,12 @@ export function createRiderApi({ baseURL, token } = {}) {
       return z.array(riderOrderSchema).parse(data);
     },
     async getEarningsReport(query = {}) {
-      const parsedQuery = riderEarningsReportQuerySchema.parse(compactParams(query));
-      const data = unwrapData(await client.get('earnings', { params: compactParams(parsedQuery) }));
+      const parsedQuery = riderEarningsReportQuerySchema.parse(
+        compactParams(query)
+      );
+      const data = unwrapData(
+        await client.get('earnings', { params: compactParams(parsedQuery) })
+      );
 
       return riderEarningsReportSchema.parse(data);
     },
@@ -390,23 +494,31 @@ export function createRiderApi({ baseURL, token } = {}) {
       return riderOrderSchema.parse(data);
     },
     async acceptAssignment(orderUuid) {
-      const data = unwrapData(await client.post(`orders/${orderUuid}/accept-assignment`));
+      const data = unwrapData(
+        await client.post(`orders/${orderUuid}/accept-assignment`)
+      );
 
       return riderOrderSchema.parse(data);
     },
     async confirmPickup(orderUuid) {
-      const data = unwrapData(await client.post(`orders/${orderUuid}/picked-up`));
+      const data = unwrapData(
+        await client.post(`orders/${orderUuid}/picked-up`)
+      );
 
       return riderOrderSchema.parse(data);
     },
     async completeDelivery(orderUuid, payload) {
       const parsedPayload = deliveryProofSchema.parse(payload);
-      const data = unwrapData(await client.post(`orders/${orderUuid}/delivered`, parsedPayload));
+      const data = unwrapData(
+        await client.post(`orders/${orderUuid}/delivered`, parsedPayload)
+      );
 
       return riderOrderSchema.parse(data);
     },
     async listNotifications(query = {}) {
-      const parsedQuery = actorNotificationQuerySchema.parse(compactParams(query));
+      const parsedQuery = actorNotificationQuerySchema.parse(
+        compactParams(query)
+      );
       const response = await client.get('notifications', {
         params: compactParams(parsedQuery),
       });
@@ -417,7 +529,9 @@ export function createRiderApi({ baseURL, token } = {}) {
       };
     },
     async markNotificationRead(notificationDeliveryId) {
-      const data = unwrapData(await client.post(`notifications/${notificationDeliveryId}/read`));
+      const data = unwrapData(
+        await client.post(`notifications/${notificationDeliveryId}/read`)
+      );
 
       return notificationDeliverySchema.parse(data);
     },
@@ -436,9 +550,74 @@ export function createOpsApi({ baseURL, token } = {}) {
 
   return {
     client,
+    setToken(nextToken) {
+      if (nextToken) {
+        client.defaults.headers.Authorization = `Bearer ${nextToken}`;
+        return;
+      }
+
+      delete client.defaults.headers.Authorization;
+    },
+    async login(payload) {
+      const parsedPayload = loginSchema.parse(payload);
+      const data = unwrapData(await client.post('auth/login', parsedPayload));
+      const session = authSessionSchema.parse(data);
+
+      client.defaults.headers.Authorization = `Bearer ${session.token}`;
+
+      return session;
+    },
+    async getMe() {
+      const data = unwrapData(await client.get('auth/me'));
+
+      return userSchema.parse(data);
+    },
+    async logout() {
+      await client.post('auth/logout');
+      delete client.defaults.headers.Authorization;
+    },
+    async changePassword(payload) {
+      const parsedPayload = changePasswordSchema.parse(payload);
+      const response = await client.patch('auth/password', parsedPayload);
+
+      return {
+        message:
+          typeof response.data?.message === 'string'
+            ? response.data.message
+            : 'Password updated successfully.',
+      };
+    },
+    async listUsers() {
+      const data = unwrapData(await client.get('users'));
+
+      return z.array(opsUserSchema).parse(data);
+    },
+    async listManagedMerchants() {
+      const data = unwrapData(await client.get('merchants'));
+
+      return z.array(managedMerchantSchema).parse(data);
+    },
+    async createUser(payload) {
+      const parsedPayload = createOpsUserInputSchema.parse(payload);
+      const data = unwrapData(await client.post('users', parsedPayload));
+
+      return opsUserSchema.parse(data);
+    },
+    async updateUser(userUuid, payload) {
+      const parsedPayload = updateOpsUserInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.patch(`users/${userUuid}`, parsedPayload)
+      );
+
+      return opsUserSchema.parse(data);
+    },
     async getDashboardOverview(query = {}) {
       const parsedQuery = opsDashboardQuerySchema.parse(compactParams(query));
-      const data = unwrapData(await client.get('dashboard/overview', { params: compactParams(parsedQuery) }));
+      const data = unwrapData(
+        await client.get('dashboard/overview', {
+          params: compactParams(parsedQuery),
+        })
+      );
 
       return opsDashboardOverviewSchema.parse(data);
     },
@@ -449,25 +628,40 @@ export function createOpsApi({ baseURL, token } = {}) {
     },
     async reassignDispatchOrder(orderUuid, payload) {
       const parsedPayload = dispatchReassignmentInputSchema.parse(payload);
-      const data = unwrapData(await client.post(`dispatch/orders/${orderUuid}/reassign`, parsedPayload));
+      const data = unwrapData(
+        await client.post(
+          `dispatch/orders/${orderUuid}/reassign`,
+          parsedPayload
+        )
+      );
 
       return merchantOrderSchema.parse(data);
     },
     async searchSupportOrders(query = {}) {
       const parsedQuery = supportSearchQuerySchema.parse(compactParams(query));
-      const data = unwrapData(await client.get('support/orders/search', { params: compactParams(parsedQuery) }));
+      const data = unwrapData(
+        await client.get('support/orders/search', {
+          params: compactParams(parsedQuery),
+        })
+      );
 
       return z.array(supportOrderSchema).parse(data);
     },
     async createOrUpdateSupportCase(orderUuid, payload) {
       const parsedPayload = supportCaseInputSchema.parse(payload);
-      const data = unwrapData(await client.post(`support/orders/${orderUuid}/cases`, parsedPayload));
+      const data = unwrapData(
+        await client.post(`support/orders/${orderUuid}/cases`, parsedPayload)
+      );
 
       return supportCaseSchema.parse(data);
     },
     async updateSupportCase(supportCaseUuid, payload) {
-      const parsedPayload = supportCaseUpdateSchema.parse(compactParams(payload));
-      const data = unwrapData(await client.patch(`support/cases/${supportCaseUuid}`, parsedPayload));
+      const parsedPayload = supportCaseUpdateSchema.parse(
+        compactParams(payload)
+      );
+      const data = unwrapData(
+        await client.patch(`support/cases/${supportCaseUuid}`, parsedPayload)
+      );
 
       return supportCaseSchema.parse(data);
     },
@@ -476,61 +670,238 @@ export function createOpsApi({ baseURL, token } = {}) {
 
       return z.array(opsMerchantConfigurationSchema).parse(data);
     },
+    async createMerchant(payload) {
+      const parsedPayload = createMerchantInputSchema.parse(payload);
+      const data = unwrapData(await client.post('merchants', parsedPayload));
+
+      return managedMerchantSchema.parse(data);
+    },
+    async listCatalogCategories(query) {
+      const parsedQuery = merchantCatalogListQuerySchema.parse(
+        compactParams(query)
+      );
+      const data = unwrapData(
+        await client.get('catalog/categories', {
+          params: compactParams(parsedQuery),
+        })
+      );
+
+      return z.array(merchantCatalogCategorySchema).parse(data);
+    },
+    async createCatalogCategory(payload) {
+      const parsedPayload = merchantCatalogCategoryInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.post('catalog/categories', parsedPayload)
+      );
+
+      return merchantCatalogCategorySchema.parse(data);
+    },
+    async updateCatalogCategory(catalogCategoryUuid, payload) {
+      const parsedPayload = merchantCatalogCategoryInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.patch(
+          `catalog/categories/${catalogCategoryUuid}`,
+          parsedPayload
+        )
+      );
+
+      return merchantCatalogCategorySchema.parse(data);
+    },
+    async deleteCatalogCategory(catalogCategoryUuid) {
+      const data = unwrapData(
+        await client.delete(`catalog/categories/${catalogCategoryUuid}`)
+      );
+
+      return z.object({ uuid: z.string().uuid() }).parse(data);
+    },
+    async listCatalogItems(query) {
+      const parsedQuery = merchantCatalogListQuerySchema.parse(
+        compactParams(query)
+      );
+      const data = unwrapData(
+        await client.get('catalog/items', {
+          params: compactParams(parsedQuery),
+        })
+      );
+
+      return z.array(merchantCatalogItemSchema).parse(data);
+    },
+    async createCatalogItem(payload) {
+      const parsedPayload = merchantCatalogItemInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.post('catalog/items', parsedPayload)
+      );
+
+      return merchantCatalogItemSchema.parse(data);
+    },
+    async updateCatalogItem(catalogItemUuid, payload) {
+      const parsedPayload = merchantCatalogItemInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.patch(`catalog/items/${catalogItemUuid}`, parsedPayload)
+      );
+
+      return merchantCatalogItemSchema.parse(data);
+    },
+    async createModifierGroup(catalogItemUuid, payload) {
+      const parsedPayload =
+        merchantCatalogModifierGroupInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.post(
+          `catalog/items/${catalogItemUuid}/modifier-groups`,
+          parsedPayload
+        )
+      );
+
+      return merchantCatalogModifierGroupSchema.parse(data);
+    },
+    async updateModifierGroup(catalogItemUuid, modifierGroupUuid, payload) {
+      const parsedPayload =
+        merchantCatalogModifierGroupInputSchema.parse(payload);
+      const data = unwrapData(
+        await client.patch(
+          `catalog/items/${catalogItemUuid}/modifier-groups/${modifierGroupUuid}`,
+          parsedPayload
+        )
+      );
+
+      return merchantCatalogModifierGroupSchema.parse(data);
+    },
+    async upsertBranchOverride(branchUuid, catalogItemUuid, payload) {
+      const parsedPayload = branchCatalogOverrideInputSchema.parse(payload);
+      const response = await client.post(
+        `branches/${branchUuid}/catalog-overrides/${catalogItemUuid}`,
+        parsedPayload
+      );
+
+      return {
+        branch_uuid: response.data.data.branch_uuid,
+        catalog_item_uuid: response.data.data.catalog_item_uuid,
+        override: response.data.data.override,
+      };
+    },
+    async getMapsProviderConfiguration() {
+      const data = unwrapData(await client.get('configuration/maps-provider'));
+
+      return mapsProviderConfigurationSchema.parse(data);
+    },
+    async updateMapsProviderConfiguration(payload) {
+      const parsedPayload = updateMapsProviderConfigurationSchema.parse(
+        Object.fromEntries(
+          Object.entries(payload).filter(
+            ([, value]) => value !== undefined && value !== ''
+          )
+        )
+      );
+      const data = unwrapData(
+        await client.patch('configuration/maps-provider', parsedPayload)
+      );
+
+      return mapsProviderConfigurationSchema.parse(data);
+    },
     async getMerchantConfiguration(merchantUuid) {
-      const data = unwrapData(await client.get(`configuration/merchants/${merchantUuid}`));
+      const data = unwrapData(
+        await client.get(`configuration/merchants/${merchantUuid}`)
+      );
 
       return opsMerchantConfigurationSchema.parse(data);
     },
     async updateMerchantConfiguration(merchantUuid, payload) {
-      const parsedPayload = updateMerchantConfigurationSchema.parse(compactParams(payload));
-      const data = unwrapData(await client.patch(`configuration/merchants/${merchantUuid}`, parsedPayload));
+      const parsedPayload = updateMerchantConfigurationSchema.parse(
+        compactParams(payload)
+      );
+      const data = unwrapData(
+        await client.patch(
+          `configuration/merchants/${merchantUuid}`,
+          parsedPayload
+        )
+      );
 
       return opsMerchantConfigurationSchema.parse(data);
     },
+    async deleteMerchantConfiguration(merchantUuid) {
+      const data = unwrapData(
+        await client.delete(`configuration/merchants/${merchantUuid}`)
+      );
+
+      return z.object({ uuid: z.string().uuid() }).parse(data);
+    },
     async updateBranchConfiguration(branchUuid, payload) {
-      const parsedPayload = updateBranchConfigurationSchema.parse(compactParams(payload));
-      const data = unwrapData(await client.patch(`configuration/branches/${branchUuid}`, parsedPayload));
+      const parsedPayload = updateBranchConfigurationSchema.parse(
+        compactParams(payload)
+      );
+      const data = unwrapData(
+        await client.patch(
+          `configuration/branches/${branchUuid}`,
+          parsedPayload
+        )
+      );
 
       return opsConfigBranchSchema.parse(data);
     },
     async createServiceZone(branchUuid, payload) {
       const parsedPayload = branchServiceZoneInputSchema.parse(payload);
-      const data = unwrapData(await client.post(`configuration/branches/${branchUuid}/service-zones`, parsedPayload));
+      const data = unwrapData(
+        await client.post(
+          `configuration/branches/${branchUuid}/service-zones`,
+          parsedPayload
+        )
+      );
 
       return branchServiceZoneSchema.parse(data);
     },
     async updateServiceZone(serviceZoneUuid, payload) {
       const parsedPayload = branchServiceZoneInputSchema.parse(payload);
-      const data = unwrapData(await client.patch(`configuration/service-zones/${serviceZoneUuid}`, parsedPayload));
+      const data = unwrapData(
+        await client.patch(
+          `configuration/service-zones/${serviceZoneUuid}`,
+          parsedPayload
+        )
+      );
 
       return branchServiceZoneSchema.parse(data);
     },
     async createFeeBand(branchUuid, payload) {
       const parsedPayload = branchFeeBandInputSchema.parse(payload);
-      const data = unwrapData(await client.post(`configuration/branches/${branchUuid}/fee-bands`, parsedPayload));
+      const data = unwrapData(
+        await client.post(
+          `configuration/branches/${branchUuid}/fee-bands`,
+          parsedPayload
+        )
+      );
 
       return branchFeeBandSchema.parse(data);
     },
     async updateFeeBand(feeBandUuid, payload) {
       const parsedPayload = branchFeeBandInputSchema.parse(payload);
-      const data = unwrapData(await client.patch(`configuration/fee-bands/${feeBandUuid}`, parsedPayload));
+      const data = unwrapData(
+        await client.patch(
+          `configuration/fee-bands/${feeBandUuid}`,
+          parsedPayload
+        )
+      );
 
       return branchFeeBandSchema.parse(data);
     },
     async cancelSupportOrder(orderUuid, payload) {
       const parsedPayload = cancelSupportOrderInputSchema.parse(payload);
-      const data = unwrapData(await client.post(`support/orders/${orderUuid}/cancel`, parsedPayload));
+      const data = unwrapData(
+        await client.post(`support/orders/${orderUuid}/cancel`, parsedPayload)
+      );
 
       return supportOrderSchema.parse(data);
     },
     async createSupportNote(orderUuid, payload) {
       const parsedPayload = supportNoteInputSchema.parse(payload);
-      const data = unwrapData(await client.post(`support/orders/${orderUuid}/notes`, parsedPayload));
+      const data = unwrapData(
+        await client.post(`support/orders/${orderUuid}/notes`, parsedPayload)
+      );
 
       return supportNoteSchema.parse(data);
     },
     async listNotifications(query = {}) {
-      const parsedQuery = opsNotificationQuerySchema.parse(compactParams(query));
+      const parsedQuery = opsNotificationQuerySchema.parse(
+        compactParams(query)
+      );
       const response = await client.get('notifications', {
         params: compactParams(parsedQuery),
       });
@@ -541,12 +912,16 @@ export function createOpsApi({ baseURL, token } = {}) {
       };
     },
     async retryNotification(notificationDeliveryId) {
-      const data = unwrapData(await client.post(`notifications/${notificationDeliveryId}/retry`));
+      const data = unwrapData(
+        await client.post(`notifications/${notificationDeliveryId}/retry`)
+      );
 
       return notificationDeliverySchema.parse(data);
     },
     async listSettlementLedger(query = {}) {
-      const parsedQuery = settlementLedgerQuerySchema.parse(compactParams(query));
+      const parsedQuery = settlementLedgerQuerySchema.parse(
+        compactParams(query)
+      );
       const response = await client.get('settlements/ledger', {
         params: compactParams(parsedQuery),
       });
@@ -559,7 +934,10 @@ export function createOpsApi({ baseURL, token } = {}) {
     async createSettlementAdjustment(orderUuid, payload) {
       const parsedPayload = settlementAdjustmentSchema.parse(payload);
       const data = unwrapData(
-        await client.post(`settlements/orders/${orderUuid}/adjustments`, parsedPayload)
+        await client.post(
+          `settlements/orders/${orderUuid}/adjustments`,
+          parsedPayload
+        )
       );
 
       return ledgerEntrySchema.parse(data);

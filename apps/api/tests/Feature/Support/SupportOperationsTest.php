@@ -7,6 +7,10 @@ use Tests\Support\CreatesDomainData;
 
 uses(CreatesDomainData::class);
 
+beforeEach(function () {
+    config()->set('notifications.channels.email.mailer', 'array');
+});
+
 it('adds a support note and queues recipient notifications', function () {
     $this->seedRoles();
     $merchantContext = $this->createMerchantContext();

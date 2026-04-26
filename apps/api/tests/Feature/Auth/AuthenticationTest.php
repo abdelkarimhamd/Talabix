@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Modules\Identity\Enums\UserAccountStatus;
 use Laravel\Sanctum\Sanctum;
 use Tests\Support\CreatesDomainData;
 
@@ -21,6 +22,22 @@ it('issues a sanctum token for a customer login', function () {
         ->assertJsonPath('data.user.email', $customer->email);
 
     expect($response->json('data.token'))->toBeString()->not->toBeEmpty();
+});
+
+it('rejects inactive accounts with a JSON validation response', function () {
+    $this->seedRoles();
+    $this->createUserWithRole('ops_admin', [
+        'email' => 'inactive-ops@talabix.test',
+        'account_status' => UserAccountStatus::SUSPENDED,
+    ]);
+
+    $this->postJson('/api/v1/ops/auth/login', [
+        'email' => 'inactive-ops@talabix.test',
+        'password' => 'password',
+        'device_name' => 'ops-browser',
+    ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['email']);
 });
 
 it('registers a customer and creates a profile', function () {

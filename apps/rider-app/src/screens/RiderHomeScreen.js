@@ -3,13 +3,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { useI18n } from '../i18n';
-import { getRiderNotifications, getRiderOverview, updateRiderAvailability } from '../rider-api';
+import {
+  getRiderNotifications,
+  getRiderOverview,
+  updateRiderAvailability,
+} from '../rider-api';
 import {
   AccentButton,
   ActionPill,
+  MetricTile,
   InfoCard,
+  RiderTopBar,
   ScreenFrame,
+  SectionHeader,
   SecondaryButton,
+  colors,
   screenStyles,
 } from '../ui';
 
@@ -35,22 +43,66 @@ export function RiderHomeScreen({ actions = null }) {
         })
       );
     },
+    onError: (error) => {
+      setFeedback(error.message ?? t('rider.home.availabilityUpdateFailed'));
+    },
   });
+  const isAvailabilityPending = availabilityMutation.isPending;
+  const pendingAvailabilityLabel = t('rider.home.updatingAvailability');
 
   return (
     <ScreenFrame
+      activeTab="home"
       description={t('rider.home.description')}
       eyebrow={t('rider.home.eyebrow')}
+      preserveHeaderText={false}
+      showHeader={false}
       title={t('rider.home.title')}
     >
       <Text testID="rider-locale-direction" style={{ height: 0, opacity: 0 }}>
         {dir}
       </Text>
+      <RiderTopBar
+        meta={data?.pickupBranch ?? 'Riyadh delivery run'}
+        name={notificationInbox?.data[0]?.recipient_name ?? 'Reem Al-Shehri'}
+        status={t('rider.home.availability')}
+      />
+
+      <View style={screenStyles.section}>
+        <Text style={screenStyles.pageKicker}>
+          {t('rider.home.eyebrow')}
+        </Text>
+        <Text style={screenStyles.compactTitle}>{t('rider.home.title')}</Text>
+      </View>
+
+      <View style={screenStyles.metricRail}>
+        <MetricTile
+          label={t('rider.home.activeAssignment')}
+          tone="yellow"
+          value={data ? tp('rider.home.activeStops', data.activeStops) : '...'}
+        />
+        <MetricTile
+          label={t('rider.home.inbox')}
+          value={
+            notificationInbox
+              ? tp(
+                  'rider.home.unreadNotifications',
+                  notificationInbox.meta.unread_count
+                )
+              : '...'
+          }
+        />
+      </View>
+
       <InfoCard
-        accent="#26a69a"
+        accent={colors.primary}
         description={data?.pickupBranch}
         eyebrow={t('rider.home.activeAssignment')}
-        title={data?.orderUuid ? data.orderUuid.slice(0, 8).toUpperCase() : t('rider.home.waitingDispatch')}
+        title={
+          data?.orderUuid
+            ? data.orderUuid.slice(0, 8).toUpperCase()
+            : t('rider.home.waitingDispatch')
+        }
       >
         <Text style={screenStyles.statValue}>
           {data ? tp('rider.home.activeStops', data.activeStops) : '...'}
@@ -63,23 +115,39 @@ export function RiderHomeScreen({ actions = null }) {
               })
             : t('rider.home.waitingDispatchData')}
         </Text>
-        {data ? <ActionPill label={t('rider.home.nextAction', { action: data.nextActionLabel })} /> : null}
+        {data ? (
+          <ActionPill
+            tone="warning"
+            label={t('rider.home.nextAction', { action: data.nextActionLabel })}
+          />
+        ) : null}
       </InfoCard>
 
       <InfoCard
-        accent="#7fc7bc"
+        accent={colors.green}
         description={t('rider.home.inboxDescription')}
         eyebrow={t('rider.home.inbox')}
         title={
           notificationInbox
-            ? tp('rider.home.unreadNotifications', notificationInbox.meta.unread_count)
+            ? tp(
+                'rider.home.unreadNotifications',
+                notificationInbox.meta.unread_count
+              )
             : t('rider.home.loadingInbox')
         }
       >
         <View style={screenStyles.row}>
-          <ActionPill label={t('common.total', { count: notificationInbox?.meta.total ?? 0 })} />
           <ActionPill
-            label={t('common.unread', { count: notificationInbox?.meta.unread_count ?? 0 })}
+            tone="warning"
+            label={t('common.total', {
+              count: notificationInbox?.meta.total ?? 0,
+            })}
+          />
+          <ActionPill
+            tone="success"
+            label={t('common.unread', {
+              count: notificationInbox?.meta.unread_count ?? 0,
+            })}
           />
         </View>
         <Text style={screenStyles.muted}>
@@ -90,37 +158,54 @@ export function RiderHomeScreen({ actions = null }) {
       </InfoCard>
 
       <InfoCard
-        accent="#112134"
+        accent={colors.dark}
         description={t('rider.home.availabilityDescription')}
         eyebrow={t('rider.home.availability')}
-        title={data ? labelForEnum('riderAvailability', data.availability) : '...'}
+        title={
+          data ? labelForEnum('riderAvailability', data.availability) : '...'
+        }
       >
         <Text style={screenStyles.muted}>
           {t('rider.home.availabilityHelp')}
         </Text>
         <View style={screenStyles.buttonRow}>
           <AccentButton
-            label={t('rider.home.goAvailable')}
+            disabled={isAvailabilityPending}
+            label={
+              isAvailabilityPending &&
+              availabilityMutation.variables === 'available'
+                ? pendingAvailabilityLabel
+                : t('rider.home.goAvailable')
+            }
             onPress={() => availabilityMutation.mutate('available')}
             testID="set-rider-available"
           />
           <SecondaryButton
-            label={t('rider.home.goOffline')}
+            disabled={isAvailabilityPending}
+            label={
+              isAvailabilityPending &&
+              availabilityMutation.variables === 'offline'
+                ? pendingAvailabilityLabel
+                : t('rider.home.goOffline')
+            }
             onPress={() => availabilityMutation.mutate('offline')}
             testID="set-rider-offline"
           />
         </View>
-        {feedback ? <Text style={screenStyles.helperText}>{feedback}</Text> : null}
+        {feedback ? (
+          <Text style={screenStyles.helperText}>{feedback}</Text>
+        ) : null}
       </InfoCard>
 
-      <InfoCard
-        accent="#7fc7bc"
-        description={t('rider.home.nextStepsDescription')}
-        eyebrow={t('rider.home.nextSteps')}
-        title={t('rider.home.riderActions')}
-      >
-        <View style={screenStyles.row}>{actions}</View>
-      </InfoCard>
+      {actions ? (
+        <View style={screenStyles.section}>
+          <SectionHeader title={t('rider.home.riderActions')} />
+          <Text style={screenStyles.muted}>
+            {t('rider.home.nextStepsDescription')}
+          </Text>
+          <View style={screenStyles.buttonRow}>{actions}</View>
+        </View>
+      ) : null}
     </ScreenFrame>
   );
 }

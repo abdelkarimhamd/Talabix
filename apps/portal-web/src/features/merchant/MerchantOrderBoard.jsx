@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { orderStatuses } from '@talabix/shared/contracts/enums';
 import { startTransition, useDeferredValue, useState } from 'react';
+import { useI18n } from '../../use-i18n.js';
 import { useSession } from '../../use-session.js';
 
 const filterOptions = ['all', ...orderStatuses];
@@ -20,7 +21,8 @@ const laneDefinitions = [
   {
     status: 'preparing',
     title: 'Preparing',
-    description: 'Kitchen work is active and should finish into ready-for-pickup.',
+    description:
+      'Kitchen work is active and should finish into ready-for-pickup.',
   },
   {
     status: 'ready_for_pickup',
@@ -41,10 +43,6 @@ const merchantActionLabels = {
   mark_ready: 'Mark ready',
 };
 
-function humanize(value) {
-  return value.replaceAll('_', ' ');
-}
-
 function toneForStatus(status) {
   switch (status) {
     case 'placed':
@@ -64,21 +62,21 @@ function toneForStatus(status) {
   }
 }
 
-function timelineTitle(event) {
+function timelineTitle(event, labelForEnum) {
   if (event.to_status) {
-    return humanize(event.to_status);
+    return labelForEnum('orderStatus', event.to_status);
   }
 
-  return humanize(event.event_type);
+  return labelForEnum('orderTimelineEventType', event.event_type);
 }
 
-function timelineDescription(event) {
+function timelineDescription(event, labelForEnum) {
   if (event.metadata?.fulfillment_stage) {
-    return `Merchant fulfillment: ${humanize(event.metadata.fulfillment_stage)}`;
+    return `Merchant fulfillment: ${labelForEnum('orderStatus', event.metadata.fulfillment_stage)}`;
   }
 
   if (event.actor_role) {
-    return `Actor role: ${event.actor_role}`;
+    return `Actor role: ${labelForEnum('actorRole', event.actor_role)}`;
   }
 
   return 'Lifecycle event';
@@ -101,6 +99,7 @@ function actionFeedbackLabel(action) {
 
 export function MerchantOrderBoard() {
   const { api } = useSession();
+  const { formatDateTime, labelForEnum } = useI18n();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -116,7 +115,8 @@ export function MerchantOrderBoard() {
     queryFn: () => api.listMerchantOrders(),
   });
   const transitionMutation = useMutation({
-    mutationFn: ({ orderUuid, action }) => api.transitionMerchantOrder(orderUuid, action),
+    mutationFn: ({ orderUuid, action }) =>
+      api.transitionMerchantOrder(orderUuid, action),
     onSuccess: (order, variables) => {
       queryClient.invalidateQueries({ queryKey: ['merchant-orders'] });
       setSelectedOrderUuid(order.uuid);
@@ -153,7 +153,9 @@ export function MerchantOrderBoard() {
       ? laneDefinitions
       : laneDefinitions.filter((lane) => lane.status === statusFilter);
   const selectedOrder =
-    data.find((order) => order.uuid === selectedOrderUuid) ?? filteredOrders[0] ?? null;
+    data.find((order) => order.uuid === selectedOrderUuid) ??
+    filteredOrders[0] ??
+    null;
 
   return (
     <section className="board panel">
@@ -184,12 +186,12 @@ export function MerchantOrderBoard() {
         >
           {filterOptions.map((option) => (
             <option key={option} value={option}>
-              {humanize(option)}
+              {option === 'all' ? 'All' : labelForEnum('orderStatus', option)}
             </option>
           ))}
         </select>
         <button onClick={() => refetch()} type="button">
-          {isFetching ? 'Refreshing…' : 'Refresh board'}
+          {isFetching ? 'Refreshing...' : 'Refresh board'}
         </button>
       </div>
 
@@ -197,12 +199,18 @@ export function MerchantOrderBoard() {
         <div className="panel">
           <span className="eyebrow">Transition control</span>
           <strong>Lifecycle service only</strong>
-          <p>Accept, reject, preparing, and ready-for-pickup stay aligned with one backend state machine.</p>
+          <p>
+            Accept, reject, preparing, and ready-for-pickup stay aligned with
+            one backend state machine.
+          </p>
         </div>
         <div className="panel">
           <span className="eyebrow">Merchant pace</span>
           <strong>Kitchen-first execution</strong>
-          <p>The board favors branch operators who need clear next actions and timeline visibility over dense admin tooling.</p>
+          <p>
+            The board favors branch operators who need clear next actions and
+            timeline visibility over dense admin tooling.
+          </p>
         </div>
       </div>
 
@@ -230,13 +238,18 @@ export function MerchantOrderBoard() {
                   <div className="lane-header">
                     <div>
                       <span className="eyebrow">{lane.title}</span>
-                      <h3>{laneOrders.length} order{laneOrders.length === 1 ? '' : 's'}</h3>
+                      <h3>
+                        {laneOrders.length} order
+                        {laneOrders.length === 1 ? '' : 's'}
+                      </h3>
                     </div>
                     <p>{lane.description}</p>
                   </div>
 
                   {laneOrders.length === 0 ? (
-                    <div className="lane-empty">No orders in this stage right now.</div>
+                    <div className="lane-empty">
+                      No orders in this stage right now.
+                    </div>
                   ) : (
                     <div className="lane-stack">
                       {laneOrders.map((order) => (
@@ -250,8 +263,11 @@ export function MerchantOrderBoard() {
                               <span className="eyebrow">Order</span>
                               <h3>{order.customer_name}</h3>
                             </div>
-                            <span className="status-pill" data-tone={toneForStatus(order.status)}>
-                              {humanize(order.status)}
+                            <span
+                              className="status-pill"
+                              data-tone={toneForStatus(order.status)}
+                            >
+                              {labelForEnum('orderStatus', order.status)}
                             </span>
                           </header>
 
@@ -263,7 +279,9 @@ export function MerchantOrderBoard() {
                           <dl>
                             <div>
                               <dt>Total</dt>
-                              <dd>{(order.total_minor / 100).toFixed(2)} SAR</dd>
+                              <dd>
+                                {(order.total_minor / 100).toFixed(2)} SAR
+                              </dd>
                             </div>
                             <div>
                               <dt>Items</dt>
@@ -271,7 +289,9 @@ export function MerchantOrderBoard() {
                             </div>
                             <div>
                               <dt>Placed</dt>
-                              <dd>{new Date(order.placed_at ?? Date.now()).toLocaleTimeString()}</dd>
+                              <dd>
+                                {formatDateTime(order.placed_at ?? Date.now())}
+                              </dd>
                             </div>
                             <div>
                               <dt>Timeline</dt>
@@ -294,7 +314,8 @@ export function MerchantOrderBoard() {
                                   data-testid={`merchant-action-${action}-${order.uuid}`}
                                   disabled={
                                     transitionMutation.isPending &&
-                                    transitionMutation.variables?.orderUuid === order.uuid
+                                    transitionMutation.variables?.orderUuid ===
+                                      order.uuid
                                   }
                                   key={action}
                                   onClick={() =>
@@ -306,14 +327,19 @@ export function MerchantOrderBoard() {
                                   type="button"
                                 >
                                   {transitionMutation.isPending &&
-                                  transitionMutation.variables?.orderUuid === order.uuid &&
-                                  transitionMutation.variables?.action === action
-                                    ? 'Working…'
+                                  transitionMutation.variables?.orderUuid ===
+                                    order.uuid &&
+                                  transitionMutation.variables?.action ===
+                                    action
+                                    ? 'Working...'
                                     : merchantActionLabels[action]}
                                 </button>
                               ))
                             ) : (
-                              <span className="status-pill" data-tone={toneForStatus(order.status)}>
+                              <span
+                                className="status-pill"
+                                data-tone={toneForStatus(order.status)}
+                              >
                                 Waiting for next actor
                               </span>
                             )}
@@ -339,12 +365,17 @@ export function MerchantOrderBoard() {
               <div>
                 <span className="eyebrow">Timeline focus</span>
                 <h3>
-                  {selectedOrder ? selectedOrder.customer_name : 'Select an order'}
+                  {selectedOrder
+                    ? selectedOrder.customer_name
+                    : 'Select an order'}
                 </h3>
               </div>
               {selectedOrder ? (
-                <span className="status-pill" data-tone={toneForStatus(selectedOrder.status)}>
-                  {humanize(selectedOrder.status)}
+                <span
+                  className="status-pill"
+                  data-tone={toneForStatus(selectedOrder.status)}
+                >
+                  {labelForEnum('orderStatus', selectedOrder.status)}
                 </span>
               ) : null}
             </div>
@@ -352,17 +383,22 @@ export function MerchantOrderBoard() {
             {selectedOrder ? (
               <>
                 <p className="timeline-copy">
-                  {selectedOrder.branch_name} - {(selectedOrder.total_minor / 100).toFixed(2)} SAR -{' '}
-                  {selectedOrder.item_count} item{selectedOrder.item_count === 1 ? '' : 's'}
+                  {selectedOrder.branch_name} -{' '}
+                  {(selectedOrder.total_minor / 100).toFixed(2)} SAR -{' '}
+                  {selectedOrder.item_count} item
+                  {selectedOrder.item_count === 1 ? '' : 's'}
                 </p>
                 <div className="timeline">
                   {selectedOrder.timeline.map((event, index) => (
-                    <div className="timeline-entry" key={`${selectedOrder.uuid}-${event.event_type}-${index}`}>
-                      <strong>{timelineTitle(event)}</strong>
-                      <span>{timelineDescription(event)}</span>
+                    <div
+                      className="timeline-entry"
+                      key={`${selectedOrder.uuid}-${event.event_type}-${index}`}
+                    >
+                      <strong>{timelineTitle(event, labelForEnum)}</strong>
+                      <span>{timelineDescription(event, labelForEnum)}</span>
                       <small>
                         {event.created_at
-                          ? new Date(event.created_at).toLocaleString()
+                          ? formatDateTime(event.created_at)
                           : 'Timestamp pending'}
                       </small>
                     </div>
@@ -370,7 +406,9 @@ export function MerchantOrderBoard() {
                 </div>
               </>
             ) : (
-              <div className="lane-empty">Choose an order card to inspect its lifecycle.</div>
+              <div className="lane-empty">
+                Choose an order card to inspect its lifecycle.
+              </div>
             )}
           </aside>
         </div>
@@ -378,4 +416,3 @@ export function MerchantOrderBoard() {
     </section>
   );
 }
-

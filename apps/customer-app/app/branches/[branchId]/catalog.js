@@ -1,18 +1,20 @@
 import { Link, useLocalSearchParams } from 'expo-router';
 import { BranchCatalogScreen } from '../../../src/screens/BranchCatalogScreen';
-import { SecondaryButton } from '../../../src/ui';
+import { SecondaryButton, withDesignFrame } from '../../../src/ui';
 
 export default function BranchCatalogRoute() {
-  const { branchId } = useLocalSearchParams();
+  const { branchId, item, offerId } = useLocalSearchParams();
 
   return (
     <BranchCatalogScreen
       actions={
-        <Link asChild href="/cart">
+        <Link asChild href={withDesignFrame('/cart')}>
           <SecondaryButton label="Continue to cart" />
         </Link>
       }
       branchId={String(branchId ?? '')}
+      highlightCatalogItemUuid={item ? String(item) : null}
+      highlightOfferId={offerId ? String(offerId) : null}
     />
   );
 }

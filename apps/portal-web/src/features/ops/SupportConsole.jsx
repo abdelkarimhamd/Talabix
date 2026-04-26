@@ -1,14 +1,18 @@
 import React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  supportCancellationReasonCodes,
+  supportCaseStatuses,
+  supportIssueTypes,
+  supportResolutionTypes,
+} from '@talabix/shared/contracts/enums';
 import { startTransition, useDeferredValue, useEffect, useState } from 'react';
+import { useI18n } from '../../use-i18n.js';
 import { useSession } from '../../use-session.js';
-
-function compactStatus(status) {
-  return status.replaceAll('_', ' ');
-}
 
 export function SupportConsole() {
   const { api } = useSession();
+  const { labelForEnum } = useI18n();
   const queryClient = useQueryClient();
   const [query, setQuery] = useState('');
   const [selectedOrderUuid, setSelectedOrderUuid] = useState('');
@@ -19,16 +23,22 @@ export function SupportConsole() {
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [cancelReasonCode, setCancelReasonCode] = useState('customer_request');
   const [cancelReasonNote, setCancelReasonNote] = useState('');
-  const [noteBody, setNoteBody] = useState('Please call the customer before arrival.');
+  const [noteBody, setNoteBody] = useState(
+    'Please call the customer before arrival.'
+  );
   const [feedback, setFeedback] = useState();
   const deferredQuery = useDeferredValue(query);
 
   const { data: orders = [] } = useQuery({
     queryKey: ['ops-support-orders', deferredQuery],
-    queryFn: () => api.searchSupportOrders({ q: deferredQuery.trim() || undefined }),
+    queryFn: () =>
+      api.searchSupportOrders({ q: deferredQuery.trim() || undefined }),
   });
 
-  const activeOrder = orders.find((order) => order.uuid === selectedOrderUuid) ?? orders[0] ?? null;
+  const activeOrder =
+    orders.find((order) => order.uuid === selectedOrderUuid) ??
+    orders[0] ??
+    null;
 
   useEffect(() => {
     if (!activeOrder) {
@@ -39,11 +49,15 @@ export function SupportConsole() {
       activeOrder.support_case?.summary ??
         `Support follow-up for order ${activeOrder.uuid.slice(0, 8).toUpperCase()}.`
     );
-    setCaseIssueType(activeOrder.support_case?.issue_type ?? 'customer_request');
+    setCaseIssueType(
+      activeOrder.support_case?.issue_type ?? 'customer_request'
+    );
     setCaseStatus(activeOrder.support_case?.status ?? 'open');
     setResolutionType(activeOrder.support_case?.resolution_type ?? '');
     setResolutionNotes(activeOrder.support_case?.resolution_notes ?? '');
-    setCancelReasonCode(activeOrder.support_case?.cancellation_reason_code ?? 'customer_request');
+    setCancelReasonCode(
+      activeOrder.support_case?.cancellation_reason_code ?? 'customer_request'
+    );
     setCancelReasonNote('');
   }, [activeOrder]);
 
@@ -71,7 +85,7 @@ export function SupportConsole() {
     onSuccess: (supportCase) => {
       queryClient.invalidateQueries({ queryKey: ['ops-support-orders'] });
       setFeedback(
-        `Support case ${supportCase.uuid.slice(0, 8).toUpperCase()} saved as ${compactStatus(supportCase.status)}.`
+        `Support case ${supportCase.uuid.slice(0, 8).toUpperCase()} saved as ${labelForEnum('supportCaseStatus', supportCase.status)}.`
       );
     },
     onError: (error) => {
@@ -80,11 +94,14 @@ export function SupportConsole() {
   });
 
   const noteMutation = useMutation({
-    mutationFn: () => api.createSupportNote(activeOrder.uuid, { body: noteBody }),
+    mutationFn: () =>
+      api.createSupportNote(activeOrder.uuid, { body: noteBody }),
     onSuccess: (note) => {
       queryClient.invalidateQueries({ queryKey: ['ops-support-orders'] });
       queryClient.invalidateQueries({ queryKey: ['ops-notifications'] });
-      setFeedback(`Support note added for ${note.order_uuid.slice(0, 8).toUpperCase()}.`);
+      setFeedback(
+        `Support note added for ${note.order_uuid.slice(0, 8).toUpperCase()}.`
+      );
       setNoteBody('Customer notified and internal teams updated.');
     },
     onError: (error) => {
@@ -104,7 +121,7 @@ export function SupportConsole() {
       queryClient.invalidateQueries({ queryKey: ['ops-support-orders'] });
       queryClient.invalidateQueries({ queryKey: ['ops-notifications'] });
       setFeedback(
-        `Support cancelled order ${order.uuid.slice(0, 8).toUpperCase()} with ${compactStatus(cancelReasonCode)}.`
+        `Support cancelled order ${order.uuid.slice(0, 8).toUpperCase()} with ${labelForEnum('supportCancellationReasonCode', cancelReasonCode)}.`
       );
     },
     onError: (error) => {
@@ -113,7 +130,8 @@ export function SupportConsole() {
   });
 
   const retryMutation = useMutation({
-    mutationFn: (notificationDeliveryId) => api.retryNotification(notificationDeliveryId),
+    mutationFn: (notificationDeliveryId) =>
+      api.retryNotification(notificationDeliveryId),
     onSuccess: (delivery) => {
       queryClient.invalidateQueries({ queryKey: ['ops-notifications'] });
       setFeedback(
@@ -121,7 +139,9 @@ export function SupportConsole() {
       );
     },
     onError: (error) => {
-      setFeedback(error.message ?? 'Notification retry could not be scheduled.');
+      setFeedback(
+        error.message ?? 'Notification retry could not be scheduled.'
+      );
     },
   });
 
@@ -159,7 +179,9 @@ export function SupportConsole() {
       <div className="toolbar">
         <input
           aria-label="Search support orders"
-          onChange={(event) => startTransition(() => setQuery(event.target.value))}
+          onChange={(event) =>
+            startTransition(() => setQuery(event.target.value))
+          }
           placeholder="search by order, customer, or merchant"
           value={query}
         />
@@ -167,13 +189,19 @@ export function SupportConsole() {
 
       <div className="board-grid">
         {orders.map((order) => (
-          <article className="board-card" data-testid={`support-order-${order.uuid}`} key={order.uuid}>
+          <article
+            className="board-card"
+            data-testid={`support-order-${order.uuid}`}
+            key={order.uuid}
+          >
             <header>
               <div>
                 <span className="eyebrow">{order.merchant_name}</span>
                 <h3>{order.customer_name}</h3>
               </div>
-              <span className="status-pill">{compactStatus(order.status)}</span>
+              <span className="status-pill">
+                {labelForEnum('orderStatus', order.status)}
+              </span>
             </header>
 
             <dl>
@@ -191,7 +219,14 @@ export function SupportConsole() {
               </div>
               <div>
                 <dt>Case status</dt>
-                <dd>{order.support_case ? compactStatus(order.support_case.status) : 'none'}</dd>
+                <dd>
+                  {order.support_case
+                    ? labelForEnum(
+                        'supportCaseStatus',
+                        order.support_case.status
+                      )
+                    : 'none'}
+                </dd>
               </div>
             </dl>
 
@@ -216,31 +251,45 @@ export function SupportConsole() {
             <div>
               <span className="eyebrow">Focused case</span>
               <h3>
-                {activeOrder.customer_name} - {activeOrder.uuid.slice(0, 8).toUpperCase()}
+                {activeOrder.customer_name} -{' '}
+                {activeOrder.uuid.slice(0, 8).toUpperCase()}
               </h3>
             </div>
             <span
               className="status-pill"
-              data-tone={activeOrder.status === 'cancelled' ? 'alert' : 'success'}
+              data-tone={
+                activeOrder.status === 'cancelled' ? 'alert' : 'success'
+              }
             >
-              {compactStatus(activeOrder.status)}
+              {labelForEnum('orderStatus', activeOrder.status)}
             </span>
           </div>
 
           <div className="insight-strip">
             <div className="panel">
               <span className="eyebrow">Case summary</span>
-              <strong>{activeOrder.support_case?.summary ?? 'No structured case yet'}</strong>
-              <p>Ticket shape is tracked on the order itself, not in a separate support-only silo.</p>
+              <strong>
+                {activeOrder.support_case?.summary ?? 'No structured case yet'}
+              </strong>
+              <p>
+                Ticket shape is tracked on the order itself, not in a separate
+                support-only silo.
+              </p>
             </div>
             <div className="panel">
               <span className="eyebrow">Resolution</span>
               <strong>
                 {activeOrder.support_case?.resolution_type
-                  ? compactStatus(activeOrder.support_case.resolution_type)
+                  ? labelForEnum(
+                      'supportResolutionType',
+                      activeOrder.support_case.resolution_type
+                    )
                   : 'Pending outcome'}
               </strong>
-              <p>Cancellation reasons and final outcomes stay typed for later reporting and audits.</p>
+              <p>
+                Cancellation reasons and final outcomes stay typed for later
+                reporting and audits.
+              </p>
             </div>
           </div>
 
@@ -255,23 +304,22 @@ export function SupportConsole() {
               onChange={(event) => setCaseIssueType(event.target.value)}
               value={caseIssueType}
             >
-              <option value="customer_request">customer request</option>
-              <option value="delivery_delay">delivery delay</option>
-              <option value="address_issue">address issue</option>
-              <option value="merchant_issue">merchant issue</option>
-              <option value="rider_issue">rider issue</option>
-              <option value="order_accuracy">order accuracy</option>
-              <option value="payment_issue">payment issue</option>
-              <option value="other">other</option>
+              {supportIssueTypes.map((issueType) => (
+                <option key={issueType} value={issueType}>
+                  {labelForEnum('supportIssueType', issueType)}
+                </option>
+              ))}
             </select>
             <select
               aria-label="Support case status"
               onChange={(event) => setCaseStatus(event.target.value)}
               value={caseStatus}
             >
-              <option value="open">open</option>
-              <option value="investigating">investigating</option>
-              <option value="resolved">resolved</option>
+              {supportCaseStatuses.map((status) => (
+                <option key={status} value={status}>
+                  {labelForEnum('supportCaseStatus', status)}
+                </option>
+              ))}
             </select>
             <select
               aria-label="Support case resolution type"
@@ -279,14 +327,11 @@ export function SupportConsole() {
               value={resolutionType}
             >
               <option value="">no resolution</option>
-              <option value="customer_contacted">customer contacted</option>
-              <option value="merchant_contacted">merchant contacted</option>
-              <option value="rider_contacted">rider contacted</option>
-              <option value="clarified_instructions">clarified instructions</option>
-              <option value="cancelled_order">cancelled order</option>
-              <option value="compensation_offered">compensation offered</option>
-              <option value="monitoring_only">monitoring only</option>
-              <option value="other">other</option>
+              {supportResolutionTypes.map((resolution) => (
+                <option key={resolution} value={resolution}>
+                  {labelForEnum('supportResolutionType', resolution)}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -300,7 +345,11 @@ export function SupportConsole() {
           </div>
 
           <div className="card-actions">
-            <button className="action-button secondary" onClick={() => caseMutation.mutate()} type="button">
+            <button
+              className="action-button secondary"
+              onClick={() => caseMutation.mutate()}
+              type="button"
+            >
               Save support case
             </button>
           </div>
@@ -325,7 +374,11 @@ export function SupportConsole() {
           </div>
 
           <div className="card-actions">
-            <button className="action-button" onClick={() => noteMutation.mutate()} type="button">
+            <button
+              className="action-button"
+              onClick={() => noteMutation.mutate()}
+              type="button"
+            >
               Add support note
             </button>
           </div>
@@ -336,15 +389,11 @@ export function SupportConsole() {
               onChange={(event) => setCancelReasonCode(event.target.value)}
               value={cancelReasonCode}
             >
-              <option value="customer_request">customer request</option>
-              <option value="merchant_unavailable">merchant unavailable</option>
-              <option value="out_of_stock">out of stock</option>
-              <option value="address_unserviceable">address unserviceable</option>
-              <option value="rider_issue">rider issue</option>
-              <option value="duplicate_order">duplicate order</option>
-              <option value="fraud_review">fraud review</option>
-              <option value="ops_override">ops override</option>
-              <option value="other">other</option>
+              {supportCancellationReasonCodes.map((reasonCode) => (
+                <option key={reasonCode} value={reasonCode}>
+                  {labelForEnum('supportCancellationReasonCode', reasonCode)}
+                </option>
+              ))}
             </select>
             <textarea
               aria-label="Support cancellation note"
@@ -373,20 +422,26 @@ export function SupportConsole() {
             <span className="eyebrow">Outbound queue</span>
             <h3>Recent notification deliveries</h3>
           </div>
-          <span className="status-pill">{notificationEntries.length} visible</span>
+          <span className="status-pill">
+            {notificationEntries.length} visible
+          </span>
         </div>
 
         <div className="timeline">
           {notificationEntries.map((entry) => (
             <article className="timeline-entry" key={entry.id}>
               <strong>
-                {entry.title} - {entry.channel.replaceAll('_', ' ')}
+                {entry.title} -{' '}
+                {labelForEnum('notificationChannel', entry.channel)}
               </strong>
               <span>
-                {entry.recipient_actor} - {entry.recipient_name}
+                {labelForEnum('actorRole', entry.recipient_actor)} -{' '}
+                {entry.recipient_name}
               </span>
               <small>
-                {entry.status} via {entry.provider} - attempt {entry.attempt_count} - {entry.order_uuid.slice(0, 8).toUpperCase()}
+                {labelForEnum('notificationDeliveryStatus', entry.status)} via{' '}
+                {entry.provider} - attempt {entry.attempt_count} -{' '}
+                {entry.order_uuid.slice(0, 8).toUpperCase()}
               </small>
               {entry.last_error ? <span>{entry.last_error}</span> : null}
               {entry.status === 'failed' ? (

@@ -1,6 +1,6 @@
 import { Link } from 'expo-router';
 import { RiderHomeScreen } from '../src/screens/RiderHomeScreen';
-import { AccentButton } from '../src/ui';
+import { AccentButton, SecondaryButton } from '../src/ui';
 
 export default function RiderHomeRoute() {
   return (
@@ -11,13 +11,13 @@ export default function RiderHomeRoute() {
             <AccentButton label="Open assignments" />
           </Link>
           <Link asChild href="/notifications">
-            <AccentButton label="Notifications" />
+            <SecondaryButton label="Notifications" />
           </Link>
           <Link asChild href="/earnings">
-            <AccentButton label="Earnings" />
+            <SecondaryButton label="Earnings" />
           </Link>
           <Link asChild href="/delivery">
-            <AccentButton label="Delivery detail" testID="delivery-detail" />
+            <SecondaryButton label="Delivery detail" testID="delivery-detail" />
           </Link>
         </>
       }

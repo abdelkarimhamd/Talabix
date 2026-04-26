@@ -44,6 +44,9 @@ class OrderLifecycleService
         OrderStatus::CANCELLED->value => [],
     ];
 
+    /**
+     * @param  array<string, mixed>  $metadata
+     */
     public function transition(
         Order $order,
         OrderStatus $toStatus,
@@ -53,11 +56,7 @@ class OrderLifecycleService
     ): Order {
         $fromStatus = $order->status;
 
-        if (! $fromStatus instanceof OrderStatus) {
-            $fromStatus = OrderStatus::from((string) $order->status);
-        }
-
-        $allowed = self::TRANSITIONS[$fromStatus->value] ?? [];
+        $allowed = self::TRANSITIONS[$fromStatus->value];
 
         if (! in_array($toStatus, $allowed, true)) {
             throw new InvalidOrderTransitionException(sprintf(
@@ -96,6 +95,9 @@ class OrderLifecycleService
         return $order->refresh();
     }
 
+    /**
+     * @param  array<string, mixed>  $metadata
+     */
     public function recordTimelineEvent(
         Order $order,
         OrderTimelineEventType $eventType,
@@ -105,6 +107,9 @@ class OrderLifecycleService
         return $this->timelineRecord($order, $eventType, $actor, $metadata, $order->status, $order->status);
     }
 
+    /**
+     * @param  array<string, mixed>  $metadata
+     */
     private function timelineRecord(
         Order $order,
         OrderTimelineEventType $eventType,

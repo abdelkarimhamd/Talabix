@@ -19,8 +19,8 @@ class LogSmsNotificationTransport implements NotificationChannelTransport
             'notification_delivery_id' => $delivery->id,
             'recipient_actor' => $delivery->recipient_actor,
             'recipient_user_id' => $delivery->recipient_user_id,
-            'recipient_phone' => $delivery->recipientUser?->phone,
-            'notification_type' => $delivery->notification_type?->value ?? $delivery->notification_type,
+            'recipient_phone' => $delivery->recipientUser->phone,
+            'notification_type' => $delivery->notification_type->value,
             'payload' => $delivery->payload,
         ]);
 

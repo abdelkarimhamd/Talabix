@@ -101,7 +101,7 @@ These items are compatible with the repo direction and should still be built.
 
 ### Address and serviceability
 
-- Production maps provider credentials, GPS permission handling, and provider-failure UX.
+- Production maps provider credentials, provider dashboard alerts, and provider-failure UX evidence.
 
 ### Customer experience
 
@@ -117,7 +117,7 @@ These items are compatible with the repo direction and should still be built.
 
 ### Rider experience
 
-- Timeout handling, richer delivery exceptions, and approval/document workflows.
+- Approval/document workflows, plus richer post-exception support resolution paths.
 
 ### Ops and support
 
@@ -169,8 +169,8 @@ These items are valid product ideas, but they should not be treated as immediate
 ### EPIC 3 - Address, Maps & Serviceability
 
 - Status: largely established for MVP.
-- Done: address CRUD, structured address notes/fields, default address handling, map-driven place search, address-aware discovery, service-zone validation at checkout, and shared maps-provider ETA projection.
-- Missing: native GPS permission handling and production maps-provider failure UX.
+- Done: address CRUD, structured address notes/fields, default address handling, map-driven place search, customer current-location permission handling, address-aware discovery, service-zone validation at checkout, and shared maps-provider ETA projection.
+- Missing: live maps-provider credentials, provider dashboard alerts, and production maps-provider failure evidence.
 
 ### EPIC 4 - Customer Discovery & Store Experience
 
@@ -222,14 +222,14 @@ These items are valid product ideas, but they should not be treated as immediate
 ### EPIC 12 - Rider Delivery Operations
 
 - Status: largely established for MVP.
-- Done: assignment visibility, assignment acceptance, pickup, proof-of-delivery capture, delivered transition, navigation handoff, rider earnings summary/reporting, and rider app execution flow.
-- Missing: timeout handling and richer delivery exception flows.
+- Done: assignment visibility, assignment acceptance, pickup, proof-of-delivery capture, delivered transition, navigation handoff, rider delivery exception reporting with response SLA visibility, rider earnings summary/reporting, and rider app execution flow.
+- Missing: richer post-exception support resolution paths and rider approval/document handling.
 
 ### EPIC 13 - Dispatch & Live Operations
 
 - Status: partial.
-- Done: dispatch board, ops map view, route/ETA projections for active assignments, auto-assignment scoring, manual reassignment, and audit/timeline verification.
-- Missing: SLA alerts and deeper realtime ops tooling.
+- Done: dispatch board, ops map view, route/ETA projections for active assignments, auto-assignment scoring, manual reassignment, delivery exception response SLA visibility, and audit/timeline verification.
+- Missing: monitoring alerts for breached SLA windows and deeper realtime ops tooling.
 
 ### EPIC 14 - Admin Configuration & Master Data
 
@@ -264,17 +264,20 @@ These items are valid product ideas, but they should not be treated as immediate
 ### EPIC 19 - DevOps, Monitoring & Release Engineering
 
 - Status: partial.
-- Done: Docker local infra, CI, backend/frontend test/build loop.
-- Missing: staging/prod environments, deployment automation, observability, backups, incident runbooks.
+- Done: Docker local infra, CI, backend/frontend test/build loop, production readiness runbook, Docker VM deployment target, GitHub Actions deploy workflow, readiness endpoint contract, and a repo launch preflight command for evidence/runtime gates.
+- Missing: live environment provisioning, alert wiring, first restore-drill evidence, and incident drill evidence.
 
 ## Exact Next Build Backlog
 
 If we continue from the current repo and stay aligned with both the document and the repo MVP plan, the next work should be:
 
-1. Finish staging/production hardening: deployment automation, monitoring, backups, and incident runbooks.
-2. Harden production maps behavior: real provider credentials, GPS permission handling, and graceful provider-failure UX.
-3. Add SLA/timeout handling for dispatch and rider delivery exceptions.
-4. If auth scope changes beyond the current repo MVP, add OTP messaging separately as an explicit scope expansion.
+1. Provision the staging VM, add GitHub Environment secrets, and run the deploy workflow end to end.
+2. Select monitoring tools and wire alerts for readiness, queue depth, failed jobs, Reverb, database, Redis, maps, and notification delivery.
+3. Run the first staging MySQL restore drill and attach evidence to `docs/ops/launch-evidence.md`.
+4. Complete maps production hardening with live provider credentials, provider dashboard alerts, and a staging fallback alert drill.
+5. Wire alerting for breached dispatch and delivery-exception SLA windows, then run an ops drill and attach evidence to `docs/ops/launch-evidence.md`.
+6. Run `npm run launch:preflight` after the staging evidence rows are updated, then resolve any reported evidence or runtime blockers before production traffic.
+7. If auth scope changes beyond the current repo MVP, add OTP messaging separately as an explicit scope expansion.
 
 ## Recommended Rule For Future Planning
 

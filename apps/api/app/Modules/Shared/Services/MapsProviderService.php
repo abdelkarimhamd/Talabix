@@ -2,6 +2,10 @@
 
 namespace App\Modules\Shared\Services;
 
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Throwable;
+
 class MapsProviderService
 {
     private const DEMO_PLACES = [
@@ -43,11 +47,22 @@ class MapsProviderService
         ],
     ];
 
+    public function __construct(private readonly MapsProviderConfigurationService $configuration) {}
+
     public function provider(): string
     {
-        return (string) config('services.maps.provider', 'demo');
+        $provider = $this->configuration->provider();
+
+        if ($provider === 'google_maps' && $this->googleMapsKey() === '') {
+            return 'demo';
+        }
+
+        return $provider;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function searchPlaces(string $query): array
     {
         $normalizedQuery = str($query)->lower()->trim()->toString();
@@ -56,6 +71,26 @@ class MapsProviderService
             return [];
         }
 
+        if ($this->usesGoogleMaps()) {
+            try {
+                return $this->searchGooglePlaces($query);
+            } catch (Throwable $exception) {
+                if (! $this->shouldFallbackToDemo()) {
+                    throw $exception;
+                }
+
+                $this->logGoogleMapsFallback('places_search', $exception);
+            }
+        }
+
+        return $this->searchDemoPlaces($normalizedQuery);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function searchDemoPlaces(string $normalizedQuery): array
+    {
         return collect(self::DEMO_PLACES)
             ->filter(function (array $place) use ($normalizedQuery) {
                 return str(implode(' ', array_filter([
@@ -83,7 +118,35 @@ class MapsProviderService
         return (int) round(2 * $earthRadius * asin(sqrt($angle)));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function distanceEstimate(
+        float $fromLat,
+        float $fromLng,
+        float $toLat,
+        float $toLng,
+        string $mode = 'driving'
+    ): array {
+        if ($this->usesGoogleMaps()) {
+            try {
+                return $this->googleDistanceEstimate($fromLat, $fromLng, $toLat, $toLng, $mode);
+            } catch (Throwable $exception) {
+                if (! $this->shouldFallbackToDemo()) {
+                    throw $exception;
+                }
+
+                $this->logGoogleMapsFallback('distance_matrix', $exception);
+            }
+        }
+
+        return $this->demoDistanceEstimate($fromLat, $fromLng, $toLat, $toLng, $mode);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function demoDistanceEstimate(
         float $fromLat,
         float $fromLng,
         float $toLat,
@@ -105,8 +168,183 @@ class MapsProviderService
                 max(1, (int) ceil($distanceMeters / $metersPerMinute)),
                 ['minutes' => max(1, (int) ceil($distanceMeters / $metersPerMinute))]
             ),
-            'provider' => $this->provider(),
+            'provider' => 'demo',
         ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function searchGooglePlaces(string $query): array
+    {
+        $params = [
+            'input' => $query,
+            'inputtype' => 'textquery',
+            'fields' => 'formatted_address,name,geometry,place_id',
+            'key' => $this->googleMapsKey(),
+            'region' => $this->configuration->googleMapsRegion(),
+        ];
+
+        if (filled($this->configuration->googleMapsLocationBias())) {
+            $params['locationbias'] = $this->configuration->googleMapsLocationBias();
+        }
+
+        $response = Http::timeout($this->googleMapsTimeoutSeconds())
+            ->get((string) config('services.google_maps.places_endpoint'), $params);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException('Google Places request failed with HTTP '.$response->status().'.');
+        }
+
+        $payload = $response->json();
+
+        if (! is_array($payload)) {
+            throw new \RuntimeException('Google Places returned an invalid response payload.');
+        }
+
+        $status = $payload['status'] ?? 'UNKNOWN';
+
+        if ($status === 'ZERO_RESULTS') {
+            return [];
+        }
+
+        if ($status !== 'OK') {
+            throw new \RuntimeException($payload['error_message'] ?? 'Google Places returned '.$status.'.');
+        }
+
+        $candidates = array_values(array_filter(
+            (array) ($payload['candidates'] ?? []),
+            'is_array'
+        ));
+
+        return collect($candidates)
+            ->map(fn (array $candidate) => $this->mapGooglePlaceCandidate($candidate))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function googleDistanceEstimate(
+        float $fromLat,
+        float $fromLng,
+        float $toLat,
+        float $toLng,
+        string $mode
+    ): array {
+        $response = Http::timeout($this->googleMapsTimeoutSeconds())
+            ->get((string) config('services.google_maps.distance_matrix_endpoint'), [
+                'origins' => $fromLat.','.$fromLng,
+                'destinations' => $toLat.','.$toLng,
+                'mode' => $mode,
+                'units' => 'metric',
+                'key' => $this->googleMapsKey(),
+            ]);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException('Google Distance Matrix request failed with HTTP '.$response->status().'.');
+        }
+
+        $payload = $response->json();
+
+        if (! is_array($payload)) {
+            throw new \RuntimeException('Google Distance Matrix returned an invalid response payload.');
+        }
+
+        $status = $payload['status'] ?? 'UNKNOWN';
+        $element = $payload['rows'][0]['elements'][0] ?? null;
+        $elementStatus = $element['status'] ?? 'UNKNOWN';
+
+        if ($status !== 'OK' || $elementStatus !== 'OK') {
+            throw new \RuntimeException($payload['error_message'] ?? 'Google Distance Matrix returned '.$status.'/'.$elementStatus.'.');
+        }
+
+        $distanceMeters = (int) ($element['distance']['value'] ?? 0);
+        $durationSeconds = max(60, (int) ($element['duration']['value'] ?? 0));
+
+        return [
+            'mode' => $mode,
+            'distance_meters' => $distanceMeters,
+            'duration_minutes' => max(1, (int) ceil($durationSeconds / 60)),
+            'duration_seconds' => $durationSeconds,
+            'distance_text' => $element['distance']['text'] ?? $this->distanceText($distanceMeters),
+            'duration_text' => $element['duration']['text'] ?? trans_choice(
+                'messages.maps.duration_minutes',
+                max(1, (int) ceil($durationSeconds / 60)),
+                ['minutes' => max(1, (int) ceil($durationSeconds / 60))]
+            ),
+            'provider' => 'google_maps',
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $candidate
+     * @return array<string, mixed>|null
+     */
+    private function mapGooglePlaceCandidate(array $candidate): ?array
+    {
+        $location = $candidate['geometry']['location'] ?? null;
+
+        if (! isset($candidate['place_id'], $candidate['name'], $candidate['formatted_address'], $location['lat'], $location['lng'])) {
+            return null;
+        }
+
+        return [
+            'id' => (string) $candidate['place_id'],
+            'title' => (string) $candidate['name'],
+            'label' => (string) $candidate['name'],
+            'line_1' => (string) $candidate['formatted_address'],
+            'line_2' => null,
+            'building' => null,
+            'landmark' => null,
+            'city' => $this->guessCity((string) $candidate['formatted_address']),
+            'latitude' => (float) $location['lat'],
+            'longitude' => (float) $location['lng'],
+        ];
+    }
+
+    private function guessCity(string $formattedAddress): string
+    {
+        foreach (['Riyadh', 'Jeddah', 'Dammam', 'Makkah', 'Medina'] as $city) {
+            if (str($formattedAddress)->lower()->contains(str($city)->lower()->toString())) {
+                return $city;
+            }
+        }
+
+        return 'Riyadh';
+    }
+
+    private function usesGoogleMaps(): bool
+    {
+        return $this->provider() === 'google_maps' && $this->googleMapsKey() !== '';
+    }
+
+    private function googleMapsKey(): string
+    {
+        return $this->configuration->googleMapsApiKey();
+    }
+
+    private function googleMapsTimeoutSeconds(): float
+    {
+        return $this->configuration->googleMapsTimeoutSeconds();
+    }
+
+    private function shouldFallbackToDemo(): bool
+    {
+        return $this->configuration->googleMapsFallbackToDemo();
+    }
+
+    private function logGoogleMapsFallback(string $operation, Throwable $exception): void
+    {
+        Log::warning('Google Maps provider fallback activated.', [
+            'event' => 'google_maps_provider_fallback_activated',
+            'provider' => 'google_maps',
+            'fallback_provider' => 'demo',
+            'operation' => $operation,
+            'error' => $exception->getMessage(),
+        ]);
     }
 
     private function distanceText(int $distanceMeters): string

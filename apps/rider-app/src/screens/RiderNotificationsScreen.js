@@ -6,19 +6,26 @@ import { useI18n } from '../i18n';
 import {
   ActionPill,
   InfoCard,
+  MetricTile,
   ScreenFrame,
+  SectionHeader,
   SecondaryButton,
+  colors,
   screenStyles,
 } from '../ui';
 
-function applyReadState(currentInbox, notification) {
+function applyReadState(
+  currentInbox,
+  notification,
+  { unreadOnly = false } = {}
+) {
   if (!currentInbox) {
     return currentInbox;
   }
 
-  const nextData = currentInbox.data.map((entry) =>
-    entry.id === notification.id ? notification : entry
-  );
+  const nextData = currentInbox.data
+    .map((entry) => (entry.id === notification.id ? notification : entry))
+    .filter((entry) => !unreadOnly || !entry.read_at);
 
   return {
     data: nextData,
@@ -37,12 +44,18 @@ export function RiderNotificationsScreen() {
   const [unreadOnly, setUnreadOnly] = useState(false);
   const { data: inbox } = useQuery({
     queryKey: ['rider-notifications', unreadOnly],
-    queryFn: () => getRiderNotifications({ unread_only: unreadOnly || undefined }),
+    queryFn: () =>
+      getRiderNotifications({ unread_only: unreadOnly || undefined }),
   });
   const markReadMutation = useMutation({
     mutationFn: markRiderNotificationRead,
     onSuccess: (notification) => {
-      queryClient.setQueryData(['rider-notifications', unreadOnly], (currentInbox) =>
+      queryClient.setQueryData(
+        ['rider-notifications', unreadOnly],
+        (currentInbox) =>
+          applyReadState(currentInbox, notification, { unreadOnly })
+      );
+      queryClient.setQueryData(['rider-notifications', false], (currentInbox) =>
         applyReadState(currentInbox, notification)
       );
       queryClient.setQueryData(['rider-notifications'], (currentInbox) =>
@@ -54,15 +67,40 @@ export function RiderNotificationsScreen() {
       setFeedback(error.message ?? 'Notification could not be updated.');
     },
   });
+  const pendingNotificationId = markReadMutation.isPending
+    ? markReadMutation.variables
+    : null;
 
   return (
     <ScreenFrame
+      activeTab="notifications"
       description="The rider inbox only shows in-app delivery records for the signed-in rider, so assignment context and support updates stay readable even when push state diverges."
       eyebrow="Rider inbox"
+      preserveHeaderText={false}
+      showHeader={false}
       title="Assignment updates and support notes stay attached to the run."
     >
+      <View style={screenStyles.section}>
+        <Text style={screenStyles.pageKicker}>Rider inbox</Text>
+        <Text style={screenStyles.compactTitle}>
+          Assignment updates and support notes stay attached to the run.
+        </Text>
+      </View>
+
+      <View style={screenStyles.metricRail}>
+        <MetricTile
+          label="Unread"
+          tone="yellow"
+          value={inbox ? inbox.meta.unread_count : '...'}
+        />
+        <MetricTile
+          label="Visible"
+          value={inbox ? inbox.meta.total : '...'}
+        />
+      </View>
+
       <InfoCard
-        accent="#26a69a"
+        accent={colors.primary}
         description="Unread filtering is local to the rider actor surface and does not expose customer or merchant rows."
         eyebrow="Inbox state"
         title={
@@ -73,30 +111,51 @@ export function RiderNotificationsScreen() {
       >
         <View style={screenStyles.buttonRow}>
           <SecondaryButton
+            active={unreadOnly}
             label={unreadOnly ? 'Unread only: on' : 'Unread only: off'}
             onPress={() => setUnreadOnly((current) => !current)}
             testID="toggle-rider-unread-only"
           />
         </View>
-        {feedback ? <Text style={screenStyles.helperText}>{feedback}</Text> : null}
+        {feedback ? (
+          <Text style={screenStyles.helperText}>{feedback}</Text>
+        ) : null}
       </InfoCard>
+
+      <View style={screenStyles.section}>
+        <SectionHeader title="Notifications" />
+      </View>
 
       <View style={screenStyles.stacked}>
         {inbox?.data.length ? (
           inbox.data.map((notification) => (
             <InfoCard
-              accent={notification.read_at ? '#9ab8b3' : '#26a69a'}
+              accent={notification.read_at ? colors.line : colors.green}
               description={notification.body}
               eyebrow={notification.read_at ? 'Read' : 'Unread'}
               key={notification.id}
               title={notification.title}
             >
               <View style={screenStyles.row}>
-                <ActionPill label={labelForEnum('notificationType', notification.notification_type)} />
                 <ActionPill
-                  label={notification.order_uuid ? notification.order_uuid.slice(0, 8).toUpperCase() : 'General'}
+                  tone="warning"
+                  label={labelForEnum(
+                    'notificationType',
+                    notification.notification_type
+                  )}
                 />
-                <ActionPill label={notification.read_at ? 'read' : 'unread'} />
+                <ActionPill
+                  tone="neutral"
+                  label={
+                    notification.order_uuid
+                      ? notification.order_uuid.slice(0, 8).toUpperCase()
+                      : 'General'
+                  }
+                />
+                <ActionPill
+                  label={notification.read_at ? 'read' : 'unread'}
+                  tone={notification.read_at ? 'neutral' : 'success'}
+                />
               </View>
               <Text style={screenStyles.muted}>
                 {notification.created_at
@@ -106,7 +165,12 @@ export function RiderNotificationsScreen() {
               {!notification.read_at ? (
                 <View style={screenStyles.buttonRow}>
                   <SecondaryButton
-                    label="Mark read"
+                    disabled={pendingNotificationId === notification.id}
+                    label={
+                      pendingNotificationId === notification.id
+                        ? 'Marking...'
+                        : 'Mark read'
+                    }
                     onPress={() => markReadMutation.mutate(notification.id)}
                     testID={`mark-rider-notification-${notification.id}`}
                   />
@@ -116,13 +180,14 @@ export function RiderNotificationsScreen() {
           ))
         ) : (
           <InfoCard
-            accent="#9ab8b3"
+            accent={colors.line}
             description="Unread filtering may hide notifications that were already acknowledged."
             eyebrow="Inbox empty"
             title="No rider notifications match the current filter."
           >
             <Text style={screenStyles.emptyState}>
-              Notification delivery state is still stored per order, but this view only surfaces in-app rows relevant to the current rider.
+              Notification delivery state is still stored per order, but this
+              view only surfaces in-app rows relevant to the current rider.
             </Text>
           </InfoCard>
         )}

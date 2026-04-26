@@ -8,16 +8,19 @@
     "build": "vite build",
     "lint": "eslint src --ext js,jsx",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "test:e2e:admin": "playwright test --config playwright.admin.config.cjs"
   },
   "dependencies": {
     "@talabix/shared": "*",
     "@tanstack/react-query": "^5.90.2",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-router-dom": "^7.9.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@vitejs/plugin-react": "^6.0.1",

@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - 'codex/**'
   pull_request:
 
 jobs:
@@ -49,6 +50,10 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - name: Guard PHPStan baseline
+        working-directory: .
+        run: node scripts/check-phpstan-baseline.mjs
+
       - run: composer install --no-interaction --prefer-dist
       - run: cp .env.example .env
       - run: php artisan key:generate --force
@@ -89,6 +94,71 @@ jobs:
           cache: npm
 
       - run: npm install
+      - run: npx playwright install --with-deps chromium
       - run: npm run lint
       - run: npm run i18n:audit
       - run: npm run test
+      - name: Portal admin shell browser smoke
+        id: portal_admin_shell_e2e
+        run: npm --workspace @talabix/portal-web run test:e2e:admin
+      - name: Upload portal admin shell e2e artifacts
+        if: failure() && steps.portal_admin_shell_e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: portal-admin-shell-e2e-artifacts
+          path: |
+            apps/portal-web/test-results/
+            apps/portal-web/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Customer app browser e2e
+        id: customer_e2e
+        run: npm --workspace @talabix/customer-app run test:e2e
+      - name: Publish customer visual diff ratios
+        if: always() && steps.customer_e2e.outcome != 'skipped'
+        shell: bash
+        run: |
+          ratios="apps/customer-app/test-results/visual-diff-ratios.jsonl"
+          if [[ ! -f "$ratios" ]]; then
+            echo "No customer visual diff ratios were produced." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          {
+            echo "### Customer app visual diff ratios"
+            echo
+            echo "| Flow | Diff ratio | Threshold |"
+            echo "| --- | ---: | ---: |"
+            node -e "const fs=require('node:fs'); const lines=fs.readFileSync(process.argv[1], 'utf8').trim().split(/\r?\n/).filter(Boolean); for (const line of lines) { const result=JSON.parse(line); console.log('| '+result.flow+' | '+Number(result.diffRatio).toFixed(4)+' | '+Number(result.threshold).toFixed(2)+' |'); }" "$ratios"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload customer visual diff ratios
+        if: always() && steps.customer_e2e.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-app-visual-diff-ratios
+          path: apps/customer-app/test-results/visual-diff-ratios.jsonl
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload customer e2e artifacts
+        if: failure() && steps.customer_e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-app-e2e-artifacts
+          path: |
+            apps/customer-app/test-results/
+            apps/customer-app/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Rider app browser e2e
+        id: rider_e2e
+        run: npm --workspace @talabix/rider-app run test:e2e
+      - name: Upload rider e2e artifacts
+        if: failure() && steps.rider_e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rider-app-e2e-artifacts
+          path: |
+            apps/rider-app/test-results/
+            apps/rider-app/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -9,20 +9,38 @@
     "apps/*",
     "packages/*"
   ],
+  "overrides": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-test-renderer": "19.1.0",
+    "react-native-safe-area-context": "5.6.2",
+    "react-native-screens": "4.16.0",
+    "@xmldom/xmldom": "0.8.13"
+  },
   "scripts": {
     "dev:portal": "npm --workspace @talabix/portal-web run dev",
     "dev:customer": "npm --workspace @talabix/customer-app run start",
     "dev:rider": "npm --workspace @talabix/rider-app run start",
     "build": "npm run build --workspaces --if-present",
     "i18n:audit": "node scripts/i18n-audit.mjs",
+    "launch:preflight": "node scripts/launch-preflight.mjs",
+    "launch:workbench": "node scripts/launch-workbench.mjs",
     "lint": "eslint . --ext js,jsx",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "npm run test:shared && npm run test:portal && npm run test:customer && npm run test:rider",
-    "test:shared": "node --test packages/shared/src/i18n/i18n.test.js",
+    "test:api": "npm run test:api:pint && npm run test:api:analyse && docker compose run --rm --no-deps api php artisan test",
+    "test:api:pint": "docker compose run --rm --no-deps api vendor/bin/pint --test",
+    "test:api:analyse": "docker compose run --rm --no-deps api vendor/bin/phpstan analyse --memory-limit=1G",
+    "test:shared": "node scripts/run-shared-tests.mjs",
     "test:portal": "npm --workspace @talabix/portal-web run test -- --run",
     "test:customer": "npm --workspace @talabix/customer-app run test",
     "test:rider": "npm --workspace @talabix/rider-app run test",
+    "test:e2e": "npm run test:e2e:portal && npm run test:e2e:customer && npm run test:e2e:rider",
+    "test:e2e:portal": "npm --workspace @talabix/portal-web run test:e2e:admin",
+    "test:e2e:customer": "npm --workspace @talabix/customer-app run test:e2e",
+    "test:e2e:rider": "npm --workspace @talabix/rider-app run test:e2e",
+    "launch:local-checks": "npm run lint && npm run i18n:audit && npm run test && npm run test:e2e && npm run build --workspaces --if-present && npm run test:api",
     "prepare:docker": "docker compose run --rm api composer install --no-interaction --prefer-dist && docker compose run --rm api php artisan key:generate --force && docker compose run --rm api php artisan migrate --seed --force"
   },
   "devDependencies": {
@@ -34,7 +52,13 @@
     "eslint-plugin-react-native": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.24",
     "eslint-plugin-testing-library": "^7.13.5",
+    "expo-router": "~6.0.23",
     "globals": "^16.5.0",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native-safe-area-context": "5.6.2",
+    "react-native-screens": "4.16.0",
+    "react-test-renderer": "19.1.0"
   }
 }

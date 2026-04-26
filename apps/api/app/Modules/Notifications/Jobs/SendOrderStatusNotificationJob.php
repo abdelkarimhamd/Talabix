@@ -12,6 +12,9 @@ class SendOrderStatusNotificationJob implements ShouldQueue
 {
     use Queueable;
 
+    /**
+     * @param  array<string, mixed>  $metadata
+     */
     public function __construct(
         public readonly Order $order,
         public readonly OrderStatus $status,

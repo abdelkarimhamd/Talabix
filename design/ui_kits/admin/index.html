@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Talabix — Store Management, Admin & Super Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+      integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+      integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+      integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: 'Space Grotesk', 'IBM Plex Sans', 'Segoe UI', sans-serif;
+        background: linear-gradient(180deg, #f6f8fb 0%, #eef3f7 100%);
+        color: #112134;
+        font-synthesis: none;
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.5;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(17, 33, 52, 0.15);
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel" src="components.jsx"></script>
+    <script type="text/babel" src="screens.jsx"></script>
+    <script type="text/babel">
+      function App() {
+        const savedRole = localStorage.getItem('tx-admin-role') || 'store';
+        const savedRoute =
+          localStorage.getItem('tx-admin-route') || 'dashboard';
+        const [role, setRole] = React.useState(savedRole);
+        const [route, setRoute] = React.useState(savedRoute);
+
+        React.useEffect(() => {
+          localStorage.setItem('tx-admin-role', role);
+        }, [role]);
+        React.useEffect(() => {
+          localStorage.setItem('tx-admin-route', route);
+        }, [route]);
+
+        const handleRoleChange = (r) => {
+          setRole(r);
+          const defaults = {
+            store: 'dashboard',
+            admin: 'overview',
+            super: 'superOverview',
+          };
+          setRoute(defaults[r]);
+        };
+
+        const titles = {
+          dashboard: { t: 'Dashboard', c: ['Demo Kitchen', 'Dashboard'] },
+          orders: {
+            t: 'Live Orders',
+            c: ['Demo Kitchen', 'Operations', 'Live orders'],
+          },
+          catalog: { t: 'Menu & Catalog', c: ['Demo Kitchen', 'Catalog'] },
+          promotions: {
+            t: 'Promotions',
+            c: ['Demo Kitchen', 'Marketing', 'Promotions'],
+          },
+          branches: { t: 'Branches', c: ['Demo Kitchen', 'Branches'] },
+          team: { t: 'Team', c: ['Demo Kitchen', 'Team'] },
+          reports: { t: 'Reports', c: ['Demo Kitchen', 'Analytics'] },
+          finance: { t: 'Payouts', c: ['Demo Kitchen', 'Finance', 'Payouts'] },
+          settings: { t: 'Store Settings', c: ['Demo Kitchen', 'Settings'] },
+          overview: { t: 'Platform Overview', c: ['Ops', 'Overview'] },
+          dispatch: { t: 'Live Dispatch', c: ['Ops', 'Live dispatch'] },
+          merchants: { t: 'Merchants', c: ['Ops', 'Merchants'] },
+          riders: { t: 'Riders', c: ['Ops', 'Fleet', 'Riders'] },
+          customers: { t: 'Customers', c: ['Ops', 'Customers'] },
+          superOverview: { t: 'Company HQ', c: ['Super admin', 'Overview'] },
+          tenants: { t: 'Tenants', c: ['Super admin', 'Tenants'] },
+          roles: {
+            t: 'Roles & Access',
+            c: ['Super admin', 'Identity', 'Roles'],
+          },
+          featureFlags: {
+            t: 'Feature Flags',
+            c: ['Super admin', 'Platform', 'Flags'],
+          },
+          audit: { t: 'Audit Log', c: ['Super admin', 'Audit'] },
+          system: { t: 'System Health', c: ['Super admin', 'System'] },
+        };
+        const cur = titles[route] || { t: route, c: [route] };
+
+        const render = () => {
+          if (role === 'store') {
+            if (route === 'dashboard') return <StoreDashboard />;
+            if (route === 'orders') return <StoreLiveOrders />;
+            if (route === 'catalog') return <StoreCatalog />;
+            if (route === 'branches') return <StoreBranches />;
+            return <Placeholder label={cur.t} />;
+          }
+          if (role === 'admin') {
+            if (route === 'overview') return <AdminOverview />;
+            if (route === 'dispatch') return <AdminDispatch />;
+            if (route === 'merchants') return <AdminMerchants />;
+            if (route === 'finance') return <AdminFinance />;
+            return <Placeholder label={cur.t} />;
+          }
+          if (role === 'super') {
+            if (route === 'superOverview') return <SuperOverview />;
+            if (route === 'roles') return <SuperRoles />;
+            return <Placeholder label={cur.t} />;
+          }
+        };
+
+        const userBadge =
+          role === 'super' ? 'SA' : role === 'admin' ? 'OK' : 'WS';
+
+        return (
+          <div style={{ display: 'flex', minHeight: '100vh' }}>
+            <Sidebar
+              active={route}
+              onNav={setRoute}
+              role={role}
+              userBadge={userBadge}
+            />
+            <div
+              style={{
+                flex: 1,
+                minWidth: 0,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <Topbar
+                title={cur.t}
+                crumbs={cur.c}
+                role={role}
+                onRoleChange={handleRoleChange}
+                right={
+                  <Btn
+                    label={
+                      role === 'store'
+                        ? '+ New order'
+                        : role === 'admin'
+                          ? '+ Incident'
+                          : '+ New flag'
+                    }
+                    tone="primary"
+                    size="md"
+                    icon={<I.plus c={TK.navy} />}
+                  />
+                }
+              />
+              <main
+                style={{
+                  flex: 1,
+                  padding: '24px 28px 40px',
+                  minWidth: 0,
+                  background: 'transparent',
+                }}
+              >
+                {render()}
+              </main>
+            </div>
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
+</html>
