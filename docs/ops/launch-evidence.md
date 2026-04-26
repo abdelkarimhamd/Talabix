@@ -27,6 +27,23 @@ This record is the source of truth for pre-launch operational proof. Keep raw se
 | Staging deployment     | Pass: manual native VM deployment completed under `/talabix` without taking over the existing root site            |
 | Result                 | Pass for CI gate and staging deployment; remaining evidence rows still Blocked                                     |
 
+## Latest Local Go-Live Verification
+
+| Field                | Value                                                                                                                                                                      |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gate date            | 2026-04-26T13:48:40+03:00                                                                                                                                                  |
+| Branch               | `codex/design`                                                                                                                                                             |
+| Local runtime        | Node 22/npm 11; Docker Desktop with API image PHP 8.3.30, MySQL 8.4, Redis 7                                                                                               |
+| Dependency audit     | Pass for high severity: `npm audit --audit-level=high`; remaining advisories are low/moderate Expo/Jest tooling paths whose automatic fixes require breaking force changes |
+| Shared/client checks | Pass: `npm run lint`, `npm run i18n:audit`, and `npm run test`                                                                                                             |
+| Browser e2e          | Pass: `npm run test:e2e` ran portal admin e2e (9), customer app e2e (9), and rider delivery e2e (1)                                                                        |
+| Workspace build      | Pass: `npm run build --workspaces --if-present`; portal bundle emitted the existing >500 kB chunk warning                                                                  |
+| API code style       | Pass: `docker compose run --rm --no-deps api vendor/bin/pint --test` checked 262 files                                                                                     |
+| API static analysis  | Pass: `docker compose run --rm --no-deps api vendor/bin/phpstan analyse --memory-limit=1G`                                                                                 |
+| API tests            | Pass: `docker compose run --rm --no-deps api php artisan test` reported 98 tests and 740 assertions                                                                        |
+| Launch preflight     | Blocked: `TALABIX_PREFLIGHT_PHP_VERSION=8.3.30 npm run launch:preflight` passed the PHP runtime gate but still blocked on external Ops evidence rows                       |
+| Result               | Local app gate passed; production promotion remains blocked until the required Ops evidence rows below move from `Blocked` to `Pass`                                       |
+
 ## Staging Deployment Evidence
 
 | Field                | Value                                                                                                                                                                                                                 |

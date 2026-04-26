@@ -14,7 +14,8 @@
     "react-dom": "19.1.0",
     "react-test-renderer": "19.1.0",
     "react-native-safe-area-context": "5.6.2",
-    "react-native-screens": "4.16.0"
+    "react-native-screens": "4.16.0",
+    "@xmldom/xmldom": "0.8.13"
   },
   "scripts": {
     "dev:portal": "npm --workspace @talabix/portal-web run dev",
@@ -28,10 +29,18 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "npm run test:shared && npm run test:portal && npm run test:customer && npm run test:rider",
+    "test:api": "npm run test:api:pint && npm run test:api:analyse && docker compose run --rm --no-deps api php artisan test",
+    "test:api:pint": "docker compose run --rm --no-deps api vendor/bin/pint --test",
+    "test:api:analyse": "docker compose run --rm --no-deps api vendor/bin/phpstan analyse --memory-limit=1G",
     "test:shared": "node scripts/run-shared-tests.mjs",
     "test:portal": "npm --workspace @talabix/portal-web run test -- --run",
     "test:customer": "npm --workspace @talabix/customer-app run test",
     "test:rider": "npm --workspace @talabix/rider-app run test",
+    "test:e2e": "npm run test:e2e:portal && npm run test:e2e:customer && npm run test:e2e:rider",
+    "test:e2e:portal": "npm --workspace @talabix/portal-web run test:e2e:admin",
+    "test:e2e:customer": "npm --workspace @talabix/customer-app run test:e2e",
+    "test:e2e:rider": "npm --workspace @talabix/rider-app run test:e2e",
+    "launch:local-checks": "npm run lint && npm run i18n:audit && npm run test && npm run test:e2e && npm run build --workspaces --if-present && npm run test:api",
     "prepare:docker": "docker compose run --rm api composer install --no-interaction --prefer-dist && docker compose run --rm api php artisan key:generate --force && docker compose run --rm api php artisan migrate --seed --force"
   },
   "devDependencies": {

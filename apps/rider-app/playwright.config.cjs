@@ -1,7 +1,7 @@
 /* global process */
 
-const port = Number(process.env.CUSTOMER_APP_E2E_PORT ?? 8091);
-const baseURL = process.env.CUSTOMER_APP_URL ?? `http://127.0.0.1:${port}`;
+const port = Number(process.env.RIDER_APP_E2E_PORT ?? 8092);
+const baseURL = process.env.RIDER_APP_URL ?? `http://127.0.0.1:${port}`;
 const browserChannel =
   process.env.PLAYWRIGHT_BROWSER_CHANNEL ??
   (process.platform === 'win32' ? 'chrome' : undefined);
@@ -12,7 +12,7 @@ const expoCommand =
 
 module.exports = {
   testDir: './e2e',
-  testMatch: /customer-four-flow\.spec\.js/,
+  testMatch: /rider-delivery-flow\.spec\.js/,
   timeout: 45_000,
   expect: {
     timeout: 10_000,
@@ -29,7 +29,7 @@ module.exports = {
       height: 920,
     },
   },
-  webServer: process.env.CUSTOMER_APP_URL
+  webServer: process.env.RIDER_APP_URL
     ? undefined
     : {
         command: expoCommand,

@@ -8,7 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest --runInBand --forceExit"
+    "test": "jest __tests__ --runInBand --forceExit",
+    "test:e2e": "playwright test --config playwright.config.cjs"
   },
   "dependencies": {
     "@talabix/shared": "*",
@@ -22,6 +23,7 @@
     "react-native-screens": "~4.16.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@testing-library/react-native": "^13.3.3",
     "jest": "^29.7.0",
     "jest-expo": "~54.0.17",
