@@ -8,9 +8,9 @@ services:
           'php -r "exit(@file_get_contents(''http://127.0.0.1:8000/up'') === false ? 1 : 0);"',
         ]
       interval: 30s
-      timeout: 5s
+      timeout: 30s
       retries: 3
-      start_period: 30s
+      start_period: 60s
 
   worker:
     restart: unless-stopped
